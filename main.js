@@ -11,33 +11,7 @@ const client = new Discord.Client();
 
 /**VARIBLES**/
 var accountData = require("./accounts.json").players;
-var basicPlayerData={
-    name:"Frustrated Programmer",
-    id:"00000",
-    resources:{
-        credits:0,
-        steel:0,
-        beryllium:0,
-        titanium:0,
-        electricity:0,
-        research:0,
-        people:0,
-        food:0,
-        neutronium:0,
-        carbon:0,
-        silicon:0,
-        happiness:100
-    },
-    stations:[
-        {
-            galaxy:0,
-            x:0,
-            y:0,
-            type:"Mine"
-        }
-    ]
-};
-
+var UpdateAccount = require("./account.js");
 
 
 /**CONSTANTS**/
@@ -50,10 +24,11 @@ const commands = [
         description: "Gives you the current version",
         reqs: [],
         effect: function (message, args, playerData) {
-            var embed = new Discord.RichEmbed()
-                .setColor(embedColors.green)
-                .setTitle("Galactica | Version | " + version);
-            message.channel.send({embed: embed});
+            sendBasicEmbed({
+                color:embedColors.green,
+                content:"Galactica | Version | " + version,
+                channel:message.channel
+            });
         }
     },
     {
@@ -78,14 +53,21 @@ const commands = [
         reqs: [],
         effect: function (message, args, playerData) {
             if (playerData != null) {
-                normalEmbed("Name:"+playerData.name+"\nID:"+playerData.id,embedColors.blue,message.channel);
+                var embed = new Discord.RichEmbed()
+                    .setTitle(message.member.displayName+"'s stats")
+                    .setColor(embedColors.blue)
+                    .addField("Location:","Galaxy `"+playerData.location[0]+"` Area: `"+playerData.location[1]+"x"+playerData.location[2]+"`");
+                message.channel.send(embed);
             } else {
-                var newPlayerData = JSON.parse(JSON.stringify(basicPlayerData));
-                newPlayerData.name=message.author.username;
-                newPlayerData.id=message.author.id;
+                var newPlayerData = new UpdateAccount();
+                newPlayerData.userID=message.author.id;
                 accountData.push(newPlayerData);
                 saveJsonFile("./accounts.json");
-                normalEmbed("Created Account",embedColors.green,message.channel);
+                sendBasicEmbed({
+                    color:embedColors.green,
+                    content:"Account Created",
+                    channel:message.channel
+                });
             }
         }
     },
@@ -162,7 +144,7 @@ function createMap(galaxys, xSize, ySize) {
 }
 function findPlayerData(ID) {
     for (var i = 0; i < accountData.length; i++) {
-        if (accountData[i].id === ID) {
+        if (accountData[i].userID === ID) {
             return accountData[i];
         }
     }
@@ -171,11 +153,11 @@ function findPlayerData(ID) {
 function saveJsonFile(file) {
     fs.writeFileSync(file, JSON.stringify(require(file), null, 4));//the (null, 4) "cleans" up the json file
 };
-function normalEmbed(text, color,channel) {
+function sendBasicEmbed(args) {
     var embed = new Discord.RichEmbed()
-        .setColor(color)
-        .setDescription(text);
-    channel.send(embed);
+        .setColor(args.color)
+        .setDescription(args.content);
+    args.channel.send(embed);
 }
 function channelClear(channel, msgnum) {
     channel.bulkDelete(msgnum, true);
@@ -210,7 +192,6 @@ client.on("message", function (message) {
     if (message.author.bot) {
         return;
     }
-
     var command = message.content.toLowerCase().split(" ")[0];
     var args = message.content.toLowerCase().split(" ");
     args.shift();
