@@ -1,4 +1,4 @@
-/**
+ /**
  * Created by Elijah on 9/9/2017.
  */
 var version = "0.0.0";
@@ -6,20 +6,38 @@ var version = "0.0.0";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
-//var accountData = require("./Accounts.json");
 
-var channelClear = function(channel, msgnum) {
-  channel.bulkDelete(msgnum, true);
-};
-var channelClearAll = function(channel) {
-  channel.bulkDelete(100, true).then(function() {
-    if(channel.lastMessageID) {
-      clearAll(channel);
+var accountData = require("./accounts.json").players;
+var stations = [
+    {//example
+        x:0,
+        y:0,
+        g:0,
+        typeOfStation:"",
+        ownerID:""
     }
-  });
-};
+];
+function createMap(galaxys,xSize,ySize){
+  var planets = ["empty","mine","farm"];
+  var map = [];
+  for(var g =0;g<galaxys;g++){
+    var galaxy = [];
+    for(var y =0;y<ySize;y++){
+      var yMap = [];
+      for(var x =0;x<xSize;x++){
+        yMap.push(planets[Math.round(Math.random()*planets.length)]);
+      }
+      galaxy.push(yMap);
+    }
+    map.push(galaxy);
+  }
 
-//Constants
+  return map;
+}
+const map = createMap();
+
+
+/**CONSTANTS**/
 const embedColors = require("./colors.js");
 const universalPrefix = "-";
 const commands = [
@@ -51,8 +69,7 @@ const commands = [
     }
   },
 ];
-
-var reqChecks = {
+const reqChecks = {
   "argNum": function(reqArgs, message, args) {
     return args[reqArgs][0] !== parseInt(args[reqArgs][0], 10);
   },
@@ -70,6 +87,17 @@ var reqChecks = {
   },
 };
 
+/**FUNCTIONS**/
+ function channelClear(channel, msgnum) {
+     channel.bulkDelete(msgnum, true);
+ };
+ function channelClearAll(channel) {
+     channel.bulkDelete(100, true).then(function() {
+         if(channel.lastMessageID) {
+             channelClearAll(channel);
+         }
+     });
+ };
 function runCommand(command, message, args) {
   for(var i = 0; i < command.requirements.length; i++) {
     var typeReq = command.requirements[i].split(" ")[0];
