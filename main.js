@@ -12,6 +12,7 @@ const client = new Discord.Client();
 /**VARIBLES**/
 var accountData = require("./accounts.json").players;
 var UpdateAccount = require("./account.js");
+var listOfPages = [];
 
 
 /**CONSTANTS**/
@@ -69,6 +70,28 @@ const commands = [
                     channel:message.channel
                 });
             }
+        }
+    },
+    {
+        names: ["research"],
+        description: "research something",
+        reqs: [],
+        effect: function (message, args, playerData) {
+            var embed = new Discord.RichEmbed()
+                .setDescription("WIP")
+                .setColor(embedColors.yellow);
+            message.channel.send(embed).then(function () {
+                var msg = client.channels.get(message.channel.id).lastMessage;
+                msg.react("◀").then(function () {
+                    msg.react("▶").then(function () {
+                        listOfPages.push({
+                            message:msg,
+                            page:0,
+                            pages:["WIP","This","Is","A bunch","of pages"]
+                        })
+                    });
+                })
+            });
         }
     },
 ];
@@ -205,5 +228,32 @@ client.on("message", function (message) {
             }
         }
     }
+});
+client.on("messageReactionAdd", function (messageReaction, user) {
+    var msg = messageReaction.message;
+    if (user.bot) {
+        return;
+    }
+    var reaction = messageReaction.emoji.name;
+    if(reaction === "◀" || reaction === "▶") {
+        for (var i = 0; i < listOfPages.length; i++) {
+            if (listOfPages[i].message.id === msg.id) {
+                messageReaction.remove(user);
+                if(reaction === "◀"&&listOfPages[i].page!==0){
+                    listOfPages[i].page--
+                }
+                else if(reaction === "▶"&&listOfPages[i].page!==listOfPages[i].pages.length-1){
+                    listOfPages[i].page++;
+                }
+                var embed = new Discord.RichEmbed()
+                    .setDescription(listOfPages[i].pages[listOfPages[i].page])
+                    .setColor(embedColors.yellow);
+                msg.channel.fetchMessage(listOfPages[i].message.id).then(function (m) {
+                    m.edit(embed);
+                });
+            }
+        }
+    }
+    console.log("reacted");
 });
 client.login(require("./config.json").token);//Secure Login
