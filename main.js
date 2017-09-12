@@ -36,7 +36,7 @@ var accountData = require("./accounts.json").players;
             y:0,
             type:"Mine"
         }
-    ]
+    ],
 };**/
 
 
@@ -103,6 +103,7 @@ const reqChecks = {
         return args[reqArgs[0]] !== parseInt(reqArgs[1]);
     },
 };
+
 
 /**FUNCTIONS**/
 function createMap(galaxys, xSize, ySize) {
