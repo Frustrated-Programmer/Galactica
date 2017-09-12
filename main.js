@@ -11,10 +11,9 @@ const client = new Discord.Client();
 
 /**VARIBLES**/
 var accountData = require("./accounts.json").players;
-/**
-{
+var basicPlayerData={
     name:"Frustrated Programmer",
-    ID:"00000",
+    id:"00000",
     resources:{
         credits:0,
         steel:0,
@@ -36,8 +35,8 @@ var accountData = require("./accounts.json").players;
             y:0,
             type:"Mine"
         }
-    ],
-};**/
+    ]
+};
 
 
 
@@ -79,9 +78,14 @@ const commands = [
         reqs: [],
         effect: function (message, args, playerData) {
             if (playerData != null) {
-                //show account
+                normalEmbed("Name:"+playerData.name+"\nID:"+playerData.id,embedColors.blue,message.channel);
             } else {
-                //create account
+                var newPlayerData = JSON.parse(JSON.stringify(basicPlayerData));
+                newPlayerData.name=message.author.username;
+                newPlayerData.id=message.author.id;
+                accountData.push(newPlayerData);
+                saveJsonFile("./accounts.json");
+                normalEmbed("Created Account",embedColors.green,message.channel);
             }
         }
     },
@@ -167,11 +171,11 @@ function findPlayerData(ID) {
 function saveJsonFile(file) {
     fs.writeFileSync(file, JSON.stringify(require(file), null, 4));//the (null, 4) "cleans" up the json file
 };
-function normalEmbed(text, color) {
+function normalEmbed(text, color,channel) {
     var embed = new Discord.RichEmbed()
         .setColor(color)
-        .setDescriprion(text);
-    return embed;
+        .setDescription(text);
+    channel.send(embed);
 }
 function channelClear(channel, msgnum) {
     channel.bulkDelete(msgnum, true);
@@ -184,9 +188,9 @@ function channelClearAll(channel) {
     });
 };
 function runCommand(command, message, args) {
-    for (var i = 0; i < command.requirements.length; i++) {
-        var typeReq = command.requirements[i].split(" ")[0];
-        var reqArgs = command.requirements[i].split(" ");
+    for (var i = 0; i < command.reqs.length; i++) {
+        var typeReq = command.reqs[i].split(" ")[0];
+        var reqArgs = command.reqs[i].split(" ");
         reqArgs.shift();
 
         if (!reqChecks[typeReq](reqArgs, message, args)) return;
