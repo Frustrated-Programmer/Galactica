@@ -44,4 +44,4 @@ Account.prototype.getUser = function() {
   }
   return false;
 };
-
+module.exports = Account;
