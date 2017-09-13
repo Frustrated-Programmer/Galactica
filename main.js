@@ -43,9 +43,23 @@ const commands = [
     {
         names: ["clear"],
         description: "Clear a channel",
-        reqs: ["argUnder 0 100"],
+        reqs: [],
         effect: function (message, args, playerData) {
-            channelClearAll(message.channel);
+            var theNumbersInput = getNumbers(message.content,true);
+            console.log(args);
+            if(args[0]==="all") {
+                channelClear(message.channel);
+            }else if(theNumbersInput[0]<100){
+                message.delete().then(function () {
+                    channelClear(message.channel,theNumbersInput[0]);
+                })
+            }else{
+                sendBasicEmbed({
+                    content:"Invalid usage!",
+                    color:embedColors.red,
+                    channel:message.channel
+                })
+            }
         }
     },
     {
@@ -183,14 +197,15 @@ function sendBasicEmbed(args) {
     args.channel.send(embed);
 }
 function channelClear(channel, msgnum) {
-    channel.bulkDelete(msgnum, true);
-};
-function channelClearAll(channel) {
-    channel.bulkDelete(100, true).then(function () {
-        if (channel.lastMessageID) {
-            channelClearAll(channel);
-        }
-    });
+    if(msgnum){
+        channel.bulkDelete(msgnum, true);
+    }else {
+        channel.bulkDelete(100, true).then(function () {
+            if (channel.lastMessageID) {
+                channelClear(channel);
+            }
+        });
+    }
 };
 function runCommand(command, message, args) {
     for (var i = 0; i < command.reqs.length; i++) {
@@ -204,6 +219,34 @@ function runCommand(command, message, args) {
     command.effect(message, args, findPlayerData(message.author.id));
     return;
 }
+function getNumbers(text,parsed) {
+    var numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    var whichWordAreWeAt = 0;
+    var wordsWithNumbers = [];
+    var foundNumber = false;
+    for (var i = 0; i < text.length; i++) {
+        var currentTextIsNumber = false;
+        for (var j = 0; j < numbers.length; j++) {
+            if (text[i] === numbers[j]) {
+                if (!wordsWithNumbers.length) {
+                    wordsWithNumbers[0] = "";
+                }
+                foundNumber = true;
+                wordsWithNumbers[whichWordAreWeAt] += text[i];
+                currentTextIsNumber = true;
+            }
+        }
+        if (!currentTextIsNumber && foundNumber) {
+            if(parsed){
+                wordsWithNumbers[whichWordAreWeAt] = parseInt(wordsWithNumbers[whichWordAreWeAt],10);
+            }
+            whichWordAreWeAt++;
+            foundNumber = false;
+            wordsWithNumbers[whichWordAreWeAt] = "";
+        }
+    }
+    return wordsWithNumbers;
+};//insert in text get back an array of all the numbers in that text
 
 
 /**CLIENTS**/
