@@ -8,7 +8,7 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 
 const researches = {
-    names:["Inductive Isolation Methods","Gravitic Purification"],
+    names: ["Inductive Isolation Methods", "Gravitic Purification"],
 
 
     /**EVERYTHING is in arrays for each of the levels**/
@@ -44,19 +44,187 @@ var accountData = require("./accounts.json").players;
 var UpdateAccount = require("./account.js");
 var listOfWaitTimes = [];
 var waitTimesInterval = false;
+var resources = {
+    names: ["credits", "steel", "electricity", "food", "people", "beryllium", "research", "titanium", "neutronium", "carbon", "silicon"],
+    "credits": "💠",
+    "steel": "⛓",
+    "electricity": "⚡",
+    "food": "🍎",
+    "people": "👦",
+    "beryllium": "🔗",
+    "research": "💡",
+    "titanium": "🔩",
+    "neutronium": "🌀",
+    "carbon": "⬛",
+    "silicon": "✴"
+};
 
 /**CONSTANTS**/
-const factionsNames = ["Agricultural Alliance", "Industrial Alliance", "Suppression Syndicate", "Democratic Federal Union", "Secure Standing Council", "United Domination Front", "Galactic Discovery Advocacy"];
+const stations = {
+    names: ["Mining Station", "Refining Station", "Research Station"],
+    "Mining Station": {
+        maintenance: "low",
+        description: "Gives ⛓ Steel",
+        crewSize: 24,
+        gives: [["steel 1"], ["steel 2"], ["steel 4"], ["steel 6"], ["steel 10"]],
+        costs: [["steel 5"], ["steel 10"], ["steel 15"], ["steel 30"], ["steel 45"]],
+        extra: {level: 5, upgradeTo: "Metalloid Accelerator"},
+        destroyBonus: ["steel 10"]
+    },
+    "Refining Station": {
+        maintenance: "medium",
+        description: "Converts ⛓ Steel into 🔗 Beryllium",
+        crewSize: 16,
+        gives: [["steel -10", "beryllium 1"], ["steel -10", "beryllium 2"], ["steel -6", "beryllium 2"], ["steel -4", "beryllium 2"]],
+        costs: [["steel 10"], ["steel 15", "beryllium 5"], ["steel 20", "beryllium 10"], ["steel 30", "beryllium 10"]],
+        extra: {},
+        destroyBonus: ["steel 10", "beryllium 2"]
+
+    },
+    "Research Station": {
+        maintenance: "low",
+        description: "Gives 💡 research",
+        crewSize: 14,
+        gives: [["research 3"], ["research 6"], ["research 10"]],
+        costs: [["steel 20", "beryllium 10"], ["steel 40", "beryllium 20"], ["steel 60", "beryllium 30"]],
+        extra: {},
+        destroyBonus: ["research 10", "steel 10"]
+    }
+    /*"Blank Template":{
+     maintenance:"",
+     description:"",
+     crewSize:0,
+     gives:[[]],
+     costs:[[]],
+     extra:{},
+     destroyBonus:[]
+     },*/
+};
 const map = createMap(4, 25, 25);
 const embedColors = require("./colors.js");
 const universalPrefix = "-";
 
-var skipWarpTime = true;
+var skipWarpTime = true;//for testing purposes
+
 
 const commands = [
+
+    {
+        names: ["commands","command","coms","com"],
+        description: "get a list of all the commands",
+        usage:"commands [VALUE]",
+        values:["List","{COMMAND_NAME}"],
+        reqs: [],
+        effect: function (message, args, playerData) {
+
+            console.log(args);
+            if(args[0] == "" || args[0] == null){
+                args[0] = "list";
+            }
+            switch(args[0]){
+                case "list":
+                    var commandsList = "```css\n";
+                    for(var i =0;i<commands.length;i++){
+                        commandsList+="["+(i+1)+"] ";
+                        if((i+1) < 10){
+                            commandsList+=" ";
+                        }
+                        commandsList+=commands[i].names[0]+"\n"
+                    }
+                    commandsList+="```";
+                    var embed = new Discord.RichEmbed()
+                        .setColor(embedColors.blue)
+                        .setTitle("COMMAND'S LIST")
+                        .setDescription(commandsList)
+                        .setFooter(universalPrefix+"command [NAME]/[ID]");
+                    message.channel.send(embed);
+                break;
+                default:
+                    var commandIs = null;
+
+                    var numbs = getNumbers(args[0], false);
+
+                    if(numbs.length){
+                        commandIs = parseInt(numbs[0],10);
+                        commandIs--;
+                        console.log(commandIs);
+                        if(commandIs>commands.length){
+                            commandIs = null;
+                        }
+                    }else{
+                        for (var i = 0; i < commands.length; i++) {
+                            for (var j = 0; j < commands[i].names.length; j++) {
+                                if (args[0] === commands[i].names[j].toLowerCase()) {
+                                    commandIs = i;
+                                    break;
+                                }
+                            }
+                            if (commandIs != null) {
+                                break;
+                            }
+                        }
+                    }
+                    if(commandIs == null){
+                        sendBasicEmbed({
+                            content:"Invalid Usage\nTry using `"+universalPrefix+"commands list`",
+                            color:embedColors.red,
+                            channel:message.channel,
+                        })
+                    }
+                    else{
+                        var aliases = "";
+                        var command = commands[commandIs];
+                        for(var i =0;i<command.names.length;i++){
+                            aliases+="`"+command.names[i]+"` ";
+                        }
+                        var embed = new Discord.RichEmbed()
+                            .setColor(embedColors.blue)
+                            .setTitle("INFO ABOUT \"**`"+universalPrefix+command.names[0]+"`**\"")
+                            .setDescription(command.description)
+                            .addField("Aliases",aliases)
+                            .addField("Usage","`"+universalPrefix+command.usage+"`",true);
+                        if(command.values.length){
+                            var vals = "";
+                            for(var i =0;i<command.values.length;i++){
+                                vals+="`"+command.values[i]+"` ";
+                                if(i+1!==command.values.length){
+                                    vals+="|| "
+                                }
+                            }
+                            embed.addField("`[VALUE]` can be used as:",vals,true);
+                        }
+                        message.channel.send(embed);
+                    }
+                break;
+            }
+        }
+    },
+    {
+        names: ["ping"],
+        description: "ping the server and find how long is the response time",
+        usage:"ping",
+        values:[],
+        reqs: [],
+        effect: function (message, args, playerData) {
+            var storedTimeForPingCommand = Date.now();
+            var embed = new Discord.RichEmbed()
+                .setColor(embedColors.purple)
+                .setDescription("Response Time: `Loading...`");
+            message.channel.send(embed).then(function () {
+                embed.setDescription("Response time: `" + (Date.now() - storedTimeForPingCommand) + "` ms");
+
+                var msgID = message.channel.lastMessageID
+                var msg = message.channel.fetchMessage(msgID).then(function (m) {
+                    m.edit(embed);
+                });
+            })
+        }
+    },
     {
         names: ["version"],
         description: "Gives you the current version",
+        usage:"version",
+        values:[],
         reqs: [],
         effect: function (message, args, playerData) {
             sendBasicEmbed({
@@ -69,23 +237,18 @@ const commands = [
     {
         names: ["exit"],
         description: "Turns off the bot",
+        usage:"exit",
+        values:[],
         reqs: [],
         effect: function (message, args, playerData) {
             process.exit();
         }
     },
     {
-        names: ["resetData"],
-        description: "deletes all data from players.json",
-        reqs: [],
-        effect: function (message, args, playerData) {
-            accountData = [];
-            saveJsonFile("./accounts.json");
-        }
-    },
-    {
-        names: ["clear"],
+        names: ["clear","purge","prune"],
         description: "Clear a channel",
+        usage:"clear [VALUE]",
+        values:["All","{NUMBER}"],
         reqs: [],
         effect: function (message, args, playerData) {
             var theNumbersInput = getNumbers(message.content, true);
@@ -107,114 +270,122 @@ const commands = [
     {
         names: ["stats"],
         description: "Get your stats",
+        usage:"stats",
+        values:[],
         reqs: ["profile"],
         effect: function (message, args, playerData) {
             var embed = new Discord.RichEmbed()
                 .setTitle(message.member.displayName + "'s stats")
                 .setFooter(playerData.userID)
                 .setColor(embedColors.blue);
-            embed.addField("INFO:","Faction:"+playerData.faction+"\nPower: 000");
+            embed.addField("INFO:", "Faction:" + playerData.faction + "\nPower: 000");
             if (typeof playerData.location === "object") {
                 embed.addField("Location:", "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + playerData.location[1] + "x" + playerData.location[2] + "`");
             } else {
                 embed.addField("Location:", playerData.location);
             }
+            var playerResources = "```css\n";
+            //TODO: make it work with 5 digits so they are all lined up
+            for (var i = 0; i < resources.names.length; i++) {
+                playerResources += playerData[resources.names[i]] + " | " + resources[resources.names[i]] + " " + resources.names[i];
+                playerResources += "\n";
+            }
+            playerResources += "```";
+            embed.addField("Resources", playerResources);
             message.channel.send(embed);
         }
     },
     {
-        names: ["research","r"],
+        names: ["research", "r"],
         description: "research something",
-        reqs: [],
+        usage:"research [VALUE]",
+        values:["List","Info {RESEARCH_NAME}","{RESEARCH_NAME}"],
+        reqs: ["profile"],
         effect: function (message, args, playerData) {
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.yellow);
-            var numbs = getNumbers(args,false);
+            var numbs = getNumbers(args, false);
             var number = null;
-            if(numbs.length) {
+            if (numbs.length) {
                 number = parseInt(numbs[0], 10);
                 if (number >= researches.names.length) {
                     embed.setColor(embedColors.red);
                     embed.setDescription("Invalid ID number");
-                    return;
+
                 }
             }
-            else{
-                for(var i =0;i<researches.names.length;i++){
+            else {
+                for (var i = 0; i < researches.names.length; i++) {
                     var name = researches.names[i].split(" ");
                     var found = true;
                     var newArgs = [];
-                    for(var q=0;q<args.length;q++){
+                    for (var q = 0; q < args.length; q++) {
                         newArgs.push(args[q]);
                     }
-                    if(newArgs[0] === "info"){
-                        newArgs.splice(0,1);
+                    if (newArgs[0] === "info") {
+                        newArgs.splice(0, 1);
                         console.log(newArgs);
                     }
-                    for(var j = 0;j<newArgs.length;j++){
-                        if(name[j] != null){
-                            if(newArgs[j] !== name[j].toLowerCase()){
+                    for (var j = 0; j < newArgs.length; j++) {
+                        if (name[j] != null) {
+                            if (newArgs[j] !== name[j].toLowerCase()) {
                                 found = false;
                             }
                         }
                     }
-                    if(found){
+                    if (found) {
                         number = i;
                         break;
                     }
                 }
-                if(number===null&&newArgs.length){
+                if (number === null && newArgs.length && args[0] !== "list") {
                     embed.setColor(embedColors.red);
                     embed.setDescription("Invalid research name");
-                    return;
                 }
-                if(!newArgs.length){
+                if (!newArgs.length) {
                     embed.setColor(embedColors.red);
                     embed.setDescription("Invalid Usage\nNeed to include a research ID or NAME");
-                    return;
                 }
             }
-            console.log(args);
-            console.log(number);
-            switch(args[0]){
+            switch (args[0]) {
                 case "info":
-                    if(number!==null) {
+                    if (number !== null) {
                         var item = researches[researches.names[number]];
                         var level = playerData[researches.names[number]];
                         embed.setTitle("RESEARCH INFO");
-                        embed.setDescription("You have `" + playerData.research + "` 💡 research");
+                        embed.setDescription("You have `" + playerData["research"] + "` 💡 research\n" + researches.names[number] + "'s level is `" + (level + 1) + "`");
                         embed.addField(researches.names[number], item.does[level] + "\nCosts: " + item.costs[level] + " 💡 research\nTime: " + getTimeRemaining(item.timesToResearch[level]))
                         embed.setFooter(universalPrefix + "research " + researches.names[number]);
                     }
-                break;
+                    break;
                 case "list":
+                    embed.setColor(embedColors.yellow);
                     embed.setTitle("ID---Name--------------------------Cost");
                     var txt = "```css\n";
-                    for(var i =0;i<researches.names.length;i++) {
+                    for (var i = 0; i < researches.names.length; i++) {
                         var item = researches[researches.names[i]];
                         var level = playerData[researches.names[i]];
-                        txt+=spacing("["+i+"] "+researches.names[i],item.costs[level]+"\n",40);
-
+                        txt += spacing("[" + i + "] " + researches.names[i], item.costs[level] + "\n", 40);
                     }
-                    txt+="```";
+                    txt += "```";
                     embed.setDescription(txt);
-                    embed.setFooter(universalPrefix+"research info [NAME]/[ID]");
-                break;
+                    embed.setFooter(universalPrefix + "research info [NAME]/[ID]");
+                    break;
                 default:
-                    if(number!==null) {
+                    if (number !== null) {
                         var item = researches[researches.names[number]];
                         var level = playerData[researches.names[number]];
-                        if(playerData.research>=item.costs[level]){
+                        if (playerData["research"] >= item.costs[level]) {
                             //research ITEM
-                        }else{
+                        } else {
                             sendBasicEmbed({
-                                content:"Not enough 💡 research.",
-                                color:embedColors.red,
-                                channel:message.channel
+                                content: "Not enough 💡 research.",
+                                color: embedColors.red,
+                                channel: message.channel
                             })
                         }
                     }
-                break;
+                    break;
             }
 
             message.channel.send(embed)
@@ -223,6 +394,8 @@ const commands = [
     {
         names: ["warp", "go"],
         description: "warp to somewhere",
+        usage:"warp [VALUE]",
+        values:["{GALAXY}","{X} {Y}","{GALAXY} {X} {Y}"],
         reqs: ["profile"],
         effect: function (message, args, playerData) {
             if (typeof playerData.location === "object") {
@@ -309,84 +482,170 @@ const commands = [
     },
     {
         names: ["join"],
-        description: "join the game and the faction",
+        description: "join the game",
+        usage:"join",
+        values:[],
         reqs: [],
         effect: function (message, args, playerData) {
-            var correctFaction = false;
-            var StillCorrect = false;
-            var whichFaction = undefined;
-            for (var i = 0; i < factionsNames.length; i++) {
-                var factionName = factionsNames[i].split(" ");
-                for(var j =0;j<factionName.length;j++) {
-
-                    StillCorrect = (args[j] === factionName[j].toLowerCase());
-                    if (!StillCorrect) {
-                        correctFaction = false;
-                    }else if(j === 0){
-                        correctFaction = true;
-                    }
-                }
-                if(correctFaction){
-                    whichFaction = i;
-                    break;
-                }
-            }
-            if (correctFaction) {
-                var newPlayerData = new UpdateAccount();
-                newPlayerData.faction = factionsNames[whichFaction];
-                newPlayerData.userID = message.author.id;
-                accountData.push(newPlayerData);
-                saveJsonFile("./accounts.json");
-                sendBasicEmbed({
-                    color: embedColors.green,
-                    content: "Account Created",
-                    channel: message.channel
-                });
-            }
-            else {
+            if (playerData != null) {
                 sendBasicEmbed({
                     color: embedColors.red,
-                    content: "Invalid Usage\nTry using `"+universalPrefix+"factionsList`",
-                    channel: message.channel
+                    channel: message.channel,
+                    content: "You already have an account."
                 });
+                return;
             }
+
+            var newPlayerData = new UpdateAccount();
+            newPlayerData.faction = factionsNames[whichFaction];
+            newPlayerData.userID = message.author.id;
+            accountData.push(newPlayerData);
+            saveJsonFile("./accounts.json");
+            sendBasicEmbed({
+                color: embedColors.green,
+                content: "Account Created",
+                channel: message.channel
+            });
+
+
         }
     },
     {
-        names: ["factionsList","factionList","fList"],
-        description: "Gives you a list of all the factions and their perks",
-        reqs: [],
+        names: ["lookAround", "look"],
+        description: "See where you are currently at",
+        usage:"lookAround",
+        values:[],
+        reqs: ["profile"],
         effect: function (message, args, playerData) {
+            var pos = playerData.location;
+            console.log(pos);
+            var loc = map[pos[0]][pos[1]][pos[2]];
+            var station = "Unoccupied";
+            var items = "**Boost to stations:**\n • UnImplemented";
+            if (loc.ownerOfStation !== "none") {
+                items = "attack `" + loc.ownerOfStation.name + "`'s staion via `" + universalPrefix + "UnImplemented`";
+                station = "occupied by `" + loc.ownerOfStation.name + "`";
+            }
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.blue)
-                .setDescription("------------------")
-                .setTitle("FACTIONS");
-            for(var i =0;i<factionsNames.length;i++){
-                embed.addField(factionsNames[i],"Unimplemented perks");
-            }
+                .setTitle("Location:")
+                .setDescription("Galaxy: `" + pos[0] + "` Area: `" + pos[1] + "x" + pos[2] + "`")
+                .addField("**Current Area is:** " + loc.type, "*__" + station + "__*\n" + items);
             message.channel.send(embed);
         }
     },
     {
-        names: ["ping"],
-        description: "ping the server and find how long is the response time",
-        reqs:[],
-        effect: function (message, args, playerData
-        ) {
-            var storedTimeForPingCommand = Date.now();
-            var embed = new Discord.RichEmbed()
-                .setColor(embedColors.purple)
-                .setDescription("Response Time: `Loading...`");
-            message.channel.send(embed).then(function () {
-                embed.setDescription("Response time: `" + (Date.now() - storedTimeForPingCommand) + "` ms");
+        names: ["setStation"],
+        description: "sets a station where you currently are at",
+        usage:"setStation [VALUE]",
+        values:["{STATION_NAME}"],
+        reqs: ["profile"],
+        effect: function (message, args, playerData) {
 
-                var msgID = message.channel.lastMessageID
-                var msg = message.channel.fetchMessage(msgID).then(function (m) {
-                    m.edit(embed);
-                });
-            })
         }
     },
+    {
+        names: ["stations", "station","s"],
+        description: "get info on stations",
+        usage:"station [VALUE]",
+        values:["List","Info {STATION_NAME}"],
+        reqs: [],
+        effect: function (message, args, playerData) {
+            var embed = new Discord.RichEmbed()
+                .setColor(embedColors.pink);
+            switch (args[0]) {
+                case "list":
+                    embed.setTitle("ID------Name");
+                    var txt = "```css\n";
+                    for (var i = 0; i < stations.names.length; i++) {
+                        txt += "[" + i + "] " + stations.names[i] + "\n";
+                    }
+                    txt += "```";
+                    embed.setDescription(txt)
+                        .setFooter(universalPrefix + "station info [NAME]/[ID]");
+                    break;
+                case "info":
+                    var numbs = getNumbers(args, false);
+                    var number = null;
+                    if (numbs.length) {
+                        number = parseInt(numbs[0], 10);
+                        if (number >= researches.names.length) {
+                            embed.setColor(embedColors.red);
+                            embed.setDescription("Invalid ID number");
+
+                        }
+                    }
+                    else {
+                        for (var i = 0; i < researches.names.length; i++) {
+                            var name = researches.names[i].split(" ");
+                            var found = true;
+                            var newArgs = [];
+                            for (var q = 0; q < args.length; q++) {
+                                newArgs.push(args[q]);
+                            }
+                            if (newArgs[0] === "info") {
+                                newArgs.splice(0, 1);
+                                console.log(newArgs);
+                            }
+                            for (var j = 0; j < newArgs.length; j++) {
+                                if (name[j] != null) {
+                                    if (newArgs[j] !== name[j].toLowerCase()) {
+                                        found = false;
+                                    }
+                                }
+                            }
+                            if (found) {
+                                number = i;
+                                break;
+                            }
+                        }
+                        if (number === null && newArgs.length && args[0] !== "list") {
+                            embed.setColor(embedColors.red);
+                            embed.setDescription("Invalid research name");
+                        }
+                        if (!newArgs.length) {
+                            embed.setColor(embedColors.red);
+                            embed.setDescription("Invalid Usage\nNeed to include a research ID or NAME");
+                        }
+                    }
+                    if (number === null) {
+                        embed.setColor(embedColors.red);
+                        embed.setDescription("Invalid Usage\nTry using `" + universalPrefix + "station list`");
+                    }
+                    else {
+                        var item = stations[stations.names[number]];
+                        embed.setDescription("Info about:")
+                            .setTitle("STATIONS")
+                            .addField(stations.names[number], item.description);
+                        var levels = "```css";
+                        console.log(item.gives.length);
+                        for (var i = 0; i < item.gives.length; i++) {
+                            levels += "Level " + (i + 1) + " Gives: ";
+                            for (var j = 0; j < item.gives[i].length; j++) {
+                                var givesStuff = item.gives[i][j].split(" ");
+                                levels += givesStuff[1] + resources[givesStuff[0]] + " ";
+                                levels += " || Costs: ";
+                                var costsStuff = item.costs[i][j].split(" ");
+                                levels += costsStuff[1];
+                                if (costsStuff[1] < 10) {
+                                    levels += " ";
+                                }
+                                levels += resources[costsStuff[0]] + " ";
+                            }
+                            levels += "\n"
+                        }
+                        embed.addField("LEVELS", levels);
+                    }
+                    break;
+                default:
+                    embed.setDescription("Invalid Usage\nTry using `" + universalPrefix + "station list`")
+                        .setColor(embedColors.red);
+                    break;
+            }
+            message.channel.send(embed);
+        }
+    },
+
 ];
 const reqChecks = {
     "argNum": function (reqArgs, message, args, playerData) {
@@ -494,7 +753,7 @@ function createMap(galaxys, xSize, ySize) {
                 }
                 yMap.push({
                     type: planets[planet].name,
-                    ownerOfStations: "none"
+                    ownerOfStation: "none"
                 });
             }
             galaxy.push(yMap);
@@ -538,8 +797,8 @@ function runCommand(command, message, args, playerData) {
         var reqArgs = command.reqs[i].split(" ");
         reqArgs.shift();
         var reqCheck = reqChecks[typeReq](reqArgs, message, args, playerData);
-        if(!reqCheck.val){
-            if(reqCheck.msg){
+        if (!reqCheck.val) {
+            if (reqCheck.msg) {
                 sendBasicEmbed({
                     content: reqCheck.msg,
                     color: embedColors.red,
@@ -637,13 +896,13 @@ function checkPerms(args) {
     }
     return true;
 }
-function spacing (text, text2, max) {
+function spacing(text, text2, max) {
     var newText = text;
-    var len = max-text.length-text2.length;
+    var len = max - text.length - text2.length;
     for (var i = 0; i < len; i++) {
         newText += " ";
     }
-    newText+=text2;
+    newText += text2;
     return newText;
 }
 
