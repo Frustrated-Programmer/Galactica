@@ -108,7 +108,6 @@ var skipWarpTime = true;//for testing purposes
 
 
 const commands = [
-
     {
         names: ["commands","command","coms","com"],
         description: "get a list of all the commands",
@@ -541,7 +540,10 @@ const commands = [
         values:["{STATION_NAME}"],
         reqs: ["profile"],
         effect: function (message, args, playerData) {
-
+            var selectedStation = null;
+            for(var i =0;i<stations.names.length;i++){
+                if(args[0]){}
+            }
         }
     },
     {
@@ -553,15 +555,17 @@ const commands = [
         effect: function (message, args, playerData) {
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.pink);
+            if(args[0] == ""||args[0]==null){
+                args[0] = "list";
+            }
             switch (args[0]) {
                 case "list":
                     embed.setTitle("ID------Name");
                     var txt = "```css\n";
                     for (var i = 0; i < stations.names.length; i++) {
-                        txt += "[" + i + "] " + stations.names[i] + "\n";
+                        txt += "[" + (i+1) + "] " + stations.names[i] + "\n";
                     }
-                    txt += "```";
-                    embed.setDescription(txt)
+                    embed.setDescription(txt+"```")
                         .setFooter(universalPrefix + "station info [NAME]/[ID]");
                     break;
                 case "info":
@@ -569,6 +573,7 @@ const commands = [
                     var number = null;
                     if (numbs.length) {
                         number = parseInt(numbs[0], 10);
+                        number--;
                         if (number >= researches.names.length) {
                             embed.setColor(embedColors.red);
                             embed.setDescription("Invalid ID number");
@@ -615,26 +620,32 @@ const commands = [
                     else {
                         var item = stations[stations.names[number]];
                         embed.setDescription("Info about:")
-                            .setTitle("STATIONS")
-                            .addField(stations.names[number], item.description);
-                        var levels = "```css";
+                            .setTitle(stations.names[number])
+                            .setDescription(item.description);
+                        var levels = "```css\n";
                         console.log(item.gives.length);
                         for (var i = 0; i < item.gives.length; i++) {
                             levels += "Level " + (i + 1) + " Gives: ";
-                            for (var j = 0; j < item.gives[i].length; j++) {
+                            for(var j =0;j<item.gives[i].length;j++){
                                 var givesStuff = item.gives[i][j].split(" ");
-                                levels += givesStuff[1] + resources[givesStuff[0]] + " ";
-                                levels += " || Costs: ";
-                                var costsStuff = item.costs[i][j].split(" ");
-                                levels += costsStuff[1];
-                                if (costsStuff[1] < 10) {
-                                    levels += " ";
+                                levels+=givesStuff[1]+" ";
+                                if((givesStuff[1]<10&&givesStuff[1]>0)||(givesStuff[1]<0&&givesStuff[1]>-10)){
+                                    levels+=" ";
                                 }
-                                levels += resources[costsStuff[0]] + " ";
+                                levels+=resources[[givesStuff[0]]]+" ";
+                            }
+                            levels+="|| Costs: ";
+                            for(var j =0;j<item.costs[i].length;j++){
+                                var costsStuff = item.costs[i][j].split(" ");
+                                levels+=costsStuff[1]+" ";
+                                if(costsStuff[1]<10){
+                                    levels+=" ";
+                                }
+                                levels+=resources[[costsStuff[0]]]+" ";
                             }
                             levels += "\n"
                         }
-                        embed.addField("LEVELS", levels);
+                        embed.addField("LEVELS", levels+"```");
                     }
                     break;
                 default:
