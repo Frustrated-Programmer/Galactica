@@ -248,7 +248,7 @@ const commands = [
         description: "Clear a channel",
         usage:"clear [VALUE]",
         values:["All","{NUMBER}"],
-        reqs: [],
+        reqs: ["userPerms MANAGE_MESSAGES"],
         effect: function (message, args, playerData) {
             var theNumbersInput = getNumbers(message.content, true);
             if (args[0] === "all") {
@@ -733,6 +733,16 @@ const reqChecks = {
             msg: "The bot currently doesnt have: `" + reqArges[0] + "`"
         };
     },
+    "userPerms": function (reqArgs, message, args, playerData) {
+        return {
+            val: checkPerms({
+                user: "user",
+                perms: reqArgs[0],
+                message: message
+            }),
+            msg: "You currently dont have: `" + reqArges[0] + "`"
+        };
+    },
     "isntWarping": function (reqArgs, message, args, playerData) {
         return {
             val: typeof playerData.location === "object",
@@ -926,9 +936,9 @@ function checkPerms(args) {
 
     var user;
     if (args.user === "bot") {
-        user = args.message.client.user;
+        user = args.message.server.members.get(client.user.id);
     } else if (args.user === "user") {
-        user = message.member;
+        user = args.message.member;
     } else {
         console.log("args.user should be \"user\" or \"bot\"");
         return false;
