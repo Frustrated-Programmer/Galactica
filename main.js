@@ -316,7 +316,7 @@ const commands = [
             else {
                 for (var i = 0; i < researches.names.length; i++) {
                     var name = researches.names[i].split(" ");
-                    var found = true;
+                    var found = matchArray(newArgs,name);
                     var newArgs = [];
                     for (var q = 0; q < args.length; q++) {
                         newArgs.push(args[q]);
@@ -324,13 +324,6 @@ const commands = [
                     if (newArgs[0] === "info") {
                         newArgs.splice(0, 1);
                         console.log(newArgs);
-                    }
-                    for (var j = 0; j < newArgs.length; j++) {
-                        if (name[j] != null) {
-                            if (newArgs[j] !== name[j].toLowerCase()) {
-                                found = false;
-                            }
-                        }
                     }
                     if (found) {
                         number = i;
@@ -496,7 +489,6 @@ const commands = [
             }
 
             var newPlayerData = new UpdateAccount();
-            newPlayerData.faction = factionsNames[whichFaction];
             newPlayerData.userID = message.author.id;
             accountData.push(newPlayerData);
             saveJsonFile("./accounts.json");
@@ -540,9 +532,63 @@ const commands = [
         values:["{STATION_NAME}"],
         reqs: ["profile"],
         effect: function (message, args, playerData) {
-            var selectedStation = null;
+
+            var selectedStation = false;
             for(var i =0;i<stations.names.length;i++){
-                if(args[0]){}
+                var name = stations.names[i].split(" ");
+                var match = matchArray(args,name,true);
+                if(match === true){
+                    selectedStation = i;
+                }
+            }
+            if(selectedStation===false){
+                sendBasicEmbed({
+                    content:"Invalid Usage\nTry using `"+universalPrefix+"stations list`\nto get the correct spelling",
+                    color:embedColors.red,
+                    channel:message.channel
+                });
+            }
+            else{
+                var station = stations[stations.names[selectedStation]];
+                var hasEnough = true;
+                var missingItems = [];
+                for(var i =0;i<station.costs[0].length;i++){
+                    var costsStuff = station.costs[0][i].split(" ");
+                    console.log(playerData[costsStuff[0]]);
+                    if(playerData[costsStuff[0]]<costsStuff[1]){
+                        hasEnough=false;
+                        missingItems.push([(costsStuff[1]-playerData[costsStuff[0]]),resources[costsStuff[0]]])
+                    }
+                }
+
+                if(hasEnough){
+                    playerData.stations.push({
+                        location:playerData.location,
+                        type:stations.names[selectedStation]
+                    });
+                    var lostResources = "";
+                    for(var i =0;i<station.costs[0].length;i++){
+                        var costStuff = station.costs[0][i].split(" ");
+                        playerData[costStuff[0]]-=costStuff[1];
+                        lostResources+=costStuff[0]+" "+resources[costStuff[0]]+" "+costStuff[1]+"\n";
+                    }
+                    var embed = new Discord.RichEmbed()
+                        .setDescription("Successfully bought "+stations.names[selectedStation]+"\n")
+                        .setColor(embedColors.pink)
+                        .addField("Lost Resources",lostResources);
+                    message.channel.send(embed);
+                }
+                else{
+                    var missingResources = "";
+                    for(var i =0;i<missingItems.length;i++){
+                        missingResources+=missingItems[i][0]+" "+missingItems[i][1]+"\n"
+                    }
+                    var embed = new Discord.RichEmbed()
+                        .setColor(embedColors.red)
+                        .setTitle("Missing Resources")
+                        .setDescription(missingResources);
+                    message.channel.send(embed);
+                }
             }
         }
     },
@@ -583,7 +629,6 @@ const commands = [
                     else {
                         for (var i = 0; i < researches.names.length; i++) {
                             var name = researches.names[i].split(" ");
-                            var found = true;
                             var newArgs = [];
                             for (var q = 0; q < args.length; q++) {
                                 newArgs.push(args[q]);
@@ -592,13 +637,7 @@ const commands = [
                                 newArgs.splice(0, 1);
                                 console.log(newArgs);
                             }
-                            for (var j = 0; j < newArgs.length; j++) {
-                                if (name[j] != null) {
-                                    if (newArgs[j] !== name[j].toLowerCase()) {
-                                        found = false;
-                                    }
-                                }
-                            }
+                            var found = matchArray(newArgs,name,true);
                             if (found) {
                                 number = i;
                                 break;
@@ -656,8 +695,8 @@ const commands = [
             message.channel.send(embed);
         }
     },
-
 ];
+
 const reqChecks = {
     "argNum": function (reqArgs, message, args, playerData) {
         return {
@@ -701,7 +740,7 @@ const reqChecks = {
         };
     },
     "profile": function (reqArgs, message, args, playerData) {
-        return {val: playerData, msg: "You need to create a profile. use `" + universalPrefix + "join [FACTION]`"};
+        return {val: playerData, msg: "You need to create a profile. use `" + universalPrefix + "join`"};
     }
 };
 
@@ -916,7 +955,25 @@ function spacing(text, text2, max) {
     newText += text2;
     return newText;
 }
-
+function matchArray(arr1, arr2,text){
+    var match = true;
+    text = text||false;
+    if(text){
+        for (var i = 0; i < arr1.length; i++) {
+            if (arr1[i].toLowerCase() !== arr2[i].toLowerCase()) {
+                match = false;
+            }
+        }
+    }
+    else {
+        for (var i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i]) {
+                match = false;
+            }
+        }
+    }
+    return match;
+}
 
 /**CLIENTS**/
 client.on("ready", function () {
