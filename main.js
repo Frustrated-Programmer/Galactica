@@ -284,9 +284,20 @@ const commands = [
                 embed.addField("Location:", playerData.location);
             }
             var playerResources = "```css\n";
-            //TODO: make it work with 5 digits so they are all lined up
+            var spaceLength = 1;
+            for(var i =0;i<resources.names.length;i++){
+                var len = ""+playerData[resources.names[i]];
+                if(len.length>spaceLength){
+                    spaceLength = len.length;
+                }
+            }
             for (var i = 0; i < resources.names.length; i++) {
-                playerResources += playerData[resources.names[i]] + " | " + resources[resources.names[i]] + " " + resources.names[i];
+                var space = "";
+                var len = ""+playerData[resources.names[i]];
+                for(var j =0;j<spaceLength-len.length;j++){
+                    space+=" ";
+                }
+                playerResources += playerData[resources.names[i]]+space+"| " + resources[resources.names[i]] + " " + resources.names[i];
                 playerResources += "\n";
             }
             playerResources += "```";
@@ -564,7 +575,8 @@ const commands = [
                 if(hasEnough){
                     playerData.stations.push({
                         location:playerData.location,
-                        type:stations.names[selectedStation]
+                        type:stations.names[selectedStation],
+                        level:0
                     });
                     var lostResources = "";
                     for(var i =0;i<station.costs[0].length;i++){
@@ -695,8 +707,38 @@ const commands = [
             message.channel.send(embed);
         }
     },
-];
+    {
+        names: ["myStations"],
+        description: "gives you the locations and level of all your stations",
+        usage:"myStations",
+        values:[],
+        reqs: ["profile"],
+        effect: function (message, args, playerData) {
+            var stations = playerData.stations;
+            var txt = "```css\n";
+            for(var i =0;i<stations.length;i++){
+                txt+=spaceOut("["+stations[i].level+"]   "+stations[i].type,"Galaxy: "+stations[i].location[0]+" Area: "+stations[i].location[1]+"x"+stations[i].location[2],30);
+            }
+            var embed = new Discord.RichEmbed()
+                .setColor(embedColors.pink)
+                .setTitle("LEVEL----NAME-----------------------LOCATION")
+                .setDescription(txt);
+            message.channel.send(embed);
+        }
+    },
 
+    {
+        names: ["test"],
+        description: "test",
+        usage:"test",
+        values:[],
+        reqs: ["profile"],
+        effect: function (message, args, playerData) {
+            playerData[args[0]]+=parseInt(args[1],10);
+        }
+    }
+
+];
 const reqChecks = {
     "argNum": function (reqArgs, message, args, playerData) {
         return {
@@ -740,7 +782,7 @@ const reqChecks = {
                 perms: reqArgs[0],
                 message: message
             }),
-            msg: "You currently dont have: `" + reqArges[0] + "`"
+            msg: "You currently dont have: `" + reqArgs[0] + "`"
         };
     },
     "isntWarping": function (reqArgs, message, args, playerData) {
@@ -936,7 +978,7 @@ function checkPerms(args) {
 
     var user;
     if (args.user === "bot") {
-        user = args.message.server.members.get(client.user.id);
+        user = args.message.guild.members.get(client.user.id);
     } else if (args.user === "user") {
         user = args.message.member;
     } else {
@@ -1024,6 +1066,7 @@ client.on("message", function (message) {
                     }
                 }
                 runCommand(commands[i], message, args, findPlayerData(message.author.id));
+                saveJsonFile("./accounts.json");
             }
         }
     }
