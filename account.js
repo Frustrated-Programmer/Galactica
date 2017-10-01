@@ -4,6 +4,7 @@ var Account = function(data) {
   this.userID = data.userID || "";
   
   this.steel = data.steel || 0;
+  this.beryllium = data.beryllium || 0;
   this.titanium = data.titanium || 0;
   this.carbon = data.carbon || 0;
   this.neutronium = data.neutronium || 0;
@@ -18,9 +19,10 @@ var Account = function(data) {
 };
 Account.prototype.getData = function() {
   return {
-    userID: 
+    userID: this.userID,
     
     steel: this.steel,
+    beryllium: this.beryllium
     titanium: this.titanium,
     carbon: this.carbon,
     neutronium: this.neutronium,
