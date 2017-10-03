@@ -1,3 +1,37 @@
 {
-  "players":[]
+    "players": [
+        {
+            "userID": "244590122811523082",
+            "location": [
+                0,
+                0,
+                0
+            ],
+            "happiness": 0.5,
+            "credits": 0,
+            "beryllium": 0,
+            "silicon": 0,
+            "food": 0,
+            "steel": 0,
+            "titanium": 0,
+            "carbon": 0,
+            "neutronium": 0,
+            "electricity": 0,
+            "research": 0,
+            "people": 0,
+            "stations": [
+                {
+                    "location": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "type": "Mining Station",
+                    "level": 0
+                }
+            ],
+            "Inductive Isolation Methods": 0,
+            "Gravitic Purification": 0
+        }
+    ]
 }
