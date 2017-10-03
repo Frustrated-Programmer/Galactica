@@ -4,6 +4,8 @@ var Account = function (data) {
     this.userID = data.userID || "";
     this.faction = data.faction || undefined;
     this.location = this.location || [0, 0, 0];
+    this.happiness = data.happiness || 0.5;
+    this.stations = data.stations || [];
 
     this["credits"] = data["credits"] || 0;
     this["beryllium"] = data["beryllium"] || 0;
@@ -16,9 +18,6 @@ var Account = function (data) {
     this["electricity"] = data["electricity"] || 0;
     this["research"] = data["research"] || 0;
     this["people"] = data["people"] || 0;
-
-    this.happiness = data.happiness || 0.5;
-    this.stations = data.stations || [];
 
     this["Inductive Isolation Methods"] = data["Inductive Isolation Methods"] || 0;
     this["Gravitic Purification"] = data["Gravitic Purification"] || 0;
