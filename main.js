@@ -724,7 +724,72 @@ const commands = [
             }
         }
     },
-/*    {
+    {
+        names: ["collect"],
+        description: "collect resources from your stations",
+        usage:"collect",
+        values:[],
+        reqs: ["profile"],
+        effect: function (message, args, playerData) {
+            var canContinue = true;
+            if(playerData.stations.length === 0){
+                sendBasicEmbed({
+                    content:"You currently dont have any stations",
+                    channel:message.channel,
+                    color:embedColors.red
+                });
+                canContinue = false;
+            }
+            if(playerData.lastCollection+(60000*5) > Date.now()){
+                sendBasicEmbed({
+                    content:"You can only collect once every 5 minutes\nYou currently need to wait:\n"+getTimeRemaining((playerData.lastCollection+(60000*5))-Date.now()),
+                    channel:message.channel,
+                    color:embedColors.red
+                });
+                canContinue = false;
+            }
+            if(canContinue) {
+                var amount = Math.round(Date.now()-playerData.lastCollection/(60000*5));
+                playerData.lastCollection = Date.now();
+                var gainedResources = {};
+                for (var i = 0; i < playerData.stations.length; i++) {
+                    var station = stations[playerData.stations[i].type];
+                    for(var j =0;j<station.gives[playerData.stations[i].level].length;j++) {
+                        var stuff = station.gives[playerData.stations[i].level][j].split(" ");
+                        console.log(parseInt(stuff[1],10) * amount);
+                        gainedResources[stuff[0]] = gainedResources[stuff[0]] || 0;
+                        gainedResources[stuff[0]] += parseInt(stuff[1],10) * amount;
+                        playerData[stuff[0]] += parseInt(stuff[1],10) * amount;
+                    }
+                }
+                var txt = "";
+                var longestSpace = 0;
+                for(var i=0;i<resources.names.length;i++) {
+                    if (gainedResources[resources.names[i]] != null) {
+                        if (("" + gainedResources[resources.names[i]]).length>longestSpace) {
+                            longestSpace = ("" + gainedResources[resources.names[i]]).length;
+                        }
+                    }
+                }
+                for(var i =0;i<resources.names.length;i++){
+                    if(gainedResources[resources.names[i]]!=null){
+                        var space = "";
+                        for(var j =0;j<longestSpace-(""+gainedResources[resources.names[i]]).length;j++){
+                            space+=" "
+                        }
+                        txt+=gainedResources[resources.names[i]]+space+" | "+resources[resources.names[i]]+" "+resources.names[i]+"\n";
+                    }
+                }
+                console.log(gainedResources);
+                var embed = new Discord.RichEmbed()
+                    .setColor(embedColors.pink)
+                    .setTitle("Current Collection")
+                    .setDescription(txt);
+                message.channel.send(embed);
+            }
+        }
+    },
+    /*{
         names: ["test"],
         description: "test",
         usage:"test",
@@ -733,8 +798,7 @@ const commands = [
         effect: function (message, args, playerData) {
             playerData[args[0]]+=parseInt(args[1],10);
         }
-    }
-*/
+    }*/
 ];
 const reqChecks = {
     "argNum": function (reqArgs, message, args, playerData) {
