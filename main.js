@@ -7,106 +7,22 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
-const researches = {
-    names: ["Inductive Isolation Methods", "Gravitic Purification"],
-
-
-    /**EVERYTHING is in arrays for each of the levels**/
-    "Inductive Isolation Methods": {
-        //1:00,1:30,2:00,2:30,3:00
-        timesToResearch: [3600000, 5400000, 7200000, 9000000, 10800000],
-        does: [
-            "Gives `1%` more:\n • ⛓ Steel\n • 🔩 Titanium\n • ⬛Carbon\n • 🌀Neutronium\nIf researched",
-            "Gives `2%` more:\n • ⛓ Steel\n • 🔩 Titanium\n • ⬛Carbon\n • 🌀Neutronium\nIf researched",
-            "Gives `3%` more:\n • ⛓ Steel\n • 🔩 Titanium\n • ⬛Carbon\n • 🌀Neutronium\nIf researched",
-            "Gives `4%` more:\n • ⛓ Steel\n • 🔩 Titanium\n • ⬛Carbon\n • 🌀Neutronium\nIf researched",
-            "Gives `5%` more:\n • ⛓ Steel\n • 🔩 Titanium\n • ⬛Carbon\n • 🌀Neutronium\nIf researched"
-        ],
-        costs: [100, 150, 200, 250, 300]
-    },
-    "Gravitic Purification": {
-        timesToResearch: [3600000, 7200000, 14400000, 14400000, 21600000, 21600000, 600000],
-        does: [
-            "Unlocks:\n • 🔗 Beryllium\n • Steel Refinery\n • Mining Station 2",
-            "Unlocks:\n • 🔩 Titanium\n • Steel Refinery 2\n • Mining Station 3",
-            "Unlocks:\n • ⬛ Carbon\n • Steel Refinery 3\n • Mining Station 4\n • Magnetic Smelter",
-            "Unlocks:\n • 🌀 Neutronium\n • Steel Refinery 4\n • Magnetic Smelter 2",
-            "Unlocks:\n • Steel Refinery 5\n • Mining Station 5\n • Magnetic Smelter 3",
-            "🌀 Neutronium and ⬛Carbon structures have 10% less maintenance",
-            "Insurance: keep all of *Gravitic Purification's* research the next time you die"
-        ],
-        costs: [25, 50, 100, 200, 500, 1000, 100]
-    }
-};
 
 /**VARIBLES**/
 var accountData = require("./accounts.json").players;
 var UpdateAccount = require("./account.js");
 var listOfWaitTimes = [];
 var waitTimesInterval = false;
-var resources = {
-    names: ["credits", "steel", "electricity", "food", "people", "beryllium", "research", "titanium", "neutronium", "carbon", "silicon"],
-    "credits": "💠",
-    "steel": "⛓",
-    "electricity": "⚡",
-    "food": "🍎",
-    "people": "👦",
-    "beryllium": "🔗",
-    "research": "💡",
-    "titanium": "🔩",
-    "neutronium": "🌀",
-    "carbon": "⬛",
-    "silicon": "✴"
-};
+var skipWarpTime = true;//for testing purposes
+var map = createMap(4, 25, 25);
+
 
 /**CONSTANTS**/
-const stations = {
-    names: ["Mining Station", "Refining Station", "Research Station"],
-    "Mining Station": {
-        maintenance: "low",
-        description: "Gives ⛓ Steel",
-        crewSize: 24,
-        gives: [["steel 1"], ["steel 2"], ["steel 4"], ["steel 6"], ["steel 10"]],
-        costs: [["steel 5"], ["steel 10"], ["steel 15"], ["steel 30"], ["steel 45"]],
-        extra: {level: 5, upgradeTo: "Metalloid Accelerator"},
-        destroyBonus: ["steel 10"]
-    },
-    "Refining Station": {
-        maintenance: "medium",
-        description: "Converts ⛓ Steel into 🔗 Beryllium",
-        crewSize: 16,
-        gives: [["steel -10", "beryllium 1"], ["steel -10", "beryllium 2"], ["steel -6", "beryllium 2"], ["steel -4", "beryllium 2"]],
-        costs: [["steel 10"], ["steel 15", "beryllium 5"], ["steel 20", "beryllium 10"], ["steel 30", "beryllium 10"]],
-        extra: {},
-        destroyBonus: ["steel 10", "beryllium 2"]
-
-    },
-    "Research Station": {
-        maintenance: "low",
-        description: "Gives 💡 research",
-        crewSize: 14,
-        gives: [["research 3"], ["research 6"], ["research 10"]],
-        costs: [["steel 20", "beryllium 10"], ["steel 40", "beryllium 20"], ["steel 60", "beryllium 30"]],
-        extra: {},
-        destroyBonus: ["research 10", "steel 10"]
-    }
-    /*"Blank Template":{
-     maintenance:"",
-     description:"",
-     crewSize:0,
-     gives:[[]],
-     costs:[[]],
-     extra:{},
-     destroyBonus:[]
-     },*/
-};
-const map = createMap(4, 25, 25);
-const embedColors = require("./colors.js");
+const resources = require("./items.js").resources;
+const stations = require("./items.js").stations;
+const embedColors = require("./items.js").colors;
 const universalPrefix = "-";
-
-var skipWarpTime = true;//for testing purposes
-
-
+const researches = require("./items.js").researches;
 const commands = [
     {
         names: ["commands","command","coms","com"],
@@ -508,8 +424,6 @@ const commands = [
                 content: "Account Created",
                 channel: message.channel
             });
-
-
         }
     },
     {
@@ -537,12 +451,13 @@ const commands = [
         }
     },
     {
-        names: ["setStation"],
-        description: "sets a station where you currently are at",
-        usage:"setStation [VALUE]",
+        names: ["build"],
+        description: "builds a station where you currently are at",
+        usage:"build [VALUE]",
         values:["{STATION_NAME}"],
         reqs: ["profile"],
         effect: function (message, args, playerData) {
+            const freeStation = playerData.stations.length===0;
 
             var selectedStation = false;
             for(var i =0;i<stations.names.length;i++){
@@ -571,7 +486,7 @@ const commands = [
                     }
                 }
 
-                if(hasEnough){
+                if(hasEnough||freeStation){
                     playerData.stations.push({
                         location:playerData.location,
                         type:stations.names[selectedStation],
@@ -579,14 +494,22 @@ const commands = [
                     });
                     var lostResources = "";
                     for(var i =0;i<station.costs[0].length;i++){
+                        if(freeStation){
+                            break;
+                        }
                         var costStuff = station.costs[0][i].split(" ");
                         playerData[costStuff[0]]-=costStuff[1];
                         lostResources+=costStuff[0]+" "+resources[costStuff[0]]+" "+costStuff[1]+"\n";
                     }
                     var embed = new Discord.RichEmbed()
                         .setDescription("Successfully bought "+stations.names[selectedStation]+"\n")
-                        .setColor(embedColors.pink)
-                        .addField("Lost Resources",lostResources);
+                        .setColor(embedColors.pink);
+                    if(!freeStation) {
+                        embed.addField("Lost Resources", lostResources);
+                    }else{
+                        embed.addField("FIRST STATION","As this is your first station\nIts completely free!");
+                        playerData.lastCollection = Date.now();
+                    }
                     message.channel.send(embed);
                 }
                 else{
@@ -638,8 +561,8 @@ const commands = [
                         }
                     }
                     else {
-                        for (var i = 0; i < researches.names.length; i++) {
-                            var name = researches.names[i].split(" ");
+                        for (var i = 0; i < stations.names.length; i++) {
+                            var name = stations.names[i].split(" ");
                             var newArgs = [];
                             for (var q = 0; q < args.length; q++) {
                                 newArgs.push(args[q]);
@@ -671,7 +594,7 @@ const commands = [
                         var item = stations[stations.names[number]];
                         embed.setDescription("Info about:")
                             .setTitle(stations.names[number])
-                            .setDescription(item.description);
+                            .setDescription(item.description+"\n-------------------------------------------------");
                         var levels = "```css\n";
                         console.log(item.gives.length);
                         for (var i = 0; i < item.gives.length; i++) {
@@ -802,8 +725,7 @@ const commands = [
         }
     },
 
-
-    {
+/*    {
         names: ["test"],
         description: "test",
         usage:"test",
@@ -813,7 +735,7 @@ const commands = [
             playerData[args[0]]+=parseInt(args[1],10);
         }
     }
-
+*/
 ];
 const reqChecks = {
     "argNum": function (reqArgs, message, args, playerData) {
@@ -1019,6 +941,7 @@ function getNumbers(text, parsed) {
     return wordsWithNumbers;
 }//insert in text get back an array of all the numbers in that text
 function getTimeRemaining(time) {
+    console.log(time);
     var times = [[86400000, 0, "day"], [3600000, 0, "hour"], [60000, 0, "minute"], [1000, 0, "second"], [1, 0, "millisecond"]];
     var timeLeftText = "";
     var fakeTime = time;
@@ -1042,38 +965,47 @@ function getTimeRemaining(time) {
             }
         }
     }
+    console.log(time);
     return timeLeftText;
-
-
 }
 function checkPerms(args) {
-    var permsCheck = {
-        channelPerms: false,
-        serverPerms: false
-    };//To check wether the channel is overriding it or not
+    /***ARGS return
+     * message: the message that got sent
+     * user: defines whether the user is "bot" or "user"
+     * perms: the permissions were checking
+     */
 
-    var user;
+    var permsCheck = {
+        channelPerms: false,//is channel overriding?
+        serverPerms: false//is overall server role overriding
+    };
+
+    var user;//which user shall we check on
+    //gets the member
     if (args.user === "bot") {
         user = args.message.guild.members.get(client.user.id);
     } else if (args.user === "user") {
-        user = args.message.member;
+        user = args.message.author.member;
     } else {
         console.log("args.user should be \"user\" or \"bot\"");
         return false;
     }
+
+    //check for permissions
     if (args.message.channel.permissionsFor(user).has(args.perms, true)) {
         permsCheck.channelPerms = true;
     }//does it have channel perms
     if (args.message.guild.members.get(user.id).hasPermission(args.perms, [null, true, false])) {
         permsCheck.serverPerms = true;
-    }//does it have server perms
-    if (permsCheck.serverPerms != true) {
+    }//does it have role perms
+    if (permsCheck.serverPerms !== true) {//check first if you have role perms
         return false;
-    } else if (permsCheck.channelPerms != true) {
+    } else if (permsCheck.channelPerms !== true) {//check if channel is overriding it
         return false;
     }
     return true;
 }
+
 function spacing(text, text2, max) {
     var newText = text;
     var len = max - text.length - text2.length;
@@ -1089,6 +1021,7 @@ function matchArray(arr1, arr2,text){
     if(text){
         for (var i = 0; i < arr1.length; i++) {
             if (arr1[i].toLowerCase() !== arr2[i].toLowerCase()) {
+                console.log(arr1[i]+"|"+arr2);
                 match = false;
             }
         }
@@ -1117,34 +1050,33 @@ client.on("message", function (message) {
     args.shift();
 
     if (command[0] !== universalPrefix) return;
-
     for (var i = 0; i < commands.length; i++) {
-        for (var j = 0; j < commands[i].names.length; j++) {
-            if (universalPrefix + commands[i].names[j].toLowerCase() === command) {
-                if (message.channel.type !== "dm") {
-                    //SEND_MESSAGES
-                    if (!checkPerms({user: "bot", perms: "SEND_MESSAGES", message: message})) {
-                        sendBasicEmbed({
-                            content: "I do not have `SEND_MESSAGES` permission",
-                            color: embedColors.red,
-                            channel: message.author
-                        });
-                        return;
+            for (var j = 0; j < commands[i].names.length; j++) {
+                if (universalPrefix + commands[i].names[j].toLowerCase() === command) {
+                    if (message.channel.type !== "dm") {
+                        //SEND_MESSAGES
+                        if (!checkPerms({user: "bot", perms: "SEND_MESSAGES", message: message})) {
+                            sendBasicEmbed({
+                                content: "I do not have `SEND_MESSAGES` permission",
+                                color: embedColors.red,
+                                channel: message.author
+                            });
+                            return;
+                        }
+                        //EMBED_LINKS
+                        if (!checkPerms({user: "bot", perms: "EMBED_LINKS", message: message})) {
+                            sendBasicEmbed({
+                                content: "I do not have `EMBED_LINKS` permission",
+                                color: embedColors.red,
+                                channel: message.author
+                            });
+                            return;
+                        }
                     }
-                    //EMBED_LINKS
-                    if (!checkPerms({user: "bot", perms: "EMBED_LINKS", message: message})) {
-                        sendBasicEmbed({
-                            content: "I do not have `EMBED_LINKS` permission",
-                            color: embedColors.red,
-                            channel: message.author
-                        });
-                        return;
-                    }
+                    runCommand(commands[i], message, args, findPlayerData(message.author.id));
+                    saveJsonFile("./accounts.json");
                 }
-                runCommand(commands[i], message, args, findPlayerData(message.author.id));
-                saveJsonFile("./accounts.json");
             }
         }
-    }
 });
 client.login(require("./config.json").token);//Secure Login
