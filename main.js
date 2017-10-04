@@ -724,7 +724,6 @@ const commands = [
             }
         }
     },
-
 /*    {
         names: ["test"],
         description: "test",
@@ -974,7 +973,6 @@ function checkPerms(args) {
      * user: defines whether the user is "bot" or "user"
      * perms: the permissions were checking
      */
-
     var permsCheck = {
         channelPerms: false,//is channel overriding?
         serverPerms: false//is overall server role overriding
@@ -985,17 +983,17 @@ function checkPerms(args) {
     if (args.user === "bot") {
         user = args.message.guild.members.get(client.user.id);
     } else if (args.user === "user") {
-        user = args.message.author.member;
+        user = args.message.member;
     } else {
         console.log("args.user should be \"user\" or \"bot\"");
         return false;
     }
 
     //check for permissions
-    if (args.message.channel.permissionsFor(user).has(args.perms, true)) {
+    if (args.message.channel.permissionsFor(user).has(args.perms)) {
         permsCheck.channelPerms = true;
     }//does it have channel perms
-    if (args.message.guild.members.get(user.id).hasPermission(args.perms, [null, true, false])) {
+    if (args.message.member.hasPermission(args.perms,null,true,true)) {//args.message.guild.members.get(user.id).hasPermission(args.perms)
         permsCheck.serverPerms = true;
     }//does it have role perms
     if (permsCheck.serverPerms !== true) {//check first if you have role perms
@@ -1005,7 +1003,6 @@ function checkPerms(args) {
     }
     return true;
 }
-
 function spacing(text, text2, max) {
     var newText = text;
     var len = max - text.length - text2.length;
