@@ -24,6 +24,40 @@ const embedColors = require("./items.js").colors;
 const universalPrefix = "-";
 const researches = require("./items.js").researches;
 const commands = [
+    "HELP",
+    {
+        names: ["help"],
+        description: "get a list of all the commands you can do",
+        usage:"help",
+        values:[],
+        reqs: [],
+        effect: function (message, args, playerData) {
+            var txt = "```css\n";
+            for (var i = 0; i < commands.length; i++) {
+                if(typeof commands[i] === "object") {
+                    var sendIt = true;
+                    for (var q = 0; q < commands[i].reqs.length; q++) {
+                        var typeReq = commands[i].reqs[q].split(" ")[0];
+                        var reqArgs = commands[i].reqs[q].split(" ");
+                        reqArgs.shift();
+                        var reqCheck = reqChecks[typeReq](reqArgs, message, args, playerData);
+                        if (!reqCheck.val) {
+                            sendIt = false;
+                        }
+                    }
+                    if (sendIt) {
+                        txt += commands[i].names[0] + "\n";
+                    }
+                }
+            }
+            var embed = new Discord.RichEmbed()
+                .setColor(embedColors.blue)
+                .setFooter("For more info\n"+universalPrefix+"command [NAME]")
+                .setTitle("HELP")
+                .setDescription(txt+"```");
+            message.channel.send(embed);
+        }
+    },
     {
         names: ["commands","command","coms","com"],
         description: "get a list of all the commands",
@@ -31,43 +65,30 @@ const commands = [
         values:["List","{COMMAND_NAME}"],
         reqs: [],
         effect: function (message, args, playerData) {
-
-            console.log(args);
             if(args[0] == "" || args[0] == null){
                 args[0] = "list";
             }
             switch(args[0]){
                 case "list":
-                    var commandsList = "```css\n";
+                    var commandsList = "```markdown\n";
                     for(var i =0;i<commands.length;i++){
-                        commandsList+="["+(i+1)+"] ";
-                        if((i+1) < 10){
-                            commandsList+=" ";
+                        if(typeof commands[i] === "object") {
+                            commandsList += commands[i].names[0] + "\n"
+                        }else{
+                            commandsList += "#"+commands[i]+"\n";
                         }
-                        commandsList+=commands[i].names[0]+"\n"
                     }
                     commandsList+="```";
                     var embed = new Discord.RichEmbed()
                         .setColor(embedColors.blue)
                         .setTitle("COMMAND'S LIST")
                         .setDescription(commandsList)
-                        .setFooter(universalPrefix+"command [NAME]/[ID]");
+                        .setFooter(universalPrefix+"command [NAME]");
                     message.channel.send(embed);
                 break;
                 default:
                     var commandIs = null;
-
-                    var numbs = getNumbers(args[0], false);
-
-                    if(numbs.length){
-                        commandIs = parseInt(numbs[0],10);
-                        commandIs--;
-                        console.log(commandIs);
-                        if(commandIs>commands.length){
-                            commandIs = null;
-                        }
-                    }else{
-                        for (var i = 0; i < commands.length; i++) {
+                    for (var i = 0; i < commands.length; i++) {
                             for (var j = 0; j < commands[i].names.length; j++) {
                                 if (args[0] === commands[i].names[j].toLowerCase()) {
                                     commandIs = i;
@@ -78,7 +99,7 @@ const commands = [
                                 break;
                             }
                         }
-                    }
+
                     if(commandIs == null){
                         sendBasicEmbed({
                             content:"Invalid Usage\nTry using `"+universalPrefix+"commands list`",
@@ -150,35 +171,86 @@ const commands = [
         }
     },
     {
-        names: ["exit"],
-        description: "Turns off the bot",
-        usage:"exit",
+        names: ["join"],
+        description: "join the game",
+        usage:"join",
         values:[],
-        reqs: [],
+        reqs: ["profile false"],
         effect: function (message, args, playerData) {
-            process.exit();
+           var newPlayerData = new UpdateAccount();
+            newPlayerData.userID = message.author.id;
+            accountData.push(newPlayerData);
+            saveJsonFile("./accounts.json");
+            sendBasicEmbed({
+                color: embedColors.green,
+                content: "Account Created",
+                channel: message.channel
+            });
         }
     },
+    "GAMEPLAY",
     {
-        names: ["clear","purge","prune"],
-        description: "Clear a channel",
-        usage:"clear [VALUE]",
-        values:["All","{NUMBER}"],
-        reqs: ["userPerms MANAGE_MESSAGES"],
+        names: ["collect"],
+        description: "collect resources from your stations",
+        usage:"collect",
+        values:[],
+        reqs: ["profile true"],
         effect: function (message, args, playerData) {
-            var theNumbersInput = getNumbers(message.content, true);
-            if (args[0] === "all") {
-                channelClear(message.channel);
-            } else if (theNumbersInput[0] < 100) {
-                message.delete().then(function () {
-                    channelClear(message.channel, theNumbersInput[0]);
-                })
-            } else {
+            var canContinue = true;
+            if(playerData.stations.length === 0){
                 sendBasicEmbed({
-                    content: "Invalid usage!",
-                    color: embedColors.red,
-                    channel: message.channel
-                })
+                    content:"You currently dont have any stations",
+                    channel:message.channel,
+                    color:embedColors.red
+                });
+                canContinue = false;
+            }
+            if(playerData.lastCollection+(60000*5) > Date.now()){
+                sendBasicEmbed({
+                    content:"You can only collect once every 5 minutes\nYou currently need to wait:\n"+getTimeRemaining((playerData.lastCollection+(60000*5))-Date.now()),
+                    channel:message.channel,
+                    color:embedColors.red
+                });
+                canContinue = false;
+            }
+            if(canContinue) {
+                var amount = Math.round(Date.now()-playerData.lastCollection/(60000*5));
+                playerData.lastCollection = Date.now();
+                var gainedResources = {};
+                for (var i = 0; i < playerData.stations.length; i++) {
+                    var station = stations[playerData.stations[i].type];
+                    for(var j =0;j<station.gives[playerData.stations[i].level].length;j++) {
+                        var stuff = station.gives[playerData.stations[i].level][j].split(" ");
+                        console.log(parseInt(stuff[1],10) * amount);
+                        gainedResources[stuff[0]] = gainedResources[stuff[0]] || 0;
+                        gainedResources[stuff[0]] += parseInt(stuff[1],10) * amount;
+                        playerData[stuff[0]] += parseInt(stuff[1],10) * amount;
+                    }
+                }
+                var txt = "";
+                var longestSpace = 0;
+                for(var i=0;i<resources.names.length;i++) {
+                    if (gainedResources[resources.names[i]] != null) {
+                        if (("" + gainedResources[resources.names[i]]).length>longestSpace) {
+                            longestSpace = ("" + gainedResources[resources.names[i]]).length;
+                        }
+                    }
+                }
+                for(var i =0;i<resources.names.length;i++){
+                    if(gainedResources[resources.names[i]]!=null){
+                        var space = "";
+                        for(var j =0;j<longestSpace-(""+gainedResources[resources.names[i]]).length;j++){
+                            space+=" "
+                        }
+                        txt+=gainedResources[resources.names[i]]+space+" | "+resources[resources.names[i]]+" "+resources.names[i]+"\n";
+                    }
+                }
+                console.log(gainedResources);
+                var embed = new Discord.RichEmbed()
+                    .setColor(embedColors.pink)
+                    .setTitle("Current Collection")
+                    .setDescription(txt);
+                message.channel.send(embed);
             }
         }
     },
@@ -187,7 +259,7 @@ const commands = [
         description: "Get your stats",
         usage:"stats",
         values:[],
-        reqs: ["profile"],
+        reqs: ["profile true"],
         effect: function (message, args, playerData) {
             var embed = new Discord.RichEmbed()
                 .setTitle(message.member.displayName + "'s stats")
@@ -222,100 +294,11 @@ const commands = [
         }
     },
     {
-        names: ["research", "r"],
-        description: "research something",
-        usage:"research [VALUE]",
-        values:["List","Info {RESEARCH_NAME}","{RESEARCH_NAME}"],
-        reqs: ["profile"],
-        effect: function (message, args, playerData) {
-            var embed = new Discord.RichEmbed()
-                .setColor(embedColors.yellow);
-            var numbs = getNumbers(args, false);
-            var number = null;
-            if (numbs.length) {
-                number = parseInt(numbs[0], 10);
-                if (number >= researches.names.length) {
-                    embed.setColor(embedColors.red);
-                    embed.setDescription("Invalid ID number");
-
-                }
-            }
-            else {
-                for (var i = 0; i < researches.names.length; i++) {
-                    var name = researches.names[i].split(" ");
-                    var found = matchArray(newArgs,name);
-                    var newArgs = [];
-                    for (var q = 0; q < args.length; q++) {
-                        newArgs.push(args[q]);
-                    }
-                    if (newArgs[0] === "info") {
-                        newArgs.splice(0, 1);
-                        console.log(newArgs);
-                    }
-                    if (found) {
-                        number = i;
-                        break;
-                    }
-                }
-                if (number === null && newArgs.length && args[0] !== "list") {
-                    embed.setColor(embedColors.red);
-                    embed.setDescription("Invalid research name");
-                }
-                if (!newArgs.length) {
-                    embed.setColor(embedColors.red);
-                    embed.setDescription("Invalid Usage\nNeed to include a research ID or NAME");
-                }
-            }
-            switch (args[0]) {
-                case "info":
-                    if (number !== null) {
-                        var item = researches[researches.names[number]];
-                        var level = playerData[researches.names[number]];
-                        embed.setTitle("RESEARCH INFO");
-                        embed.setDescription("You have `" + playerData["research"] + "` 💡 research\n" + researches.names[number] + "'s level is `" + (level + 1) + "`");
-                        embed.addField(researches.names[number], item.does[level] + "\nCosts: " + item.costs[level] + " 💡 research\nTime: " + getTimeRemaining(item.timesToResearch[level]))
-                        embed.setFooter(universalPrefix + "research " + researches.names[number]);
-                    }
-                    break;
-                case "list":
-                    embed.setColor(embedColors.yellow);
-                    embed.setTitle("ID---Name--------------------------Cost");
-                    var txt = "```css\n";
-                    for (var i = 0; i < researches.names.length; i++) {
-                        var item = researches[researches.names[i]];
-                        var level = playerData[researches.names[i]];
-                        txt += spacing("[" + i + "] " + researches.names[i], item.costs[level] + "\n", 40);
-                    }
-                    txt += "```";
-                    embed.setDescription(txt);
-                    embed.setFooter(universalPrefix + "research info [NAME]/[ID]");
-                    break;
-                default:
-                    if (number !== null) {
-                        var item = researches[researches.names[number]];
-                        var level = playerData[researches.names[number]];
-                        if (playerData["research"] >= item.costs[level]) {
-                            //research ITEM
-                        } else {
-                            sendBasicEmbed({
-                                content: "Not enough 💡 research.",
-                                color: embedColors.red,
-                                channel: message.channel
-                            })
-                        }
-                    }
-                    break;
-            }
-
-            message.channel.send(embed)
-        }
-    },
-    {
         names: ["warp", "go"],
         description: "warp to somewhere",
         usage:"warp [VALUE]",
         values:["{GALAXY}","{X} {Y}","{GALAXY} {X} {Y}"],
-        reqs: ["profile"],
+        reqs: ["profile","warping false"],
         effect: function (message, args, playerData) {
             if (typeof playerData.location === "object") {
                 var numbers = getNumbers(message.content);
@@ -400,38 +383,11 @@ const commands = [
         }
     },
     {
-        names: ["join"],
-        description: "join the game",
-        usage:"join",
-        values:[],
-        reqs: [],
-        effect: function (message, args, playerData) {
-            if (playerData != null) {
-                sendBasicEmbed({
-                    color: embedColors.red,
-                    channel: message.channel,
-                    content: "You already have an account."
-                });
-                return;
-            }
-
-            var newPlayerData = new UpdateAccount();
-            newPlayerData.userID = message.author.id;
-            accountData.push(newPlayerData);
-            saveJsonFile("./accounts.json");
-            sendBasicEmbed({
-                color: embedColors.green,
-                content: "Account Created",
-                channel: message.channel
-            });
-        }
-    },
-    {
         names: ["lookAround", "look"],
         description: "See where you are currently at",
         usage:"lookAround",
         values:[],
-        reqs: ["profile"],
+        reqs: ["profile","warping false"],
         effect: function (message, args, playerData) {
             var pos = playerData.location;
             console.log(pos);
@@ -451,81 +407,106 @@ const commands = [
         }
     },
     {
-        names: ["build"],
-        description: "builds a station where you currently are at",
-        usage:"build [VALUE]",
-        values:["{STATION_NAME}"],
-        reqs: ["profile"],
+        names: ["scan","detect"],
+        description: "scan the area around you",
+        usage:"scan",
+        values:[],
+        reqs: ["profile","warping false"],
         effect: function (message, args, playerData) {
-            const freeStation = playerData.stations.length===0;
+            playerData[args[0]]+=parseInt(args[1],10);
 
-            var selectedStation = false;
-            for(var i =0;i<stations.names.length;i++){
-                var name = stations.names[i].split(" ");
-                var match = matchArray(args,name,true);
-                if(match === true){
-                    selectedStation = i;
-                }
-            }
-            if(selectedStation===false){
-                sendBasicEmbed({
-                    content:"Invalid Usage\nTry using `"+universalPrefix+"stations list`\nto get the correct spelling",
-                    color:embedColors.red,
-                    channel:message.channel
-                });
-            }
-            else{
-                var station = stations[stations.names[selectedStation]];
-                var hasEnough = true;
-                var missingItems = [];
-                for(var i =0;i<station.costs[0].length;i++){
-                    var costsStuff = station.costs[0][i].split(" ");
-                    if(playerData[costsStuff[0]]<costsStuff[1]){
-                        hasEnough=false;
-                        missingItems.push([(costsStuff[1]-playerData[costsStuff[0]]),resources[costsStuff[0]]])
-                    }
-                }
-
-                if(hasEnough||freeStation){
-                    playerData.stations.push({
-                        location:playerData.location,
-                        type:stations.names[selectedStation],
-                        level:0
-                    });
-                    var lostResources = "";
-                    for(var i =0;i<station.costs[0].length;i++){
-                        if(freeStation){
-                            break;
-                        }
-                        var costStuff = station.costs[0][i].split(" ");
-                        playerData[costStuff[0]]-=costStuff[1];
-                        lostResources+=costStuff[0]+" "+resources[costStuff[0]]+" "+costStuff[1]+"\n";
-                    }
-                    var embed = new Discord.RichEmbed()
-                        .setDescription("Successfully bought "+stations.names[selectedStation]+"\n")
-                        .setColor(embedColors.pink);
-                    if(!freeStation) {
-                        embed.addField("Lost Resources", lostResources);
-                    }else{
-                        embed.addField("FIRST STATION","As this is your first station\nIts completely free!");
-                        playerData.lastCollection = Date.now();
-                    }
-                    message.channel.send(embed);
-                }
-                else{
-                    var missingResources = "";
-                    for(var i =0;i<missingItems.length;i++){
-                        missingResources+=missingItems[i][0]+" "+missingItems[i][1]+"\n"
-                    }
-                    var embed = new Discord.RichEmbed()
-                        .setColor(embedColors.red)
-                        .setTitle("Missing Resources")
-                        .setDescription(missingResources);
-                    message.channel.send(embed);
-                }
-            }
         }
     },
+    {
+        names: ["research", "r"],
+        description: "research something",
+        usage:"research [VALUE]",
+        values:["List","Info {RESEARCH_NAME}","{RESEARCH_NAME}"],
+        reqs: ["profile true"],
+        effect: function (message, args, playerData) {
+            var embed = new Discord.RichEmbed()
+                .setColor(embedColors.yellow);
+            var numbs = getNumbers(args, false);
+            var number = null;
+            if (numbs.length) {
+                number = parseInt(numbs[0], 10);
+                if (number >= researches.names.length) {
+                    embed.setColor(embedColors.red);
+                    embed.setDescription("Invalid ID number");
+
+                }
+            }
+            else {
+                for (var i = 0; i < researches.names.length; i++) {
+                    var name = researches.names[i].split(" ");
+                    var found = matchArray(newArgs,name);
+                    var newArgs = [];
+                    for (var q = 0; q < args.length; q++) {
+                        newArgs.push(args[q]);
+                    }
+                    if (newArgs[0] === "info") {
+                        newArgs.splice(0, 1);
+                        console.log(newArgs);
+                    }
+                    if (found) {
+                        number = i;
+                        break;
+                    }
+                }
+                if (number === null && newArgs.length && args[0] !== "list") {
+                    embed.setColor(embedColors.red);
+                    embed.setDescription("Invalid research name");
+                }
+                if (!newArgs.length) {
+                    embed.setColor(embedColors.red);
+                    embed.setDescription("Invalid Usage\nNeed to include a research ID or NAME");
+                }
+            }
+            switch (args[0]) {
+                case "info":
+                    if (number !== null) {
+                        var item = researches[researches.names[number]];
+                        var level = playerData[researches.names[number]];
+                        embed.setTitle("RESEARCH INFO");
+                        embed.setDescription("You have `" + playerData["research"] + "` 💡 research\n" + researches.names[number] + "'s level is `" + (level + 1) + "`");
+                        embed.addField(researches.names[number], item.does[level] + "\nCosts: " + item.costs[level] + " 💡 research\nTime: " + getTimeRemaining(item.timesToResearch[level]))
+                        embed.setFooter(universalPrefix + "research " + researches.names[number]);
+                    }
+                    break;
+                case "list":
+                    embed.setColor(embedColors.yellow);
+                    embed.setTitle("ID---Name--------------------------Cost");
+                    var txt = "```css\n";
+                    for (var i = 0; i < researches.names.length; i++) {
+                        var item = researches[researches.names[i]];
+                        var level = playerData[researches.names[i]];
+                        txt += spacing("[" + i + "] " + researches.names[i], item.costs[level] + "\n", 40);
+                    }
+                    txt += "```";
+                    embed.setDescription(txt);
+                    embed.setFooter(universalPrefix + "research info [NAME]/[ID]");
+                    break;
+                default:
+                    if (number !== null) {
+                        var item = researches[researches.names[number]];
+                        var level = playerData[researches.names[number]];
+                        if (playerData["research"] >= item.costs[level]) {
+                            //research ITEM
+                        } else {
+                            sendBasicEmbed({
+                                content: "Not enough 💡 research.",
+                                color: embedColors.red,
+                                channel: message.channel
+                            })
+                        }
+                    }
+                    break;
+            }
+
+            message.channel.send(embed)
+        }
+    },
+    "STATIONS",
     {
         names: ["stations", "station","s"],
         description: "get info on stations",
@@ -634,7 +615,7 @@ const commands = [
         description: "gives you the locations and level of all your stations",
         usage:"myStations",
         values:[],
-        reqs: ["profile"],
+        reqs: ["profile true"],
         effect: function (message, args, playerData) {
             var stations = playerData.stations;
             var txt = "```css\n";
@@ -658,7 +639,7 @@ const commands = [
         description: "upgrade the station where you currently are at.",
         usage:"upgradeStation",
         values:[],
-        reqs: ["profile"],
+        reqs: ["profile","warping false"],
         effect: function (message, args, playerData) {
             var whichStation = null;
             var stationToUpgrade;
@@ -725,76 +706,121 @@ const commands = [
         }
     },
     {
-        names: ["collect"],
-        description: "collect resources from your stations",
-        usage:"collect",
-        values:[],
-        reqs: ["profile"],
+        names: ["build"],
+        description: "builds a station where you currently are at",
+        usage:"build [VALUE]",
+        values:["{STATION_NAME}"],
+        reqs: ["profile","warping false"],
         effect: function (message, args, playerData) {
-            var canContinue = true;
-            if(playerData.stations.length === 0){
-                sendBasicEmbed({
-                    content:"You currently dont have any stations",
-                    channel:message.channel,
-                    color:embedColors.red
-                });
-                canContinue = false;
+            const freeStation = playerData.stations.length===0;
+
+            var selectedStation = false;
+            for(var i =0;i<stations.names.length;i++){
+                var name = stations.names[i].split(" ");
+                var match = matchArray(args,name,true);
+                if(match === true){
+                    selectedStation = i;
+                }
             }
-            if(playerData.lastCollection+(60000*5) > Date.now()){
+            if(selectedStation===false){
                 sendBasicEmbed({
-                    content:"You can only collect once every 5 minutes\nYou currently need to wait:\n"+getTimeRemaining((playerData.lastCollection+(60000*5))-Date.now()),
-                    channel:message.channel,
-                    color:embedColors.red
+                    content:"Invalid Usage\nTry using `"+universalPrefix+"stations list`\nto get the correct spelling",
+                    color:embedColors.red,
+                    channel:message.channel
                 });
-                canContinue = false;
             }
-            if(canContinue) {
-                var amount = Math.round(Date.now()-playerData.lastCollection/(60000*5));
-                playerData.lastCollection = Date.now();
-                var gainedResources = {};
-                for (var i = 0; i < playerData.stations.length; i++) {
-                    var station = stations[playerData.stations[i].type];
-                    for(var j =0;j<station.gives[playerData.stations[i].level].length;j++) {
-                        var stuff = station.gives[playerData.stations[i].level][j].split(" ");
-                        console.log(parseInt(stuff[1],10) * amount);
-                        gainedResources[stuff[0]] = gainedResources[stuff[0]] || 0;
-                        gainedResources[stuff[0]] += parseInt(stuff[1],10) * amount;
-                        playerData[stuff[0]] += parseInt(stuff[1],10) * amount;
+            else{
+                var station = stations[stations.names[selectedStation]];
+                var hasEnough = true;
+                var missingItems = [];
+                for(var i =0;i<station.costs[0].length;i++){
+                    var costsStuff = station.costs[0][i].split(" ");
+                    if(playerData[costsStuff[0]]<costsStuff[1]){
+                        hasEnough=false;
+                        missingItems.push([(costsStuff[1]-playerData[costsStuff[0]]),resources[costsStuff[0]]])
                     }
                 }
-                var txt = "";
-                var longestSpace = 0;
-                for(var i=0;i<resources.names.length;i++) {
-                    if (gainedResources[resources.names[i]] != null) {
-                        if (("" + gainedResources[resources.names[i]]).length>longestSpace) {
-                            longestSpace = ("" + gainedResources[resources.names[i]]).length;
+
+                if(hasEnough||freeStation){
+                    playerData.stations.push({
+                        location:playerData.location,
+                        type:stations.names[selectedStation],
+                        level:0
+                    });
+                    var lostResources = "";
+                    for(var i =0;i<station.costs[0].length;i++){
+                        if(freeStation){
+                            break;
                         }
+                        var costStuff = station.costs[0][i].split(" ");
+                        playerData[costStuff[0]]-=costStuff[1];
+                        lostResources+=costStuff[0]+" "+resources[costStuff[0]]+" "+costStuff[1]+"\n";
                     }
-                }
-                for(var i =0;i<resources.names.length;i++){
-                    if(gainedResources[resources.names[i]]!=null){
-                        var space = "";
-                        for(var j =0;j<longestSpace-(""+gainedResources[resources.names[i]]).length;j++){
-                            space+=" "
-                        }
-                        txt+=gainedResources[resources.names[i]]+space+" | "+resources[resources.names[i]]+" "+resources.names[i]+"\n";
+                    var embed = new Discord.RichEmbed()
+                        .setDescription("Successfully bought "+stations.names[selectedStation]+"\n")
+                        .setColor(embedColors.pink);
+                    if(!freeStation) {
+                        embed.addField("Lost Resources", lostResources);
+                    }else{
+                        embed.addField("FIRST STATION","As this is your first station\nIts completely free!");
+                        playerData.lastCollection = Date.now();
                     }
+                    message.channel.send(embed);
                 }
-                console.log(gainedResources);
-                var embed = new Discord.RichEmbed()
-                    .setColor(embedColors.pink)
-                    .setTitle("Current Collection")
-                    .setDescription(txt);
-                message.channel.send(embed);
+                else{
+                    var missingResources = "";
+                    for(var i =0;i<missingItems.length;i++){
+                        missingResources+=missingItems[i][0]+" "+missingItems[i][1]+"\n"
+                    }
+                    var embed = new Discord.RichEmbed()
+                        .setColor(embedColors.red)
+                        .setTitle("Missing Resources")
+                        .setDescription(missingResources);
+                    message.channel.send(embed);
+                }
             }
         }
     },
+    "MOD",
+    {
+        names: ["exit"],
+        description: "Turns off the bot",
+        usage:"exit",
+        values:[],
+        reqs: [],
+        effect: function (message, args, playerData) {
+            process.exit();
+        }
+    },
+    {
+        names: ["clear","purge","prune"],
+        description: "Clear a channel",
+        usage:"clear [VALUE]",
+        values:["All","{NUMBER}"],
+        reqs: ["userPerms MANAGE_MESSAGES"],
+        effect: function (message, args, playerData) {
+            var theNumbersInput = getNumbers(message.content, true);
+            if (args[0] === "all") {
+                channelClear(message.channel);
+            } else if (theNumbersInput[0] < 100) {
+                message.delete().then(function () {
+                    channelClear(message.channel, theNumbersInput[0]);
+                })
+            } else {
+                sendBasicEmbed({
+                    content: "Invalid usage!",
+                    color: embedColors.red,
+                    channel: message.channel
+                })
+            }
+        }
+    }
     /*{
         names: ["test"],
         description: "test",
         usage:"test",
         values:[],
-        reqs: ["profile"],
+        reqs: ["profile true"],
         effect: function (message, args, playerData) {
             playerData[args[0]]+=parseInt(args[1],10);
         }
@@ -833,7 +859,7 @@ const reqChecks = {
                 perms: reqArgs[0],
                 message: message
             }),
-            msg: "The bot currently doesnt have: `" + reqArges[0] + "`"
+            msg: "The bot currently doesnt have: `" + reqArgs[0] + "`"
         };
     },
     "userPerms": function (reqArgs, message, args, playerData) {
@@ -846,14 +872,35 @@ const reqChecks = {
             msg: "You currently dont have: `" + reqArgs[0] + "`"
         };
     },
-    "isntWarping": function (reqArgs, message, args, playerData) {
-        return {
-            val: typeof playerData.location === "object",
-            msg: "You cannot use this while you're currently warping."
-        };
-    },
     "profile": function (reqArgs, message, args, playerData) {
-        return {val: playerData, msg: "You need to create a profile. use `" + universalPrefix + "join`"};
+        if(reqArgs[0] === "true"){
+            if(playerData === null){
+                return {val: false, msg: "You need to create a profile. use `" + universalPrefix + "join`"};
+            }
+        }else{
+            if(playerData === null){
+                return {val: true, msg: "You already have a profile."};
+            }
+        }
+        },
+    "warping": function (reqArgs, message, args, playerData) {
+        var x = "false";
+        for (var i = 0; i < listOfWaitTimes.length; i++) {
+            if (listOfWaitTimes[i].expires < Date.now()) {
+                if (listOfWaitTimes[i].type === "warp"&&listOfWaitTimes[i].player.id === message.author.id){
+                    x = "true"
+                }
+            }
+        }
+        if(reqArgs[0] === x){
+            return {val:true,msg:""}
+        }else{
+            if(reqArgs[0] === "true"){
+                return {val:false,msg:"You have to be warping to use this command."}
+            }
+            return {val:false,msg:"You cant be warping to use this command."}
+        }
+
     }
 };
 
@@ -1112,6 +1159,7 @@ client.on("message", function (message) {
 
     if (command[0] !== universalPrefix) return;
     for (var i = 0; i < commands.length; i++) {
+        if (typeof commands[i] === "object") {
             for (var j = 0; j < commands[i].names.length; j++) {
                 if (universalPrefix + commands[i].names[j].toLowerCase() === command) {
                     if (message.channel.type !== "dm") {
@@ -1136,8 +1184,10 @@ client.on("message", function (message) {
                     }
                     runCommand(commands[i], message, args, findPlayerData(message.author.id));
                     saveJsonFile("./accounts.json");
+                    break;
                 }
             }
         }
+    }
 });
 client.login(require("./config.json").token);//Secure Login
