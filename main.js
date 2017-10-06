@@ -791,53 +791,60 @@ const commands = [
     },
     "FACTIONS",
     {
-        names: ["factioncreate","fcreate","createfaction"],
+        names: ["factionCreate","fCreate","createFaction"],
         description: "create your faction",
         usage:"factioncreate [VALUE] ",
         values:["{NAME}"],
         reqs: ["profile true","faction false"],
         effect: function (message, args, playerData) {
+
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.darkblue);
-            if (args[0] != null) {
-                var txt = "";
-                for (var i = 0; i < args.length; i++) {
-                    txt += args[i];
-                    if (i + 1 !== args.length) {
-                        txt += " ";
-                    }
-                }
-                if (txt.length < 30) {
-                    var canCreate = true;
-                    for (var i = 0; i < factions.length; i++) {
-                        if (factions[i] === txt) {
-                            canCreate = false;
-                            break;
+            if(playerData["credits"]>=500) {
+                if (args[0] != null) {
+                    var txt = "";
+                    for (var i = 0; i < args.length; i++) {
+                        txt += args[i];
+                        if (i + 1 !== args.length) {
+                            txt += " ";
                         }
                     }
-                    if (canCreate) {
-                        embed.setTitle(txt);
-                        embed.setDescription("You have successfully created the faction `" + txt + "`");
-                        playerData.faction = txt;
-                        factions.names.push(txt);
-                        var newFactionData = new createFaction();
-                        newFactionData.creator = message.author.id;
-                        newFactionData.name = txt;
-                        factions[txt] = newFactionData;
-                    }
-                    else {
+                    if (txt.length < 30) {
+                        var canCreate = true;
+                        for (var i = 0; i < factions.length; i++) {
+                            if (factions[i] === txt) {
+                                canCreate = false;
+                                break;
+                            }
+                        }
+                        if (canCreate) {
+                            embed.setTitle(txt);
+                            embed.setDescription("You have successfully created the faction `" + txt + "`\n-500 "+resources["credits"]+" credits");
+                            playerData.faction = txt;
+                            factions.names.push(txt);
+                            var newFactionData = new createFaction();
+                            newFactionData.creator = message.author.id;
+                            newFactionData.name = txt;
+                            factions[txt] = newFactionData;
+                            playerData["credits"]-=500;
+                        }
+                        else {
+                            embed.setColor(embedColors.red);
+                            embed.setDescription("The name `" + txt + "` has already been taken");
+                        }
+                    } else {
                         embed.setColor(embedColors.red);
-                        embed.setDescription("The name `" + txt + "` has already been taken");
+                        embed.setDescription("That name is too long.\nKeep your faction name under 30 characters")
                     }
                 } else {
+                    embed.setDescription("You have to name your faction");
                     embed.setColor(embedColors.red);
-                    embed.setDescription("That name is too long.\nKeep your faction name under 30 characters")
                 }
-            } else {
-                embed.setDescription("You have to name your faction");
-                embed.setColor(embedColors.red);
             }
-
+            else{
+                embed.setColor(embedColors.red);
+                embed.setDescription("You are missing\n"+(500-playerData["credits"])+" "+resources["credits"]+" credits");
+            }
             message.channel.send(embed);
         }
     },
@@ -956,17 +963,38 @@ const commands = [
                 })
             }
         }
-    }
-    /*{
-        names: ["test"],
-        description: "test",
-        usage:"test",
-        values:[],
-        reqs: ["profile true"],
+    },
+    {
+        names: ["give"],
+        description: "gives items to the player or yourself",
+        usage: "give [VALUE]",
+        values: ["{ITEM} {AMOUNT}", "{PLAYER} {ITEM} {AMOUNT}"],
+        reqs: ["profile true", "owner"],
         effect: function (message, args, playerData) {
-            playerData[args[0]]+=parseInt(args[1],10);
+            console.log(args.length);
+            if (args.length === 2) {
+                playerData[args[0]] += parseInt(args[1], 10);
+                sendBasicEmbed({
+                    content:"You gave yourself "+args[1]+" "+resources[args[0]]+" "+args[0],
+                    channel:message.channel,
+                    color:embedColors.purple
+                })
+            } else {
+                var id = "";
+                for (var i = 3; i < args[0].length - 1; i++) {
+                    id+=args[0][i];
+                }
+                var data = findPlayerData(id);
+                data[args[1]]+=parseInt(args[2],10);
+                sendBasicEmbed({
+                    content:"You gave "+args[0]+" "+args[2]+" "+resources[args[1]]+" "+args[1],
+                    channel:message.channel,
+                    color:embedColors.purple
+                })
+            }
+
         }
-    }*/
+    }
 ];
 const reqChecks = {
     "argNum": function (reqArgs, message, args, playerData) {
@@ -1052,6 +1080,7 @@ const reqChecks = {
             return {val: playerData.faction === null, msg: "You cant be in a faction"};
         }
     },
+
 };
 
 
