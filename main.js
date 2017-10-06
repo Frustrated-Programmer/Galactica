@@ -1002,6 +1002,48 @@ const commands = [
             }
         }
     },
+    {
+        names: ["factionImage","fimage"],
+        description: "Set's you faction's image to the image you uploaded.",
+        usage:"factionImage",
+        values:[],
+        reqs: ["profile true","faction true","factionMod","factionImage"],
+        effect: function (message, args, playerData) {
+            console.log(message.attachments.first());
+            if(message.attachments.first()) {
+                var image = message.attachments.first();
+                var fileType = "";
+                for(var i=image.url.length-3;i<image.url.length;i++){
+                    fileType+=image.url[i].toLowerCase();
+                }
+                if(fileType === "png"||fileType === "jpg"||fileType === "tif") {
+                    factions[playerData.faction].image = image.url;
+                    console.log(image.url);
+                    var embed = new Discord.RichEmbed()
+                        .setThumbnail(image.url)
+                        .setTitle("Setting `" + playerData.faction + "`'s image")
+                        .setColor(factions[playerData.faction].color)
+                        .setDescription("Your faction's image has been updated.");
+                    message.channel.send(embed);
+                }
+                else{
+                    sendBasicEmbed({
+                        content:"Only `.png`, `.jpg` and `.tif` files are allowed",
+                        channel:message.channel,
+                        color:embedColors.red
+                    })
+                }
+            }
+            else{
+                sendBasicEmbed({
+                    content:"You need to upload an image.",
+                    channel:message.channel,
+                    color:embedColors.red
+                })
+            }
+            message.delete();
+        }
+    },
 
     "MOD",
     {
