@@ -857,7 +857,7 @@ const commands = [
         effect: function (message, args, playerData) {
             var validResource = false;
             for(var i =0;i<resources.names.length;i++){
-                if(args[0] === resources.names.length[i].toLowerCase()){
+                if(args[0] === resources.names[i].toLowerCase()){
                     validResource =true;
                     break;
                 }
@@ -926,6 +926,49 @@ const commands = [
 
             embed.addField("Info", "Level:"+faction.level+"\nImage: "+faction.canUseDescription+"\nDescription: "+faction.canUseDescription+"Color: "+faction.color+"\nEmoji: "+faction.emoji,true);
             embed.addField("Resources", factionsResources,true);
+            message.channel.send(embed);
+        }
+    },
+    {
+        names: ["factionUpgrade","fUpgrade","upgradeFaction","uFaction","upgradeF"],
+        description: "Upgrade your faction",
+        usage:"factionUpgrade",
+        values:[],
+        reqs: ["profile true","faction true","factionMod","upgradableFaction"],
+        effect: function (message, args, playerData) {
+            var faction = factions[playerData.faction];
+            var stuff = factions.costs[faction.level].split(" ");
+            faction.level++;
+            var embed = new Discord.RichEmbed()
+                .setColor(faction.color)
+                .setTitle("Upgrade to Level **" + (faction.level + 1) + "**");
+            var gains = "Members: +5\nMods: +1\n";
+            switch (faction.level) {
+                case 1:
+                    gains += "Faction Description.";
+                    embed.setFooter("You can now set your faction's description");
+                    faction.canUseDescription = true;
+                    break;
+                case 2:
+                    gains += "Neater Ad";
+                    embed.setFooter("Your faction's Ad is now neater");
+                    faction.niceAdLevel = 1;
+                    break;
+                case 3:
+                    gains += "Embeded Message\nCustom faction's color";
+                    embed.setFooter("Your faction's Ad is now in an embed message and you can change the color for the embed");
+                    faction.niceAdLevel = 2;
+                    faction.canUseColor = true;
+                    break;
+                case 4:
+                    gains += "Faction Image";
+                    embed.setFooter("You can now upload an image to your faction's ad");
+                    faction.canUseImage = true;
+                    break;
+            }
+            embed.addField("Unlocked:", gains + "\n\n-" + (stuff[1] + " " + resources[stuff[0]] + " " + stuff[0]));
+            faction.maxMembers += 5;
+            faction.maxMods++;
             message.channel.send(embed);
         }
     },
@@ -1080,7 +1123,52 @@ const reqChecks = {
             return {val: playerData.faction === null, msg: "You cant be in a faction"};
         }
     },
-
+    "factionMod": function (reqArgs, message, args, playerData) {
+        var fac = factions[playerData.faction];
+        if(message.author.id === fac.creator){
+            return {val:true,msg:""};
+        }
+        for(var i =0;i<fac.mods.length;i++){
+            if(message.author.id === fac.mods[i]){
+                return {val:true,msg:""};
+            }
+        }
+        return {val: false,msg:"You need to be a mod of your faction"}
+    },
+    "factionOwner": function (reqArgs, message, args, playerData) {
+        var fac = factions[playerData.faction];
+        if(message.author.id === fac.creator){
+            return {val:true,msg:""};
+        }
+        return {val: false,msg:"You need to be a owner of your faction"}
+    },
+    "factionImage": function (reqArgs, message, args, playerData) {
+        if (playerData){
+            if(playerData.faction){
+                if(factions[playerData.faction].canUseImage){
+                    return {val:true,msg:""}
+                }
+            }
+        }
+        return {val:false,msg:"You haven't unlocked this yet."}
+    },
+    "upgradableFaction": function (reqArgs, message, args, playerData) {
+        var faction = factions[playerData.faction];
+        if(faction.level+1 !== factions.costs.length) {
+            var missing = "";
+                var stuff = factions.costs[faction.level].split(" ");
+            if (faction[stuff[0]] < parseInt(stuff[1], 10)) {
+                missing += (parseInt(stuff[1],10)-faction[stuff[0]]) + " " + resources[stuff[0]] + " " + stuff[0];
+            }
+            if (missing.length>0) {
+                return {val: false, msg: "Your faction is missing\n```css\n" + missing + "```"}
+            }
+            return {val: true, msg: ""}
+        }
+        else{
+            return {val:false,msg:"Your faction is at the maxed level."}
+        }
+    }
 };
 
 
