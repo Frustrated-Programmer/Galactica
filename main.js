@@ -884,6 +884,44 @@ const commands = [
 
         }
     },
+    {
+        names: ["factionStats","fStats"],
+        description: "Gives you the list of everything the faction has",
+        usage:"factionStats",
+        values:[],
+        reqs: ["profile true","faction true"],
+        effect: function (message, args, playerData) {
+
+            var faction = factions[playerData.faction];
+            var embed = new Discord.RichEmbed()
+                .setTitle(playerData.faction+ "'s stats")
+                .setFooter(playerData.userID)
+                .setColor(faction.color);
+            var factionsResources = "css\n";
+
+            var spaceLength = 1;
+            for(var i =0;i<resources.names.length;i++){
+                var len = ""+faction[resources.names[i]];
+                if(len.length>spaceLength){
+                    spaceLength = len.length;
+                }
+            }
+            for (var i = 0; i < resources.names.length; i++) {
+                var space = "";
+                var len = ""+faction[resources.names[i]];
+                for(var j =0;j<spaceLength-len.length;j++){
+                    space+=" ";
+                }
+                factionsResources += faction[resources.names[i]]+space+"| " + resources[resources.names[i]] + " " + resources.names[i];
+                factionsResources += "\n";
+            }
+            factionsResources += "```";
+
+            embed.addField("Info", "Level:"+faction.level+"\nImage: "+faction.canUseDescription+"\nDescription: "+faction.canUseDescription+"Color: "+faction.color+"\nEmoji: "+faction.emoji,true);
+            embed.addField("Resources", factionsResources,true);
+            message.channel.send(embed);
+        }
+    },
 
     "MOD",
     {
