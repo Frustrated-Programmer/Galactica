@@ -9,15 +9,18 @@ const client = new Discord.Client();
 
 
 /**VARIBLES**/
+var factions = require("./factions.json").factions;
 var accountData = require("./accounts.json").players;
-var UpdateAccount = require("./account.js");
 var listOfWaitTimes = [];
 var waitTimesInterval = false;
 var skipWarpTime = true;//for testing purposes
 var map = createMap(4, 25, 25);
+var createFactionPlayers = [];
 
 
 /**CONSTANTS**/
+const updateAccount = require("./account.js");
+const createFaction = require("./faction.js");
 const resources = require("./items.js").resources;
 const stations = require("./items.js").stations;
 const embedColors = require("./items.js").colors;
@@ -177,10 +180,9 @@ const commands = [
         values:[],
         reqs: ["profile false"],
         effect: function (message, args, playerData) {
-           var newPlayerData = new UpdateAccount();
+           var newPlayerData = new updateAccount();
             newPlayerData.userID = message.author.id;
             accountData.push(newPlayerData);
-            saveJsonFile("./accounts.json");
             sendBasicEmbed({
                 color: embedColors.green,
                 content: "Account Created",
@@ -265,12 +267,18 @@ const commands = [
                 .setTitle(message.member.displayName + "'s stats")
                 .setFooter(playerData.userID)
                 .setColor(embedColors.blue);
-            embed.addField("INFO:", "Faction:" + playerData.faction + "\nPower: 000");
+            var location = ""
             if (typeof playerData.location === "object") {
-                embed.addField("Location:", "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + playerData.location[1] + "x" + playerData.location[2] + "`");
+                location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + playerData.location[1] + "x" + playerData.location[2] + "`"
             } else {
-                embed.addField("Location:", playerData.location);
+                location =  playerData.location;
             }
+            if(playerData.faction!==null) {
+                embed.addField("INFO:", "Faction:" + playerData.faction + "\nPower: 000\nLocation:\n"+location);
+            }else{
+                embed.addField("INFO:","Power: 000\nLocation:\n"+location);
+            }
+
             var playerResources = "```css\n";
             var spaceLength = 1;
             for(var i =0;i<resources.names.length;i++){
@@ -781,13 +789,66 @@ const commands = [
             }
         }
     },
+    "FACTIONS",
+    {
+        names: ["factioncreate","fcreate","createfaction"],
+        description: "create your faction",
+        usage:"factioncreate [VALUE] ",
+        values:["{NAME}"],
+        reqs: ["profile true","faction false"],
+        effect: function (message, args, playerData) {
+            var embed = new Discord.RichEmbed()
+                .setColor(embedColors.darkblue);
+            if (args[0] != null) {
+                var txt = "";
+                for (var i = 0; i < args.length; i++) {
+                    txt += args[i];
+                    if (i + 1 !== args.length) {
+                        txt += " ";
+                    }
+                }
+                if (txt.length < 30) {
+                    var canCreate = true;
+                    for (var i = 0; i < factions.length; i++) {
+                        if (factions[i] === txt) {
+                            canCreate = false;
+                            break;
+                        }
+                    }
+                    if (canCreate) {
+                        embed.setTitle(txt);
+                        embed.setDescription("You have successfully created the faction `" + txt + "`");
+                        playerData.faction = txt;
+                        factions.names.push(txt);
+                        var newFactionData = new createFaction();
+                        newFactionData.creator = message.author.id;
+                        newFactionData.name = txt;
+                        factions[txt] = newFactionData;
+                    }
+                    else {
+                        embed.setColor(embedColors.red);
+                        embed.setDescription("The name `" + txt + "` has already been taken");
+                    }
+                } else {
+                    embed.setColor(embedColors.red);
+                    embed.setDescription("That name is too long.\nKeep your faction name under 30 characters")
+                }
+            } else {
+                embed.setDescription("You have to name your faction");
+                embed.setColor(embedColors.red);
+            }
+
+            message.channel.send(embed);
+        }
+    },
+
     "MOD",
     {
         names: ["exit"],
         description: "Turns off the bot",
         usage:"exit",
         values:[],
-        reqs: [],
+        reqs: ["owner"],
         effect: function (message, args, playerData) {
             process.exit();
         }
@@ -872,36 +933,44 @@ const reqChecks = {
             msg: "You currently dont have: `" + reqArgs[0] + "`"
         };
     },
-    "profile": function (reqArgs, message, args, playerData) {
-        if(reqArgs[0] === "true"){
-            if(playerData === null){
-                return {val: false, msg: "You need to create a profile. use `" + universalPrefix + "join`"};
-            }
-        }else{
-            if(playerData === null){
-                return {val: true, msg: "You already have a profile."};
-            }
+    "owner": function (reqArgs, message, args, playerData) {
+        if (message.author.id === "198590928166977537" || message.author.id === "244590122811523082") {
+            return {val: true, msg: ""};
         }
-        },
+        return {val: false, msg: "You must be an owner of the bot."}
+    },
     "warping": function (reqArgs, message, args, playerData) {
         var x = "false";
         for (var i = 0; i < listOfWaitTimes.length; i++) {
             if (listOfWaitTimes[i].expires < Date.now()) {
-                if (listOfWaitTimes[i].type === "warp"&&listOfWaitTimes[i].player.id === message.author.id){
+                if (listOfWaitTimes[i].type === "warp" && listOfWaitTimes[i].player.id === message.author.id) {
                     x = "true"
                 }
             }
         }
-        if(reqArgs[0] === x){
-            return {val:true,msg:""}
-        }else{
-            if(reqArgs[0] === "true"){
-                return {val:false,msg:"You have to be warping to use this command."}
+        if (reqArgs[0] === x) {
+            return {val: true, msg: ""}
+        } else {
+            if (reqArgs[0] === "true") {
+                return {val: false, msg: "You have to be warping to use this command."}
             }
-            return {val:false,msg:"You cant be warping to use this command."}
+            return {val: false, msg: "You cant be warping to use this command."}
         }
-
-    }
+    },
+    "profile": function (reqArgs, message, args, playerData) {
+        if (reqArgs[0] === "true") {
+            return {val: playerData !== null, msg: "You need to create a profile. use `" + universalPrefix + "join`"};
+        } else {
+            return {val: playerData === null, msg: "You already have a profile."};
+        }
+    },
+    "faction": function (reqArgs, message, args, playerData) {
+        if (reqArgs[0] === "true") {
+            return {val: playerData.faction !== null, msg: "You need to be in a faction."};
+        } else {
+            return {val: playerData.faction === null, msg: "You cant be in a faction"};
+        }
+    },
 };
 
 
@@ -1143,6 +1212,17 @@ function matchArray(arr1, arr2,text){
     }
     return match;
 }
+function isValidText(str){
+    if(typeof(str)!=='string'){
+        return false;
+    }
+    for(var i=0;i<str.length;i++){
+        if(str.charCodeAt(i)>127){
+            return false;
+        }
+    }
+    return true;
+}
 
 /**CLIENTS**/
 client.on("ready", function () {
@@ -1153,38 +1233,50 @@ client.on("message", function (message) {
     if (message.author.bot) {
         return;
     }
-    var command = message.content.toLowerCase().split(" ")[0];
-    var args = message.content.toLowerCase().split(" ");
-    args.shift();
-
-    if (command[0] !== universalPrefix) return;
-    for (var i = 0; i < commands.length; i++) {
-        if (typeof commands[i] === "object") {
-            for (var j = 0; j < commands[i].names.length; j++) {
-                if (universalPrefix + commands[i].names[j].toLowerCase() === command) {
-                    if (message.channel.type !== "dm") {
-                        //SEND_MESSAGES
-                        if (!checkPerms({user: "bot", perms: "SEND_MESSAGES", message: message})) {
-                            sendBasicEmbed({
-                                content: "I do not have `SEND_MESSAGES` permission",
-                                color: embedColors.red,
-                                channel: message.author
-                            });
-                            return;
+    if(message.content[0] === universalPrefix) {
+        var command = message.content.toLowerCase().split(" ")[0];
+        var args = message.content.toLowerCase().split(" ");
+        args.shift();
+        for (var i = 0; i < commands.length; i++) {
+            if (typeof commands[i] === "object") {
+                for (var j = 0; j < commands[i].names.length; j++) {
+                    if (universalPrefix + commands[i].names[j].toLowerCase() === command) {
+                        if (message.channel.type !== "dm") {
+                            //SEND_MESSAGES
+                            if (!checkPerms({user: "bot", perms: "SEND_MESSAGES", message: message})) {
+                                sendBasicEmbed({
+                                    content: "I do not have `SEND_MESSAGES` permission",
+                                    color: embedColors.red,
+                                    channel: message.author
+                                });
+                                return;
+                            }
+                            //EMBED_LINKS
+                            if (!checkPerms({user: "bot", perms: "EMBED_LINKS", message: message})) {
+                                sendBasicEmbed({
+                                    content: "I do not have `EMBED_LINKS` permission",
+                                    color: embedColors.red,
+                                    channel: message.author
+                                });
+                                return;
+                            }
                         }
-                        //EMBED_LINKS
-                        if (!checkPerms({user: "bot", perms: "EMBED_LINKS", message: message})) {
+                        if (isValidText(message.content)) {
+                            runCommand(commands[i], message, args, findPlayerData(message.author.id));
+                            saveJsonFile("./accounts.json");
+                            saveJsonFile("./factions.json");
+                            break;
+                        }
+                        else {
                             sendBasicEmbed({
-                                content: "I do not have `EMBED_LINKS` permission",
+                                content: "Please only characters `A-Z` and Numbers `0-9`",
                                 color: embedColors.red,
                                 channel: message.author
-                            });
-                            return;
+                            }).then(function () {
+                                return;
+                            })
                         }
                     }
-                    runCommand(commands[i], message, args, findPlayerData(message.author.id));
-                    saveJsonFile("./accounts.json");
-                    break;
                 }
             }
         }
