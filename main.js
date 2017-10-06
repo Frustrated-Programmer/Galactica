@@ -841,6 +841,49 @@ const commands = [
             message.channel.send(embed);
         }
     },
+    {
+        names: ["factionDonate","fDonate"],
+        description: "donate resources to your faction",
+        usage:"factionDonate [VALUE]",
+        values:["{RESOURCES_NAME} {AMOUNT}"],
+        reqs: ["profile true","faction true"],
+        effect: function (message, args, playerData) {
+            var validResource = false;
+            for(var i =0;i<resources.names.length;i++){
+                if(args[0] === resources.names.length[i].toLowerCase()){
+                    validResource =true;
+                    break;
+                }
+            }
+            if(validResource){
+                var numbers = getNumbers(args[1],false);
+                if(numbers.length){
+                    factions[playerData.faction][args[0]]+=parseInt(numbers[0],10);
+                    playerData[args[0]]-=parseInt(numbers[0],10);
+                    sendBasicEmbed({
+                        content:"Thank you for donating `"+numbers[0]+"` "+args[0]+" to your faction.",
+                        color:embedColors.darkblue,
+                        channel:message.channel
+                    });
+                }
+                else{
+                    sendBasicEmbed({
+                        content:"You need to include how much you want to donate.",
+                        color:embedColors.red,
+                        channel:message.channel
+                    });
+                }
+            }
+            else{
+                sendBasicEmbed({
+                    content:"That is not a valid resource.",
+                    color:embedColors.red,
+                    channel:message.channel
+                });
+            }
+
+        }
+    },
 
     "MOD",
     {
