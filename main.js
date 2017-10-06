@@ -972,6 +972,36 @@ const commands = [
             message.channel.send(embed);
         }
     },
+    {
+        names: ["factionDescription","fDescription"],
+        description: "change your faction's description",
+        usage:"factionDescription [VALUE]",
+        values:["{TEXT}"],
+        reqs: ["profile true","faction true","factionMod"],
+        effect: function (message, args, playerData) {
+            var txt = "";
+            for(var i =0;i<args.length;i++){
+                txt+=args[i];
+                if(i+1!==args.length){
+                    txt+=" ";
+                }
+            }
+            if(txt.length<500){
+                factions[playerData.faction].description = txt;
+                sendBasicEmbed({
+                    content:"Your faction's description has been updated.",
+                    color:factions[playerData.faction].color,
+                    channel:message.channel
+                })
+            }else{
+                sendBasicEmbed({
+                    content:"Your factions Description cannot exceed 500 characters",
+                    color:embedColors.red,
+                    channel:message.channel
+                })
+            }
+        }
+    },
 
     "MOD",
     {
