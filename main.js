@@ -2,7 +2,7 @@
  ©TemporalFuzz
  ©FrustratedProgrammer
  **/
-var version = "0.0.5";
+var version = "0.3.4";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -15,7 +15,6 @@ var listOfWaitTimes = [];
 var waitTimesInterval = false;
 var skipWarpTime = true;//for testing purposes
 var map = createMap(4, 25, 25);
-var createFactionPlayers = [];
 
 
 /**CONSTANTS**/
@@ -190,6 +189,7 @@ const commands = [
             });
         }
     },
+
     "GAMEPLAY",
     {
         names: ["collect"],
@@ -514,6 +514,7 @@ const commands = [
             message.channel.send(embed)
         }
     },
+
     "STATIONS",
     {
         names: ["stations", "station","s"],
@@ -789,6 +790,7 @@ const commands = [
             }
         }
     },
+
     "FACTIONS",
     {
         names: ["factionCreate","fCreate","createFaction"],
@@ -1042,6 +1044,29 @@ const commands = [
                 })
             }
             message.delete();
+        }
+    },
+    {
+        names: ["factionDisband","fDisband","disbandFaction"],
+        description: "disband your faction",
+        usage:"factionDisband",
+        values:[],
+        reqs: ["profile true","factionOwner"],
+        effect: function (message, args, playerData) {
+            var embed = new Discord.RichEmbed()
+                .setColor(embedColors.red)
+                .setDescription("Disbanding your faction is irreversible.\nIf you *really* want to disband your faction please do\n`"+universalPrefix+"factionDisband "+playerData.faction+"`");
+            var txt = "";
+            for(var i =0;i<args.length;i++){
+                txt+=args[0].toLowerCase();
+            }
+            if(!txt.length){
+                embed.setTitle("WARNING");
+            }else{
+                embed.setDescription("Faction was disbanded");
+                factions.splice(playerData.faction,1);
+            }
+            message.channel.send(embed)
         }
     },
 
