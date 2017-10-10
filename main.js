@@ -1048,6 +1048,118 @@ const commands = [
         }
     },
     {
+        names: ["promote"],
+        description: "promote somebody",
+        usage:"promote [VALUE]",
+        values:["{@NAME}","{USER_ID}"],
+        reqs: ["profile true","faction false","factionOwner"],
+        effect: function (message, args, playerData, prefix) {
+            var ID = "";
+            if(args[0][0] === "<"){
+                for(var i=3;i<args[0].length-1;i++){
+                    ID+=args[0][i];
+                }
+            }else{
+                ID = args[0];
+            }
+            var faction = factions[playerData.faction];
+            var member = null;
+            var mod = false;
+            for(var i =0;i<faction.members.length;i++){
+                if(ID === faction.members[i]){
+                    member = i;
+                    break;
+                }
+            }
+            for(var i =0;i<faction.mods.length;i++){
+                if(ID === faction.mods[i]){
+                    member = i;
+                    mod = true;
+                    break;
+                }
+            }
+            if(member === null){
+                sendBasicEmbed({
+                    content:"Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isnt in your faction```",
+                    channel:message.channel,
+                    color:embedColors.red
+                })
+            }
+            else{
+                if(mod){
+                    if(faction.aboutToBecomeOwner.length){
+                        sendBasicEmbed({
+                            content:"<@!"+ID+"> is now owner of "+playerData.faction+"\n<@!"+message.author.id+"> is now a mod",
+                            channel:message.channel,
+                            color:faction.color
+                        });
+                        faction.mods.splice(member,1);
+                        faction.mods.push(message.author.id);
+                        faction.creator = ID;
+                    }else{
+                        sendBasicEmbed({
+                            content:"Are you sure you want <@!"+ID+"> to be the owner of this faction?\nif you do please send ```fix\n"+prefix+"promote <@!"+ID+">```",
+                            channel:message.channel,
+                            color:embedColors.red
+                        })
+                    }
+                }else{
+                    sendBasicEmbed({
+                        content:"You promoted <@!"+ID+"> to `Mod`",
+                        channel:message.channel,
+                        color:faction.color
+                    });
+                    faction.members.splice(member,1);
+                    faction.mods.push(ID);
+                }
+            }
+        }
+    },
+    {
+        names: ["demote"],
+        description: "demote somebody",
+        usage:"demote [VALUE]",
+        values:["{@NAME}","{USER_ID}"],
+        reqs: ["profile true","faction false","factionOwner"],
+        effect: function (message, args, playerData, prefix) {
+            var ID = "";
+            if (args[0][0] === "<") {
+                for (var i = 3; i < args[0].length - 1; i++) {
+                    ID += args[0][i];
+                }
+            } else {
+                ID = args[0];
+            }
+            var faction = factions[playerData.faction];
+            var member = null;
+            for (var i = 0; i < faction.mods.length; i++) {
+                if (ID === faction.mods[i]) {
+                    member = i;
+                    mod = true;
+                    break;
+                }
+            }
+            if (member === null) {
+                sendBasicEmbed({
+                    content: "Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isnt in your faction\n3. The user cant be demoted```",
+                    channel: message.channel,
+                    color: embedColors.red
+                })
+            }
+            else {
+                if (mod) {
+                    sendBasicEmbed({
+                        content: "You demoted <@!" + ID + "> to `Member`",
+                        channel: message.channel,
+                        color: faction.color
+                    });
+                    faction.mods.splice(member, 1);
+                    faction.members.push(ID);
+                }
+            }
+        }
+    },
+    {
         names: ["factionDisband","fDisband","disbandFaction"],
         description: "disband your faction",
         usage:"factionDisband",
