@@ -20,6 +20,7 @@ var map = createMap(4, 25, 25);
 /**CONSTANTS**/
 const updateAccount = require("./account.js");
 const createFaction = require("./faction.js");
+const planets = require(".items.js").planents;
 const resources = require("./items.js").resources;
 const stations = require("./items.js").stations;
 const embedColors = require("./items.js").colors;
@@ -1441,7 +1442,6 @@ const commands = [
         }
     },
 
-
 ];
 const reqChecks = {
     "argNum": function (reqArgs, message, args, playerData, prefix) {
@@ -1601,11 +1601,27 @@ function createMap(galaxys, xSize, ySize) {
             chance: 10
         },
         {
-            name: "mine",
-            chance: 5
+            name: "ocean",
+            chance: 1
         },
         {
-            name: "farm",
+            name: "mine",
+            chance: 1
+        },
+        {
+            name: "terrestrial",
+            chance: 1
+        },
+        {
+            name: "gas",
+            chance: 1
+        },
+        {
+            name: "rocky",
+            chance: 1
+        },
+        {
+            name: "colony",
             chance: 1
         }
     ];

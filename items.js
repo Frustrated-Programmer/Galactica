@@ -1,5 +1,43 @@
-
-const stations = {
+const planets = {
+    names: [],
+    "Ocean": {
+        bonuses: [["Agriculture Station", 15]],
+        inhabitedMax: 80,
+        generatesRates: ["people 50"],
+        loseRates: []
+    },
+    "Colony": {
+        bonuses: [["Agriculture Station", 15]],
+        inhabitedMax: 150,
+        generatesRates: ["credits 1 perPerson 10"],
+        loseRates: []
+    },
+    "Mine": {
+        bonuses: [["Mining Station", 25], ["Mining Station", 10]],
+        inhabitedMax: 60,
+        generatesRates: ["steel 1 perPerson 20"],
+        loseRates: []
+    },
+    "Terrestrial": {
+        bonuses: [["Colony Station", 15]],
+        inhabitedMax: 60,
+        generatesRates: ["food 1 perPerson 20", "credits 1 perPerson 10"],
+        loseRates: []
+    },
+    "Gas": {
+        bonuses: [["Research Station", 20], ["Magnetic Station", 20], ["Factory Station", 20]],
+        inhabitedMax: 0,
+        generatesRates: [],
+        loseRates: []
+    },
+    "Rocky": {
+        bonuses: [["Mining Station", 20], ["Refining Station", 20], ["Military Station", 20]],
+        inhabitedMax: 40,
+        generatesRates: [],
+        loseRates: []
+    }
+};
+const Station = {
     names: ["Mining Station", "Refining Station", "Research Station","Agriculture Station","Military Station","Magnetic Smelter","Electronic Propulsion Station"],
     "Mining Station": {
         name:"Mining Station",
@@ -76,7 +114,7 @@ const stations = {
 const colors = {
     purple: 0x993499,//Moderation
     yellow: 0xadb60c,//Research
-    pink: 0xFF21F8,//stations
+    pink: 0xFF21F8,//Stations
     red: 0xce001f,//Invalid, Something Bad
     blue: 0x00C8C8,//Game Notifications
     darkblue: 0x252FF3,//Factions
@@ -130,8 +168,9 @@ const researches = {
 };
 
 module.exports = {
-    stations: stations,
+    Station: Station,
     colors: colors,
     resources: resources,
-    researches:researches
+    researches:researches,
+    planets:planets
 };
