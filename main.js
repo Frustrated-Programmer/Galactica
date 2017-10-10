@@ -621,101 +621,6 @@ const commands = [
         }
     },
     {
-        names: ["myStations"],
-        description: "gives you the locations and level of all your stations",
-        usage:"myStations",
-        values:[],
-        reqs: ["profile true"],
-        effect: function (message, args, playerData, prefix) {
-            var stations = playerData.stations;
-            var txt = "```css\n";
-            for(var i =0;i<stations.length;i++){
-                txt+=spacing("["+(stations[i].level+1)+"] "+stations[i].type,"Galaxy: "+(stations[i].location[0]+1)+"  X: "+stations[i].location[1]+" Y: "+stations[i].location[2],50);
-                txt+="\n";
-            }
-            txt +="```";
-            if(!stations.length){
-                txt = "You currently don't have any stations";
-            }
-            var embed = new Discord.RichEmbed()
-                .setColor(embedColors.pink)
-                .setTitle("LEVEL----NAME-----------------------LOCATION")
-                .setDescription(txt);
-            message.channel.send(embed);
-        }
-    },
-    {
-        names: ["upgradeStation","upStation",""],
-        description: "upgrade the station where you currently are at.",
-        usage:"upgradeStation",
-        values:[],
-        reqs: ["profile","warping false"],
-        effect: function (message, args, playerData, prefix) {
-            var whichStation = null;
-            var stationToUpgrade;
-            for (var i = 0; i < playerData.stations.length; i++) {
-                stationToUpgrade = playerData.stations[i];
-                if (matchArray(stationToUpgrade.location, playerData.location, false)) {
-                    whichStation = i;
-                    break;
-                }
-            }
-            if(whichStation == null){
-                sendBasicEmbed({
-                    content:"Something went wrong.\n**Either:**\n1. You do not own the station here\n2. A station doesn't exist here",
-                    color:embedColors.red,
-                    channel:message.channel
-                })
-            }
-            else {
-                var level = stationToUpgrade.level+1;
-                var station = stations[playerData.stations[whichStation].type];
-                if(station.costs.length>=level){
-                    sendBasicEmbed({
-                        content:"You've maxed this upgrade",
-                        color:embedColors.pink,
-                        channel:message.channel
-                    });
-                    return;
-                }
-                var hasEnough = true;
-                var missingItems = [];
-                for(var i =0;i<station.costs[level].length;i++) {
-                    var costsStuff = station.costs[level][i].split(" ");
-                    if (playerData[costsStuff[0]] < costsStuff[1]) {
-                        hasEnough = false;
-                        missingItems.push([(costsStuff[1] - playerData[costsStuff[0]]), resources[costsStuff[0]]]);
-                    }
-                }
-                if(hasEnough){
-                    stationToUpgrade.level++;
-                    var lostResources = "";
-                    for(var i =0;i<station.costs[level].length;i++){
-                        var costStuff = station.costs[level][i].split(" ");
-                        playerData[costStuff[0]]-=costStuff[1];
-                        lostResources+=costStuff[0]+" "+resources[costStuff[0]]+" "+costStuff[1]+"\n";
-                    }
-                    var embed = new Discord.RichEmbed()
-                        .setDescription("Successfully upgraded "+stationToUpgrade.type+"\n")
-                        .setColor(embedColors.pink)
-                        .addField("Lost Resources",lostResources);
-                    message.channel.send(embed);
-                }
-                else{
-                    var missingResources = "";
-                    for(var i =0;i<missingItems.length;i++){
-                        missingResources+=missingItems[i][0]+" "+missingItems[i][1]+"\n"
-                    }
-                    var embed = new Discord.RichEmbed()
-                        .setColor(embedColors.red)
-                        .setTitle("Missing Resources")
-                        .setDescription(missingResources);
-                    message.channel.send(embed);
-                }
-            }
-        }
-    },
-    {
         names: ["build"],
         description: "builds a station where you currently are at",
         usage:"build [VALUE]",
@@ -776,6 +681,111 @@ const commands = [
                         playerData.lastCollection = Date.now();
                     }
                     message.channel.send(embed);
+                }
+                else{
+                    var missingResources = "";
+                    for(var i =0;i<missingItems.length;i++){
+                        missingResources+=missingItems[i][0]+" "+missingItems[i][1]+"\n"
+                    }
+                    var embed = new Discord.RichEmbed()
+                        .setColor(embedColors.red)
+                        .setTitle("Missing Resources")
+                        .setDescription(missingResources);
+                    message.channel.send(embed);
+                }
+            }
+        }
+    },
+    {
+        names: ["myStations"],
+        description: "gives you the locations and level of all your stations",
+        usage:"myStations",
+        values:[],
+        reqs: ["profile true"],
+        effect: function (message, args, playerData, prefix) {
+            var stations = playerData.stations;
+            var txt = "```css\n";
+            for(var i =0;i<stations.length;i++){
+                txt+=spacing("["+(stations[i].level+1)+"] "+stations[i].type,"Galaxy: "+(stations[i].location[0]+1)+"  X: "+stations[i].location[1]+" Y: "+stations[i].location[2],50);
+                txt+="\n";
+            }
+            txt +="```";
+            if(!stations.length){
+                txt = "You currently don't have any stations";
+            }
+            var embed = new Discord.RichEmbed()
+                .setColor(embedColors.pink)
+                .setTitle("LEVEL----NAME-----------------------LOCATION")
+                .setDescription(txt);
+            message.channel.send(embed);
+        }
+    },
+    {
+        names: ["upgradeStation","upStation",""],
+        description: "upgrade the station where you currently are at.",
+        usage:"upgradeStation",
+        values:[],
+        reqs: ["profile","warping false"],
+        effect: function (message, args, playerData, prefix) {
+            var whichStation = null;
+            var stationToUpgrade;
+            for (var i = 0; i < playerData.stations.length; i++) {
+                stationToUpgrade = playerData.stations[i];
+                if (matchArray(stationToUpgrade.location, playerData.location, false)) {
+                    whichStation = i;
+                    break;
+                }
+            }
+            var hasEnough = true;
+            var missingItems = [];
+
+            if(whichStation == null){
+                sendBasicEmbed({
+                    content:"Something went wrong.\n**Either:**\n1. You do not own the station here\n2. A station doesn't exist here",
+                    color:embedColors.red,
+                    channel:message.channel
+                })
+            }
+            else {
+                var level = stationToUpgrade.level+1;
+                var station = stations[playerData.stations[whichStation].type];
+
+                if(station.costs.length>=level){
+                    if(station.extra.upgradeTo) {
+                        level = 0;
+                        station = stations[stations[playerData.stations[whichStation].type].extra.upgradeTo];
+                    }
+                    else {
+                        sendBasicEmbed({
+                            content: "You've maxed this upgrade",
+                            color: embedColors.pink,
+                            channel: message.channel
+                        });
+                        return;
+                    }
+                }
+                for(var i =0;i<station.costs[level].length;i++) {
+                    var costsStuff = station.costs[level][i].split(" ");
+                    if (playerData[costsStuff[0]] < costsStuff[1]) {
+                        hasEnough = false;
+                        missingItems.push([(costsStuff[1] - playerData[costsStuff[0]]), resources[costsStuff[0]]]);
+                    }
+                }
+                if(hasEnough){
+                    stationToUpgrade.level++;
+                    var lostResources = "";
+                    for(var i =0;i<station.costs[level].length;i++){
+                        var costStuff = station.costs[level][i].split(" ");
+                        playerData[costStuff[0]]-=costStuff[1];
+                        lostResources+=costStuff[0]+" "+resources[costStuff[0]]+" "+costStuff[1]+"\n";
+                    }
+                    var embed = new Discord.RichEmbed()
+                        .setDescription("Successfully upgraded "+stationToUpgrade.type+"\n")
+                        .setColor(embedColors.pink)
+                        .addField("Lost Resources",lostResources);
+                    message.channel.send(embed);
+                    playerData.stations[whichStation].type = station.name;
+                    playerData.stations[whichStation].level = 0;
                 }
                 else{
                     var missingResources = "";
