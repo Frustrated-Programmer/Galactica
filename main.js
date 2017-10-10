@@ -268,14 +268,14 @@ const commands = [
                 .setTitle(message.member.displayName + "'s stats")
                 .setFooter(playerData.userID)
                 .setColor(embedColors.blue);
-            var location = ""
+            var location = "";
             if (typeof playerData.location === "object") {
                 location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + playerData.location[1] + "x" + playerData.location[2] + "`"
             } else {
                 location =  playerData.location;
             }
             if(playerData.faction!==null) {
-                embed.addField("INFO:", "Faction:" + playerData.faction + "\nPower: 000\nLocation:\n"+location);
+                embed.addField("INFO:", "Faction:" + factions[playerData.faction].name + "\nPower: 000\nLocation:\n"+location);
             }else{
                 embed.addField("INFO:","Power: 000\nLocation:\n"+location);
             }
@@ -823,12 +823,12 @@ const commands = [
                         if (canCreate) {
                             embed.setTitle(txt);
                             embed.setDescription("You have successfully created the faction `" + txt + "`\n-500 "+resources["credits"]+" credits");
-                            playerData.faction = txt;
-                            factions.names.push(txt);
+                            playerData.faction = txt.toLowerCase();
+                            factions.names.push({lowerCaseName:txt.toLowerCase(),regularName:txt});
                             var newFactionData = new createFaction();
                             newFactionData.creator = message.author.id;
                             newFactionData.name = txt;
-                            factions[txt] = newFactionData;
+                            factions[txt.toLowerCase()] = newFactionData;
                             playerData["credits"]-=500;
                         }
                         else {
@@ -849,6 +849,53 @@ const commands = [
                 embed.setDescription("You are missing\n"+(500-playerData["credits"])+" "+resources["credits"]+" credits");
             }
             message.channel.send(embed);
+        }
+    },
+    {
+        names: ["factionJoin","fJoin","joinFaction"],
+        description: "join faction",
+        usage:"factioncreate [VALUE] ",
+        values:["{FACTION_NAME}"],
+        reqs: ["profile true","faction false"],
+        effect: function (message, args, playerData, prefix) {
+            var txt = "";
+            for(var i=0;i<args.length;i++){
+                txt+=args[i];
+                if(i + 1!==args.length){
+                    txt+=" ";
+                }
+            }
+            var faction = null;
+            for(var i=0;i<factions.names;i++){
+                if(factions.names[i].lowerCaseName === txt.toLowerCase()){
+                    faction = factions[factions.names[i].lowerCaseName];
+                    break;
+                }
+            }
+            if(faction){
+                if(faction.members.length<faction.maxMembers){
+                    faction.members.push(message.author.id);
+                    playerData.faction = faction.name.toLowerCase();
+                    sendBasicEmbed({
+                        content:"You joined "+faction.name+"!",
+                        channel:message.channel,
+                        color:faction.color
+                    })
+                }else{
+                    sendBasicEmbed({
+                        content:"That faction is full!",
+                        channel:message.channel,
+                        color:embedColors.red
+                    })
+                }
+            }
+            else{
+                sendBasicEmbed({
+                    content:"Unknown Faction\nEither```css\n1. That faction doesnt exist\n2. You misspelled the faction's name",
+                    channel:message.channel,
+                    color:embedColors.red
+                })
+            }
         }
     },
     {
@@ -1024,7 +1071,7 @@ const commands = [
                     console.log(image.url);
                     var embed = new Discord.RichEmbed()
                         .setThumbnail(image.url)
-                        .setTitle("Setting `" + playerData.faction + "`'s image")
+                        .setTitle("Setting `" + factions[playerData.faction].name + "`'s image")
                         .setColor(factions[playerData.faction].color)
                         .setDescription("Your faction's image has been updated.");
                     message.channel.send(embed);
@@ -1089,7 +1136,7 @@ const commands = [
                 if(mod){
                     if(faction.aboutToBecomeOwner.length){
                         sendBasicEmbed({
-                            content:"<@!"+ID+"> is now owner of "+playerData.faction+"\n<@!"+message.author.id+"> is now a mod",
+                            content:"<@!"+ID+"> is now owner of "+faction.name+"\n<@!"+message.author.id+"> is now a mod",
                             channel:message.channel,
                             color:faction.color
                         });
@@ -1109,7 +1156,6 @@ const commands = [
                         channel:message.channel,
                         color:faction.color
                     });
-                    faction.members.splice(member,1);
                     faction.mods.push(ID);
                 }
             }
@@ -1252,7 +1298,7 @@ const commands = [
         effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.red)
-                .setDescription("Disbanding your faction is irreversible.\nIf you *really* want to disband your faction please do\n`"+prefix+"factionDisband "+playerData.faction+"`");
+                .setDescription("Disbanding your faction is irreversible.\nIf you *really* want to disband your faction please do\n`"+prefix+"factionDisband "+factions[playerData.faction].name+"`");
             var txt = "";
             for(var i =0;i<args.length;i++){
                 txt+=args[0].toLowerCase();
@@ -1276,7 +1322,7 @@ const commands = [
             var txt = "";
             for (var i = 0; i < args.length; i++) {
                 txt += args[0].toLowerCase();
-                if (i + 1 === args.length) {
+                if (i + 1 !== args.length) {
                     txt += " ";
                 }
             }
@@ -1303,7 +1349,7 @@ const commands = [
                     playerData.faction = null;
                 } else {
                     sendBasicEmbed({
-                        content: "Leaving your faction is irreversible\nIf you *really* want to leave your faction please send\n`" + prefix + "factionLeave " + playerData.faction + "`",
+                        content: "Leaving your faction is irreversible\nIf you *really* want to leave your faction please send\n`" + prefix + "factionLeave " + faction.name + "`",
                         color: embedColors.red,
                         channel: message.channel
                     })
