@@ -25,6 +25,7 @@ const stations = require("./items.js").stations;
 const embedColors = require("./items.js").colors;
 const universalPrefix = "-";
 const researches = require("./items.js").researches;
+
 const commands = [
     "HELP",
     {
@@ -33,7 +34,7 @@ const commands = [
         usage:"help",
         values:[],
         reqs: [],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var txt = "```css\n";
             for (var i = 0; i < commands.length; i++) {
                 if(typeof commands[i] === "object") {
@@ -42,7 +43,7 @@ const commands = [
                         var typeReq = commands[i].reqs[q].split(" ")[0];
                         var reqArgs = commands[i].reqs[q].split(" ");
                         reqArgs.shift();
-                        var reqCheck = reqChecks[typeReq](reqArgs, message, args, playerData);
+                        var reqCheck = reqChecks[typeReq](reqArgs, message, args, playerData, prefix);
                         if (!reqCheck.val) {
                             sendIt = false;
                         }
@@ -54,7 +55,7 @@ const commands = [
             }
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.blue)
-                .setFooter("For more info\n"+universalPrefix+"command [NAME]")
+                .setFooter("For more info\n"+prefix+"command [NAME]")
                 .setTitle("HELP")
                 .setDescription(txt+"```");
             message.channel.send(embed);
@@ -66,7 +67,7 @@ const commands = [
         usage:"commands [VALUE]",
         values:["List","{COMMAND_NAME}"],
         reqs: [],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             if(args[0] == "" || args[0] == null){
                 args[0] = "list";
             }
@@ -85,7 +86,7 @@ const commands = [
                         .setColor(embedColors.blue)
                         .setTitle("COMMAND'S LIST")
                         .setDescription(commandsList)
-                        .setFooter(universalPrefix+"command [NAME]");
+                        .setFooter(prefix+"command [NAME]");
                     message.channel.send(embed);
                 break;
                 default:
@@ -104,7 +105,7 @@ const commands = [
 
                     if(commandIs == null){
                         sendBasicEmbed({
-                            content:"Invalid Usage\nTry using `"+universalPrefix+"commands list`",
+                            content:"Invalid Usage\nTry using `"+prefix+"commands list`",
                             color:embedColors.red,
                             channel:message.channel,
                         })
@@ -117,10 +118,10 @@ const commands = [
                         }
                         var embed = new Discord.RichEmbed()
                             .setColor(embedColors.blue)
-                            .setTitle("INFO ABOUT \"**`"+universalPrefix+command.names[0]+"`**\"")
+                            .setTitle("INFO ABOUT \"**`"+prefix+command.names[0]+"`**\"")
                             .setDescription(command.description)
                             .addField("Aliases",aliases)
-                            .addField("Usage","`"+universalPrefix+command.usage+"`",true);
+                            .addField("Usage","`"+prefix+command.usage+"`",true);
                         if(command.values.length){
                             var vals = "";
                             for(var i =0;i<command.values.length;i++){
@@ -143,7 +144,7 @@ const commands = [
         usage:"ping",
         values:[],
         reqs: [],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var storedTimeForPingCommand = Date.now();
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.purple)
@@ -164,7 +165,7 @@ const commands = [
         usage:"version",
         values:[],
         reqs: [],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             sendBasicEmbed({
                 color: embedColors.green,
                 content: "Galactica | Version | " + version,
@@ -178,7 +179,7 @@ const commands = [
         usage:"join",
         values:[],
         reqs: ["profile false"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
            var newPlayerData = new updateAccount();
             newPlayerData.userID = message.author.id;
             accountData.push(newPlayerData);
@@ -197,7 +198,7 @@ const commands = [
         usage:"collect",
         values:[],
         reqs: ["profile true"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var canContinue = true;
             if(playerData.stations.length === 0){
                 sendBasicEmbed({
@@ -262,7 +263,7 @@ const commands = [
         usage:"stats",
         values:[],
         reqs: ["profile true"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
                 .setTitle(message.member.displayName + "'s stats")
                 .setFooter(playerData.userID)
@@ -307,7 +308,7 @@ const commands = [
         usage:"warp [VALUE]",
         values:["{GALAXY}","{X} {Y}","{GALAXY} {X} {Y}"],
         reqs: ["profile","warping false"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             if (typeof playerData.location === "object") {
                 var numbers = getNumbers(message.content);
                 var warpType, goToPos = playerData.location;
@@ -396,14 +397,14 @@ const commands = [
         usage:"lookAround",
         values:[],
         reqs: ["profile","warping false"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var pos = playerData.location;
             console.log(pos);
             var loc = map[pos[0]][pos[1]][pos[2]];
             var station = "Unoccupied";
             var items = "**Boost to stations:**\n • UnImplemented";
             if (loc.ownerOfStation !== "none") {
-                items = "attack `" + loc.ownerOfStation.name + "`'s staion via `" + universalPrefix + "UnImplemented`";
+                items = "attack `" + loc.ownerOfStation.name + "`'s staion via `" + prefix + "UnImplemented`";
                 station = "occupied by `" + loc.ownerOfStation.name + "`";
             }
             var embed = new Discord.RichEmbed()
@@ -420,7 +421,7 @@ const commands = [
         usage:"scan",
         values:[],
         reqs: ["profile","warping false"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             playerData[args[0]]+=parseInt(args[1],10);
 
         }
@@ -431,7 +432,7 @@ const commands = [
         usage:"research [VALUE]",
         values:["List","Info {RESEARCH_NAME}","{RESEARCH_NAME}"],
         reqs: ["profile true"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.yellow);
             var numbs = getNumbers(args, false);
@@ -478,7 +479,7 @@ const commands = [
                         embed.setTitle("RESEARCH INFO");
                         embed.setDescription("You have `" + playerData["research"] + "` 💡 research\n" + researches.names[number] + "'s level is `" + (level + 1) + "`");
                         embed.addField(researches.names[number], item.does[level] + "\nCosts: " + item.costs[level] + " 💡 research\nTime: " + getTimeRemaining(item.timesToResearch[level]))
-                        embed.setFooter(universalPrefix + "research " + researches.names[number]);
+                        embed.setFooter(prefix + "research " + researches.names[number]);
                     }
                     break;
                 case "list":
@@ -492,7 +493,7 @@ const commands = [
                     }
                     txt += "```";
                     embed.setDescription(txt);
-                    embed.setFooter(universalPrefix + "research info [NAME]/[ID]");
+                    embed.setFooter(prefix + "research info [NAME]/[ID]");
                     break;
                 default:
                     if (number !== null) {
@@ -522,7 +523,7 @@ const commands = [
         usage:"station [VALUE]",
         values:["List","Info {STATION_NAME}"],
         reqs: [],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.pink);
             if(args[0] == ""||args[0]==null){
@@ -536,7 +537,7 @@ const commands = [
                         txt += "[" + (i+1) + "] " + stations.names[i] + "\n";
                     }
                     embed.setDescription(txt+"```")
-                        .setFooter(universalPrefix + "station info [NAME]/[ID]");
+                        .setFooter(prefix + "station info [NAME]/[ID]");
                     break;
                 case "info":
                     var numbs = getNumbers(args, false);
@@ -578,7 +579,7 @@ const commands = [
                     }
                     if (number === null) {
                         embed.setColor(embedColors.red);
-                        embed.setDescription("Invalid Usage\nTry using `" + universalPrefix + "station list`");
+                        embed.setDescription("Invalid Usage\nTry using `" + prefix + "station list`");
                     }
                     else {
                         var item = stations[stations.names[number]];
@@ -612,7 +613,7 @@ const commands = [
                     }
                     break;
                 default:
-                    embed.setDescription("Invalid Usage\nTry using `" + universalPrefix + "station list`")
+                    embed.setDescription("Invalid Usage\nTry using `" + prefix + "station list`")
                         .setColor(embedColors.red);
                     break;
             }
@@ -625,7 +626,7 @@ const commands = [
         usage:"myStations",
         values:[],
         reqs: ["profile true"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var stations = playerData.stations;
             var txt = "```css\n";
             for(var i =0;i<stations.length;i++){
@@ -649,7 +650,7 @@ const commands = [
         usage:"upgradeStation",
         values:[],
         reqs: ["profile","warping false"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var whichStation = null;
             var stationToUpgrade;
             for (var i = 0; i < playerData.stations.length; i++) {
@@ -720,7 +721,7 @@ const commands = [
         usage:"build [VALUE]",
         values:["{STATION_NAME}"],
         reqs: ["profile","warping false"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             const freeStation = playerData.stations.length===0;
 
             var selectedStation = false;
@@ -733,7 +734,7 @@ const commands = [
             }
             if(selectedStation===false){
                 sendBasicEmbed({
-                    content:"Invalid Usage\nTry using `"+universalPrefix+"stations list`\nto get the correct spelling",
+                    content:"Invalid Usage\nTry using `"+prefix+"stations list`\nto get the correct spelling",
                     color:embedColors.red,
                     channel:message.channel
                 });
@@ -798,7 +799,7 @@ const commands = [
         usage:"factioncreate [VALUE] ",
         values:["{NAME}"],
         reqs: ["profile true","faction false"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
 
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.darkblue);
@@ -856,7 +857,7 @@ const commands = [
         usage:"factionDonate [VALUE]",
         values:["{RESOURCES_NAME} {AMOUNT}"],
         reqs: ["profile true","faction true"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var validResource = false;
             for(var i =0;i<resources.names.length;i++){
                 if(args[0] === resources.names[i].toLowerCase()){
@@ -899,7 +900,7 @@ const commands = [
         usage:"factionStats",
         values:[],
         reqs: ["profile true","faction true"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
 
             var faction = factions[playerData.faction];
             var embed = new Discord.RichEmbed()
@@ -937,7 +938,7 @@ const commands = [
         usage:"factionUpgrade",
         values:[],
         reqs: ["profile true","faction true","factionMod","upgradableFaction"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var faction = factions[playerData.faction];
             var stuff = factions.costs[faction.level].split(" ");
             faction.level++;
@@ -980,7 +981,7 @@ const commands = [
         usage:"factionDescription [VALUE]",
         values:["{TEXT}"],
         reqs: ["profile true","faction true","factionMod"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var txt = "";
             for(var i =0;i<args.length;i++){
                 txt+=args[i];
@@ -1010,7 +1011,7 @@ const commands = [
         usage:"factionImage",
         values:[],
         reqs: ["profile true","faction true","factionMod","factionImage"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             console.log(message.attachments.first());
             if(message.attachments.first()) {
                 var image = message.attachments.first();
@@ -1051,11 +1052,11 @@ const commands = [
         description: "disband your faction",
         usage:"factionDisband",
         values:[],
-        reqs: ["profile true","factionOwner"],
-        effect: function (message, args, playerData) {
+        reqs: ["profile true","faction","factionOwner"],
+        effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.red)
-                .setDescription("Disbanding your faction is irreversible.\nIf you *really* want to disband your faction please do\n`"+universalPrefix+"factionDisband "+playerData.faction+"`");
+                .setDescription("Disbanding your faction is irreversible.\nIf you *really* want to disband your faction please do\n`"+prefix+"factionDisband "+playerData.faction+"`");
             var txt = "";
             for(var i =0;i<args.length;i++){
                 txt+=args[0].toLowerCase();
@@ -1069,6 +1070,58 @@ const commands = [
             message.channel.send(embed)
         }
     },
+    {
+        names: ["factionLeave","fLeave","leaveFaction"],
+        description: "leave your current faction",
+        usage:"factionLeave",
+        values:[],
+        reqs: ["profile true","faction"],
+        effect: function (message, args, playerData, prefix) {
+            var txt = "";
+            for (var i = 0; i < args.length; i++) {
+                txt += args[0].toLowerCase();
+                if (i + 1 === args.length) {
+                    txt += " ";
+                }
+            }
+            if (factions[playerData.faction].creator !== message.author.id) {
+                if (txt === playerData.faction.toLowerCase()) {
+                    var faction = factions[playerData.faction];
+                    sendBasicEmbed({
+                        content: "You have left your faction.",
+                        color: embedColors.red,
+                        channel: message.channel
+                    });
+                    for(var i=0;i<faction.members.length;i++){
+                        if(faction.members[i] === message.author.id){
+                            faction.members.splice(i,1);
+                            break;
+                        }
+                    }
+                    for(var i=0;i<faction.mods.length;i++){
+                        if(faction.mods[i] === message.author.id){
+                            faction.mods.splice(i,1);
+                            break;
+                        }
+                    }
+                    playerData.faction = null;
+                } else {
+                    sendBasicEmbed({
+                        content: "Leaving your faction is irreversible\nIf you *really* want to leave your faction please send\n`" + prefix + "factionLeave " + playerData.faction + "`",
+                        color: embedColors.red,
+                        channel: message.channel
+                    })
+                }
+            }
+            else {
+                sendBasicEmbed({
+                    content: "You are the owner of this faction\nYou cannot leave! But you can do\n```css\n"+prefix+"factionDisband        Delete your faction\n"+prefix+"promote     promote somebody to a mod/owner```",
+                    color: embedColors.red,
+                    channel: message.channel
+                })
+            }
+        }
+    },
 
     "MOD",
     {
@@ -1077,7 +1130,7 @@ const commands = [
         usage:"exit",
         values:[],
         reqs: ["owner"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             process.exit();
         }
     },
@@ -1087,7 +1140,7 @@ const commands = [
         usage:"clear [VALUE]",
         values:["All","{NUMBER}"],
         reqs: ["userPerms MANAGE_MESSAGES"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             var theNumbersInput = getNumbers(message.content, true);
             if (args[0] === "all") {
                 channelClear(message.channel);
@@ -1110,7 +1163,7 @@ const commands = [
         usage: "give [VALUE]",
         values: ["{ITEM} {AMOUNT}", "{PLAYER} {ITEM} {AMOUNT}"],
         reqs: ["profile true", "owner"],
-        effect: function (message, args, playerData) {
+        effect: function (message, args, playerData, prefix) {
             console.log(args.length);
             if (args.length === 2) {
                 playerData[args[0]] += parseInt(args[1], 10);
@@ -1134,35 +1187,37 @@ const commands = [
             }
 
         }
-    }
+    },
+
+
 ];
 const reqChecks = {
-    "argNum": function (reqArgs, message, args, playerData) {
+    "argNum": function (reqArgs, message, args, playerData, prefix) {
         return {
             val: args[reqArgs][0] !== parseInt(args[reqArgs][0], 10)
         };
     },
-    "argOver": function (reqArgs, message, args, playerData) {
-        if (reqChecks.argNum(reqArgs, message, args, playerData)) return {
+    "argOver": function (reqArgs, message, args, playerData, prefix) {
+        if (reqChecks.argNum(reqArgs, message, args, playerData, prefix)) return {
             val: false
         };
         return {val: args[reqArgs[0]] > parseInt(reqArgs[1])};
     },
-    "argUnder": function (reqArgs, message, args, playerData) {
-        if (reqChecks.argNum(reqArgs, message, args, playerData)) return {
+    "argUnder": function (reqArgs, message, args, playerData, prefix) {
+        if (reqChecks.argNum(reqArgs, message, args, playerData, prefix)) return {
             val: false
         };
         return {val: args[reqArgs[0]] < parseInt(reqArgs[1])};
     },
-    "argNot": function (reqArgs, message, args, playerData) {
-        if (reqChecks.argNum(reqArgs, message, args, playerData)) return {
+    "argNot": function (reqArgs, message, args, playerData, prefix) {
+        if (reqChecks.argNum(reqArgs, message, args, playerData, prefix)) return {
             val: false
         };
         return {
             val: args[reqArgs[0]] !== parseInt(reqArgs[1])
         };
     },
-    "botPerms": function (reqArgs, message, args, playerData) {
+    "botPerms": function (reqArgs, message, args, playerData, prefix) {
         return {
             val: checkPerms({
                 user: "bot",
@@ -1172,7 +1227,7 @@ const reqChecks = {
             msg: "The bot currently doesnt have: `" + reqArgs[0] + "`"
         };
     },
-    "userPerms": function (reqArgs, message, args, playerData) {
+    "userPerms": function (reqArgs, message, args, playerData, prefix) {
         return {
             val: checkPerms({
                 user: "user",
@@ -1182,13 +1237,13 @@ const reqChecks = {
             msg: "You currently dont have: `" + reqArgs[0] + "`"
         };
     },
-    "owner": function (reqArgs, message, args, playerData) {
+    "owner": function (reqArgs, message, args, playerData, prefix) {
         if (message.author.id === "198590928166977537" || message.author.id === "244590122811523082") {
             return {val: true, msg: ""};
         }
         return {val: false, msg: "You must be an owner of the bot."}
     },
-    "warping": function (reqArgs, message, args, playerData) {
+    "warping": function (reqArgs, message, args, playerData, prefix) {
         var x = "false";
         for (var i = 0; i < listOfWaitTimes.length; i++) {
             if (listOfWaitTimes[i].expires < Date.now()) {
@@ -1206,21 +1261,21 @@ const reqChecks = {
             return {val: false, msg: "You cant be warping to use this command."}
         }
     },
-    "profile": function (reqArgs, message, args, playerData) {
+    "profile": function (reqArgs, message, args, playerData, prefix) {
         if (reqArgs[0] === "true") {
-            return {val: playerData !== null, msg: "You need to create a profile. use `" + universalPrefix + "join`"};
+            return {val: playerData !== null, msg: "You need to create a profile. use `" + prefix + "join`"};
         } else {
             return {val: playerData === null, msg: "You already have a profile."};
         }
     },
-    "faction": function (reqArgs, message, args, playerData) {
+    "faction": function (reqArgs, message, args, playerData, prefix) {
         if (reqArgs[0] === "true") {
             return {val: playerData.faction !== null, msg: "You need to be in a faction."};
         } else {
             return {val: playerData.faction === null, msg: "You cant be in a faction"};
         }
     },
-    "factionMod": function (reqArgs, message, args, playerData) {
+    "factionMod": function (reqArgs, message, args, playerData, prefix) {
         var fac = factions[playerData.faction];
         if(message.author.id === fac.creator){
             return {val:true,msg:""};
@@ -1232,14 +1287,14 @@ const reqChecks = {
         }
         return {val: false,msg:"You need to be a mod of your faction"}
     },
-    "factionOwner": function (reqArgs, message, args, playerData) {
+    "factionOwner": function (reqArgs, message, args, playerData, prefix) {
         var fac = factions[playerData.faction];
         if(message.author.id === fac.creator){
             return {val:true,msg:""};
         }
         return {val: false,msg:"You need to be a owner of your faction"}
     },
-    "factionImage": function (reqArgs, message, args, playerData) {
+    "factionImage": function (reqArgs, message, args, playerData, prefix) {
         if (playerData){
             if(playerData.faction){
                 if(factions[playerData.faction].canUseImage){
@@ -1249,7 +1304,7 @@ const reqChecks = {
         }
         return {val:false,msg:"You haven't unlocked this yet."}
     },
-    "upgradableFaction": function (reqArgs, message, args, playerData) {
+    "upgradableFaction": function (reqArgs, message, args, playerData, prefix) {
         var faction = factions[playerData.faction];
         if(faction.level+1 !== factions.costs.length) {
             var missing = "";
@@ -1365,25 +1420,25 @@ function channelClear(channel, msgnum) {
         });
     }
 }
-function runCommand(command, message, args, playerData) {
+function runCommand(command, message, args, playerData, prefix) {
     for (var i = 0; i < command.reqs.length; i++) {
         var typeReq = command.reqs[i].split(" ")[0];
         var reqArgs = command.reqs[i].split(" ");
         reqArgs.shift();
-        var reqCheck = reqChecks[typeReq](reqArgs, message, args, playerData);
+        var reqCheck = reqChecks[typeReq](reqArgs, message, args, playerData, prefix);
         if (!reqCheck.val) {
             if (reqCheck.msg) {
                 sendBasicEmbed({
                     content: reqCheck.msg,
                     color: embedColors.red,
                     channel: message.channel
-                })
+                });
                 return;
             }
         }
     }
-
-    command.effect(message, args, playerData);
+    
+    command.effect(message, args, playerData, universalPrefix);
     return;
 }
 function getNumbers(text, parsed) {
