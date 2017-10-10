@@ -218,20 +218,37 @@ const commands = [
                 canContinue = false;
             }
             if(canContinue) {
-                var amount = Math.round(Date.now()-playerData.lastCollection/(60000*5));
+                var amount = Math.round(Date.now()-playerData.lastCollection/(60000*5));//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
                 playerData.lastCollection = Date.now();
-                var gainedResources = {};
+                var gainedResources = {};//amount of resources gained
+                var bonusResources = {};//amount of bonus resources gained
                 for (var i = 0; i < playerData.stations.length; i++) {
                     var station = stations[playerData.stations[i].type];
+                    var bonus = 0;
+                    for(var q =0;q<planets.names.length;q++){
+                        var planet = planets[planets.names[q]];
+                        for(var l =0;l<planet.bonuses.length;l++){
+                            var stuff = planet.bonuses[l].split(" ");
+                            if(station.name .toLowerCase() === stuff[0].toLowerCase()){
+                                bonus = parseInt(stuff[1],10);
+                                break;
+                            }
+                        }
+                        if(bonus!==0){
+                            break;
+                        }
+                    }
                     for(var j =0;j<station.gives[playerData.stations[i].level].length;j++) {
                         var stuff = station.gives[playerData.stations[i].level][j].split(" ");
-                        console.log(parseInt(stuff[1],10) * amount);
                         gainedResources[stuff[0]] = gainedResources[stuff[0]] || 0;
                         gainedResources[stuff[0]] += parseInt(stuff[1],10) * amount;
                         playerData[stuff[0]] += parseInt(stuff[1],10) * amount;
+
+                        bonusResources[stuff[0]] += parseInt(stuff[1],10) * (100/bonus) * amount;
+                        playerData[stuff[0]] += parseInt(stuff[1],10) * (100/bonus) * amount;
                     }
                 }
-                var txt = "";
+                /**LongestSpace makes sure all the resources TEXT is evenly spaced even with double digits**/
                 var longestSpace = 0;
                 for(var i=0;i<resources.names.length;i++) {
                     if (gainedResources[resources.names[i]] != null) {
@@ -240,20 +257,36 @@ const commands = [
                         }
                     }
                 }
+                /**Create the gained resources text**/
+                var normalResourcesText = "";
                 for(var i =0;i<resources.names.length;i++){
                     if(gainedResources[resources.names[i]]!=null){
                         var space = "";
                         for(var j =0;j<longestSpace-(""+gainedResources[resources.names[i]]).length;j++){
                             space+=" "
                         }
-                        txt+=gainedResources[resources.names[i]]+space+" | "+resources[resources.names[i]]+" "+resources.names[i]+"\n";
+                        normalResourcesText+=gainedResources[resources.names[i]]+space+" | "+resources[resources.names[i]]+" "+resources.names[i]+"\n";
                     }
-                }
-                console.log(gainedResources);
+                }//normal resources
+                var bonusResourceText = "";
+                for(var i =0;i<resources.names.length;i++){
+                    if(bonusResources[resources.names[i]]!=null){
+                        var space = "";
+                        for(var j =0;j<longestSpace-(""+bonusResources[resources.names[i]]).length;j++){
+                            space+=" "
+                        }
+                        bonusResourceText+=bonusResources[resources.names[i]]+space+" | "+resources[resources.names[i]]+" "+resources.names[i]+"\n";
+                    }
+                }//bonuse resources from the planets bonus
+                //send the embed
                 var embed = new Discord.RichEmbed()
                     .setColor(embedColors.pink)
                     .setTitle("Current Collection")
-                    .setDescription(txt);
+                    .setDescription("You have waited "+(amount*5)+" minuts so your collection is multiplied by `"+amount+"`")
+                    .addField("Normal Resources",normalResourcesText);
+                    if(bonusResourceText.length){
+                        embed.addField("Bonus Resources from planets",bonusResourceText);
+                    }
                 message.channel.send(embed);
             }
         }
@@ -1577,6 +1610,23 @@ const reqChecks = {
 
 
 /**FUNCTIONS**/
+
+function getBorders(location){
+    var bordering = [];
+    if(location[1]>0) {
+        bordering.push(map[location[0]][location[1] - 1][location[2]].type);
+    }
+    if(location[1]<map[location[0]].length) {
+        bordering.push(map[location[0]][location[1] + 1][location[2]].type);
+    }
+    if(location[2]>0) {
+        bordering.push(map[location[0]][location[1]][location[2]-1].type);
+    }
+    if(location[2]<map[location[0]][location[1]].length) {
+        bordering.push(map[location[0]][location[1]][location[2]+1].type);
+    }
+    return bordering;
+}
 function checkWaitTimes() {
     for (var i = 0; i < listOfWaitTimes.length; i++) {
         if (listOfWaitTimes[i].expires < Date.now()) {
@@ -1601,27 +1651,27 @@ function createMap(galaxys, xSize, ySize) {
             chance: 10
         },
         {
-            name: "ocean",
+            name: "Ocean",
             chance: 1
         },
         {
-            name: "mine",
+            name: "Mine",
             chance: 1
         },
         {
-            name: "terrestrial",
+            name: "Terrestrial",
             chance: 1
         },
         {
-            name: "gas",
+            name: "Gas",
             chance: 1
         },
         {
-            name: "rocky",
+            name: "Rocky",
             chance: 1
         },
         {
-            name: "colony",
+            name: "Colony",
             chance: 1
         }
     ];
