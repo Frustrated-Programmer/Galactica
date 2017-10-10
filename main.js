@@ -1160,6 +1160,90 @@ const commands = [
         }
     },
     {
+        names: ["kick"],
+        description: "kick somebody out of your faction",
+        usage:"kick [VALUE]",
+        values:["{@NAME}","{USER_ID}"],
+        reqs: ["profile true","faction false","factionMod"],
+        effect: function (message, args, playerData, prefix) {
+            var ID = "";
+            if(args[0][0] === "<"){
+                for(var i=3;i<args[0].length-1;i++){
+                    ID+=args[0][i];
+                }
+            }
+            else{
+                ID = args[0];
+            }
+            var faction = factions[playerData.faction];
+            var member = null;
+            var mod = false;
+            for(var i =0;i<faction.members.length;i++){
+                if(ID === faction.members[i]){
+                    member = i;
+                    break;
+                }
+            }
+            for(var i =0;i<faction.mods.length;i++){
+                if(ID === faction.mods[i]){
+                    member = i;
+                    mod = true;
+                    break;
+                }
+            }
+            if(ID === message.author.id) {
+                sendBasicEmbed({
+                    content:"You cant kick yourself.\nIf you want to leave send\n`"+prefix+"factionLeave`",
+                    channel:message.channel,
+                    color:embedColors.red
+                })
+            }
+            else {
+                if (ID === faction.creator) {
+                    sendBasicEmbed({
+                        content: "You cant kick the owner of the faction.",
+                        channel: message.channel,
+                        color: embedColors.red
+                    })
+                }
+                else{
+                    if (member === null) {
+                        sendBasicEmbed({
+                            content: "Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isnt in your faction```",
+                            channel: message.channel,
+                            color: embedColors.red
+                        })
+                    }
+                    else {
+                        if (mod) {
+                            if (message.author.id === faction.creator) {
+                                sendBasicEmbed({
+                                    content: "Kicked <@!"+ID+"> from the faction.",
+                                    channel: message.channel,
+                                    color: faction.color
+                                });
+                                faction.mods.splice(member,1);
+                            } else {
+                                sendBasicEmbed({
+                                    content: "Only <@!"+faction.creator+"> can kick Mods.",
+                                    channel: message.channel,
+                                    color: embedColors.red
+                                })
+                            }
+                        } else {
+                            sendBasicEmbed({
+                                content: "Kicked <@!"+ID+"> from the faction.",
+                                channel: message.channel,
+                                color: faction.color
+                            });
+                            faction.members.splice(member,1);
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
         names: ["factionDisband","fDisband","disbandFaction"],
         description: "disband your faction",
         usage:"factionDisband",
