@@ -2,13 +2,13 @@
  ©TemporalFuzz
  ©FrustratedProgrammer
  **/
-var version = "0.3.4";
+var version = require("./other.json").version;
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
 
-/**VARIBLES**/
+/**VARIABLES**/
 var factions = require("./factions.json").factions;
 var accountData = require("./accounts.json").players;
 var listOfWaitTimes = [];
@@ -18,6 +18,7 @@ var map = createMap(4, 25, 25);
 
 
 /**CONSTANTS**/
+const prefixes = require("./other.json").prefixes;
 const updateAccount = require("./account.js");
 const createFaction = require("./faction.js");
 const planets = require(".items.js").planents;
@@ -32,13 +33,13 @@ const commands = [
     {
         names: ["help"],
         description: "get a list of all the commands you can do",
-        usage:"help",
-        values:[],
+        usage: "help",
+        values: [],
         reqs: [],
         effect: function (message, args, playerData, prefix) {
             var txt = "```css\n";
             for (var i = 0; i < commands.length; i++) {
-                if(typeof commands[i] === "object") {
+                if (typeof commands[i] === "object") {
                     var sendIt = true;
                     for (var q = 0; q < commands[i].reqs.length; q++) {
                         var typeReq = commands[i].reqs[q].split(" ")[0];
@@ -56,94 +57,94 @@ const commands = [
             }
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.blue)
-                .setFooter("For more info\n"+prefix+"command [NAME]")
+                .setFooter("For more info\n" + prefix + "command [NAME]")
                 .setTitle("HELP")
-                .setDescription(txt+"```");
+                .setDescription(txt + "```");
             message.channel.send(embed);
         }
     },
     {
-        names: ["commands","command","coms","com"],
+        names: ["commands", "command", "coms", "com"],
         description: "get a list of all the commands",
-        usage:"commands [VALUE]",
-        values:["List","{COMMAND_NAME}"],
+        usage: "commands [VALUE]",
+        values: ["List", "{COMMAND_NAME}"],
         reqs: [],
         effect: function (message, args, playerData, prefix) {
-            if(args[0] == "" || args[0] == null){
+            if (args[0] == "" || args[0] == null) {
                 args[0] = "list";
             }
-            switch(args[0]){
+            switch (args[0]) {
                 case "list":
                     var commandsList = "```markdown\n";
-                    for(var i =0;i<commands.length;i++){
-                        if(typeof commands[i] === "object") {
+                    for (var i = 0; i < commands.length; i++) {
+                        if (typeof commands[i] === "object") {
                             commandsList += commands[i].names[0] + "\n"
-                        }else{
-                            commandsList += "#"+commands[i]+"\n";
+                        } else {
+                            commandsList += "#" + commands[i] + "\n";
                         }
                     }
-                    commandsList+="```";
+                    commandsList += "```";
                     var embed = new Discord.RichEmbed()
                         .setColor(embedColors.blue)
                         .setTitle("COMMAND'S LIST")
                         .setDescription(commandsList)
-                        .setFooter(prefix+"command [NAME]");
+                        .setFooter(prefix + "command [NAME]");
                     message.channel.send(embed);
-                break;
+                    break;
                 default:
                     var commandIs = null;
                     for (var i = 0; i < commands.length; i++) {
-                            for (var j = 0; j < commands[i].names.length; j++) {
-                                if (args[0] === commands[i].names[j].toLowerCase()) {
-                                    commandIs = i;
-                                    break;
-                                }
-                            }
-                            if (commandIs != null) {
+                        for (var j = 0; j < commands[i].names.length; j++) {
+                            if (args[0] === commands[i].names[j].toLowerCase()) {
+                                commandIs = i;
                                 break;
                             }
                         }
+                        if (commandIs != null) {
+                            break;
+                        }
+                    }
 
-                    if(commandIs == null){
+                    if (commandIs == null) {
                         sendBasicEmbed({
-                            content:"Invalid Usage\nTry using `"+prefix+"commands list`",
-                            color:embedColors.red,
-                            channel:message.channel,
+                            content: "Invalid Usage\nTry using `" + prefix + "commands list`",
+                            color: embedColors.red,
+                            channel: message.channel,
                         })
                     }
-                    else{
+                    else {
                         var aliases = "";
                         var command = commands[commandIs];
-                        for(var i =0;i<command.names.length;i++){
-                            aliases+="`"+command.names[i]+"` ";
+                        for (var i = 0; i < command.names.length; i++) {
+                            aliases += "`" + command.names[i] + "` ";
                         }
                         var embed = new Discord.RichEmbed()
                             .setColor(embedColors.blue)
-                            .setTitle("INFO ABOUT \"**`"+prefix+command.names[0]+"`**\"")
+                            .setTitle("INFO ABOUT \"**`" + prefix + command.names[0] + "`**\"")
                             .setDescription(command.description)
-                            .addField("Aliases",aliases)
-                            .addField("Usage","`"+prefix+command.usage+"`",true);
-                        if(command.values.length){
+                            .addField("Aliases", aliases)
+                            .addField("Usage", "`" + prefix + command.usage + "`", true);
+                        if (command.values.length) {
                             var vals = "";
-                            for(var i =0;i<command.values.length;i++){
-                                vals+="`"+command.values[i]+"` ";
-                                if(i+1!==command.values.length){
-                                    vals+="|| "
+                            for (var i = 0; i < command.values.length; i++) {
+                                vals += "`" + command.values[i] + "` ";
+                                if (i + 1 !== command.values.length) {
+                                    vals += "|| "
                                 }
                             }
-                            embed.addField("`[VALUE]` can be used as:",vals,true);
+                            embed.addField("`[VALUE]` can be used as:", vals, true);
                         }
                         message.channel.send(embed);
                     }
-                break;
+                    break;
             }
         }
     },
     {
         names: ["ping"],
         description: "ping the server and find how long is the response time",
-        usage:"ping",
-        values:[],
+        usage: "ping",
+        values: [],
         reqs: [],
         effect: function (message, args, playerData, prefix) {
             var storedTimeForPingCommand = Date.now();
@@ -163,8 +164,8 @@ const commands = [
     {
         names: ["version"],
         description: "Gives you the current version",
-        usage:"version",
-        values:[],
+        usage: "version",
+        values: [],
         reqs: [],
         effect: function (message, args, playerData, prefix) {
             sendBasicEmbed({
@@ -177,11 +178,11 @@ const commands = [
     {
         names: ["join"],
         description: "join the game",
-        usage:"join",
-        values:[],
+        usage: "join",
+        values: [],
         reqs: ["profile false"],
         effect: function (message, args, playerData, prefix) {
-           var newPlayerData = new updateAccount();
+            var newPlayerData = new updateAccount();
             newPlayerData.userID = message.author.id;
             accountData.push(newPlayerData);
             sendBasicEmbed({
@@ -196,97 +197,130 @@ const commands = [
     {
         names: ["collect"],
         description: "collect resources from your stations",
-        usage:"collect",
-        values:[],
+        usage: "collect",
+        values: [],
         reqs: ["profile true"],
         effect: function (message, args, playerData, prefix) {
             var canContinue = true;
-            if(playerData.stations.length === 0){
+            if (playerData.stations.length === 0) {
                 sendBasicEmbed({
-                    content:"You currently dont have any stations",
-                    channel:message.channel,
-                    color:embedColors.red
+                    content: "You currently don't have any stations",
+                    channel: message.channel,
+                    color: embedColors.red
                 });
                 canContinue = false;
             }
-            if(playerData.lastCollection+(60000*5) > Date.now()){
+            if (playerData.lastCollection + (60000 * 5) > Date.now()) {
                 sendBasicEmbed({
-                    content:"You can only collect once every 5 minutes\nYou currently need to wait:\n"+getTimeRemaining((playerData.lastCollection+(60000*5))-Date.now()),
-                    channel:message.channel,
-                    color:embedColors.red
+                    content: "You can only collect once every 5 minutes\nYou currently need to wait:\n" + getTimeRemaining((playerData.lastCollection + (60000 * 5)) - Date.now()),
+                    channel: message.channel,
+                    color: embedColors.red
                 });
                 canContinue = false;
             }
-            if(canContinue) {
-                var amount = Math.round(Date.now()-playerData.lastCollection/(60000*5));//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
+            if (canContinue) {
+                var amount = Math.round(Date.now() - playerData.lastCollection / (60000 * 5));//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
                 playerData.lastCollection = Date.now();
                 var gainedResources = {};//amount of resources gained
-                var bonusResources = {};//amount of bonus resources gained
+                var bonusResourcesPlanet = {};//amount of bonus resources gained from planets
+                var bonusResourcesResearch = {};//amount of bonus resources gained from research
                 for (var i = 0; i < playerData.stations.length; i++) {
                     var station = stations[playerData.stations[i].type];
-                    var bonus = 0;
-                    for(var q =0;q<planets.names.length;q++){
-                        var planet = planets[planets.names[q]];
-                        for(var l =0;l<planet.bonuses.length;l++){
-                            var stuff = planet.bonuses[l].split(" ");
-                            if(station.name .toLowerCase() === stuff[0].toLowerCase()){
-                                bonus = parseInt(stuff[1],10);
+                    var planetBonus = 0;
+                    var borders = getBorders(station.location);
+                    for (var bor = 0; bor < borders.length; bor++) {
+                        for (var q = 0; q < planets.names.length; q++) {
+                            var planet = planets[planets.names[q]];
+                            if (borders[bor].toLowerCase() === stuff[0].toLowerCase()) {
+                                for (var l = 0; l < planet.bonuses.length; l++) {
+                                    var stuff = planet.bonuses[l].split(" ");
+                                    if (station.name.toLowerCase() === stuff[0].toLowerCase()) {
+                                        planetBonus = parseInt(stuff[1], 10);
+                                        break;
+                                    }
+                                }
+                            }
+                            if (planetBonus !== 0) {
                                 break;
                             }
                         }
-                        if(bonus!==0){
+                        if (planetBonus !== 0) {
                             break;
                         }
                     }
-                    for(var j =0;j<station.gives[playerData.stations[i].level].length;j++) {
+                    for (var j = 0; j < station.gives[playerData.stations[i].level].length; j++) {
                         var stuff = station.gives[playerData.stations[i].level][j].split(" ");
                         gainedResources[stuff[0]] = gainedResources[stuff[0]] || 0;
-                        gainedResources[stuff[0]] += parseInt(stuff[1],10) * amount;
-                        playerData[stuff[0]] += parseInt(stuff[1],10) * amount;
+                        gainedResources[stuff[0]] += parseInt(stuff[1], 10) * amount;
+                        playerData[stuff[0]] += parseInt(stuff[1], 10) * amount;
 
-                        bonusResources[stuff[0]] += parseInt(stuff[1],10) * (100/bonus) * amount;
-                        playerData[stuff[0]] += parseInt(stuff[1],10) * (100/bonus) * amount;
+                        bonusResourcesPlanet[stuff[0]] = bonusResourcesPlanet[stuff[0]] || 0;
+                        bonusResourcesPlanet[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (planetBonus / 100) * amount);
+                        playerData[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (planetBonus / 100) * amount);
+
+                        if (stuff[0] === "steel" || stuff[0] === "titanium" || stuff[0] === "carbon" || stuff[0] === "neutronium") {
+                            bonusResourcesResearch[stuff[0]] = bonusResourcesResearch[stuff[0]] || 0;
+                            bonusResourcesResearch[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (playerData["Inductive Isolation Methods"] / 100) * amount);
+                            playerData[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (playerData["Inductive Isolation Methods"] / 100) * amount);
+                        }
                     }
                 }
                 /**LongestSpace makes sure all the resources TEXT is evenly spaced even with double digits**/
                 var longestSpace = 0;
-                for(var i=0;i<resources.names.length;i++) {
+                for (var i = 0; i < resources.names.length; i++) {
                     if (gainedResources[resources.names[i]] != null) {
-                        if (("" + gainedResources[resources.names[i]]).length>longestSpace) {
+                        if (("" + gainedResources[resources.names[i]]).length > longestSpace) {
                             longestSpace = ("" + gainedResources[resources.names[i]]).length;
                         }
                     }
                 }
                 /**Create the gained resources text**/
                 var normalResourcesText = "";
-                for(var i =0;i<resources.names.length;i++){
-                    if(gainedResources[resources.names[i]]!=null){
+                for (var i = 0; i < resources.names.length; i++) {
+                    if (gainedResources[resources.names[i]] != null) {
                         var space = "";
-                        for(var j =0;j<longestSpace-(""+gainedResources[resources.names[i]]).length;j++){
-                            space+=" "
+                        for (var j = 0; j < longestSpace - ("" + gainedResources[resources.names[i]]).length; j++) {
+                            space += " "
                         }
-                        normalResourcesText+=gainedResources[resources.names[i]]+space+" | "+resources[resources.names[i]]+" "+resources.names[i]+"\n";
+                        normalResourcesText += gainedResources[resources.names[i]] + space + " | " + resources[resources.names[i]] + " " + resources.names[i] + "\n";
                     }
                 }//normal resources
-                var bonusResourceText = "";
-                for(var i =0;i<resources.names.length;i++){
-                    if(bonusResources[resources.names[i]]!=null){
+                var bonusResourceTextFromPlanets = "";
+                for (var i = 0; i < resources.names.length; i++) {
+                    if (bonusResourcesPlanet[resources.names[i]] != null) {
                         var space = "";
-                        for(var j =0;j<longestSpace-(""+bonusResources[resources.names[i]]).length;j++){
-                            space+=" "
+                        for (var j = 0; j < longestSpace - ("" + bonusResourcesPlanet[resources.names[i]]).length; j++) {
+                            space += " "
                         }
-                        bonusResourceText+=bonusResources[resources.names[i]]+space+" | "+resources[resources.names[i]]+" "+resources.names[i]+"\n";
+                        if (bonusResourcesPlanet[resources.names[i]] !== 0) {
+                            bonusResourceTextFromPlanets += bonusResourcesPlanet[resources.names[i]] + space + " | " + resources[resources.names[i]] + " " + resources.names[i] + "\n";
+                        }
                     }
-                }//bonuse resources from the planets bonus
+                }//bonus resources from the planets bonus
+                var bonusResourceTextFromResearch = "";
+                for (var i = 0; i < resources.names.length; i++) {
+                    if (bonusResourcesResearch[resources.names[i]] != null) {
+                        var space = "";
+                        for (var j = 0; j < longestSpace - ("" + bonusResourcesResearch[resources.names[i]]).length; j++) {
+                            space += " "
+                        }
+                        if (bonusResourcesResearch[resources.names[i]] !== 0) {
+                            bonusResourceTextFromResearch += bonusResourcesResearch[resources.names[i]] + space + " | " + resources[resources.names[i]] + " " + resources.names[i] + "\n";
+                        }
+                    }
+                }//bonus resources from the planets bonus
                 //send the embed
                 var embed = new Discord.RichEmbed()
                     .setColor(embedColors.pink)
                     .setTitle("Current Collection")
-                    .setDescription("You have waited "+(amount*5)+" minuts so your collection is multiplied by `"+amount+"`")
-                    .addField("Normal Resources",normalResourcesText);
-                    if(bonusResourceText.length){
-                        embed.addField("Bonus Resources from planets",bonusResourceText);
-                    }
+                    .setDescription("You have waited " + (amount * 5) + " minutes so your collection is multiplied by `" + amount + "`")
+                    .addField("Normal Resources", normalResourcesText);
+                if (bonusResourceTextFromPlanets.length) {
+                    embed.addField("Bonus Resources from planets", bonusResourceTextFromPlanets);
+                }
+                if (bonusResourceTextFromResearch.length) {
+                    embed.addField("Bonus Resources from researches", bonusResourceTextFromResearch);
+                }
                 message.channel.send(embed);
             }
         }
@@ -294,8 +328,8 @@ const commands = [
     {
         names: ["stats"],
         description: "Get your stats",
-        usage:"stats",
-        values:[],
+        usage: "stats",
+        values: [],
         reqs: ["profile true"],
         effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
@@ -306,29 +340,29 @@ const commands = [
             if (typeof playerData.location === "object") {
                 location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + playerData.location[1] + "x" + playerData.location[2] + "`"
             } else {
-                location =  playerData.location;
+                location = playerData.location;
             }
-            if(playerData.faction!==null) {
-                embed.addField("INFO:", "Faction:" + factions[playerData.faction].name + "\nPower: 000\nLocation:\n"+location);
-            }else{
-                embed.addField("INFO:","Power: 000\nLocation:\n"+location);
+            if (playerData.faction !== null) {
+                embed.addField("INFO:", "Faction:" + factions[playerData.faction].name + "\nPower: 000\nLocation:\n" + location);
+            } else {
+                embed.addField("INFO:", "Power: 000\nLocation:\n" + location);
             }
 
             var playerResources = "```css\n";
             var spaceLength = 1;
-            for(var i =0;i<resources.names.length;i++){
-                var len = ""+playerData[resources.names[i]];
-                if(len.length>spaceLength){
+            for (var i = 0; i < resources.names.length; i++) {
+                var len = "" + playerData[resources.names[i]];
+                if (len.length > spaceLength) {
                     spaceLength = len.length;
                 }
             }
             for (var i = 0; i < resources.names.length; i++) {
                 var space = "";
-                var len = ""+playerData[resources.names[i]];
-                for(var j =0;j<spaceLength-len.length;j++){
-                    space+=" ";
+                var len = "" + playerData[resources.names[i]];
+                for (var j = 0; j < spaceLength - len.length; j++) {
+                    space += " ";
                 }
-                playerResources += playerData[resources.names[i]]+space+"| " + resources[resources.names[i]] + " " + resources.names[i];
+                playerResources += playerData[resources.names[i]] + space + "| " + resources[resources.names[i]] + " " + resources.names[i];
                 playerResources += "\n";
             }
             playerResources += "```";
@@ -339,9 +373,9 @@ const commands = [
     {
         names: ["warp", "go"],
         description: "warp to somewhere",
-        usage:"warp [VALUE]",
-        values:["{GALAXY}","{X} {Y}","{GALAXY} {X} {Y}"],
-        reqs: ["profile","warping false"],
+        usage: "warp [VALUE]",
+        values: ["{GALAXY}", "{X} {Y}", "{GALAXY} {X} {Y}"],
+        reqs: ["profile", "warping false"],
         effect: function (message, args, playerData, prefix) {
             if (typeof playerData.location === "object") {
                 var numbers = getNumbers(message.content);
@@ -428,9 +462,9 @@ const commands = [
     {
         names: ["lookAround", "look"],
         description: "See where you are currently at",
-        usage:"lookAround",
-        values:[],
-        reqs: ["profile","warping false"],
+        usage: "lookAround",
+        values: [],
+        reqs: ["profile", "warping false"],
         effect: function (message, args, playerData, prefix) {
             var pos = playerData.location;
             console.log(pos);
@@ -450,21 +484,21 @@ const commands = [
         }
     },
     {
-        names: ["scan","detect"],
+        names: ["scan", "detect"],
         description: "scan the area around you",
-        usage:"scan",
-        values:[],
-        reqs: ["profile","warping false"],
+        usage: "scan",
+        values: [],
+        reqs: ["profile", "warping false"],
         effect: function (message, args, playerData, prefix) {
-            playerData[args[0]]+=parseInt(args[1],10);
+            playerData[args[0]] += parseInt(args[1], 10);
 
         }
     },
     {
         names: ["research", "r"],
         description: "research something",
-        usage:"research [VALUE]",
-        values:["List","Info {RESEARCH_NAME}","{RESEARCH_NAME}"],
+        usage: "research [VALUE]",
+        values: ["List", "Info {RESEARCH_NAME}", "{RESEARCH_NAME}"],
         reqs: ["profile true"],
         effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
@@ -482,7 +516,7 @@ const commands = [
             else {
                 for (var i = 0; i < researches.names.length; i++) {
                     var name = researches.names[i].split(" ");
-                    var found = matchArray(newArgs,name);
+                    var found = matchArray(newArgs, name);
                     var newArgs = [];
                     for (var q = 0; q < args.length; q++) {
                         newArgs.push(args[q]);
@@ -552,15 +586,15 @@ const commands = [
 
     "STATIONS",
     {
-        names: ["stations", "station","s"],
+        names: ["stations", "station", "s"],
         description: "get info on stations",
-        usage:"station [VALUE]",
-        values:["List","Info {STATION_NAME}"],
+        usage: "station [VALUE]",
+        values: ["List", "Info {STATION_NAME}"],
         reqs: [],
         effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.pink);
-            if(args[0] == ""||args[0]==null){
+            if (args[0] == "" || args[0] == null) {
                 args[0] = "list";
             }
             switch (args[0]) {
@@ -568,9 +602,9 @@ const commands = [
                     embed.setTitle("ID------Name");
                     var txt = "```css\n";
                     for (var i = 0; i < stations.names.length; i++) {
-                        txt += "[" + (i+1) + "] " + stations.names[i] + "\n";
+                        txt += "[" + (i + 1) + "] " + stations.names[i] + "\n";
                     }
-                    embed.setDescription(txt+"```")
+                    embed.setDescription(txt + "```")
                         .setFooter(prefix + "station info [NAME]/[ID]");
                     break;
                 case "info":
@@ -596,7 +630,7 @@ const commands = [
                                 newArgs.splice(0, 1);
                                 console.log(newArgs);
                             }
-                            var found = matchArray(newArgs,name,true);
+                            var found = matchArray(newArgs, name, true);
                             if (found) {
                                 number = i;
                                 break;
@@ -619,31 +653,31 @@ const commands = [
                         var item = stations[stations.names[number]];
                         embed.setDescription("Info about:")
                             .setTitle(stations.names[number])
-                            .setDescription(item.description+"\n-------------------------------------------------");
+                            .setDescription(item.description + "\n-------------------------------------------------");
                         var levels = "```css\n";
                         console.log(item.gives.length);
                         for (var i = 0; i < item.gives.length; i++) {
                             levels += "Level " + (i + 1) + " Gives: ";
-                            for(var j =0;j<item.gives[i].length;j++){
+                            for (var j = 0; j < item.gives[i].length; j++) {
                                 var givesStuff = item.gives[i][j].split(" ");
-                                levels+=givesStuff[1]+" ";
-                                if((givesStuff[1]<10&&givesStuff[1]>0)||(givesStuff[1]<0&&givesStuff[1]>-10)){
-                                    levels+=" ";
+                                levels += givesStuff[1] + " ";
+                                if ((givesStuff[1] < 10 && givesStuff[1] > 0) || (givesStuff[1] < 0 && givesStuff[1] > -10)) {
+                                    levels += " ";
                                 }
-                                levels+=resources[[givesStuff[0]]]+" ";
+                                levels += resources[[givesStuff[0]]] + " ";
                             }
-                            levels+="|| Costs: ";
-                            for(var j =0;j<item.costs[i].length;j++){
+                            levels += "|| Costs: ";
+                            for (var j = 0; j < item.costs[i].length; j++) {
                                 var costsStuff = item.costs[i][j].split(" ");
-                                levels+=costsStuff[1]+" ";
-                                if(costsStuff[1]<10){
-                                    levels+=" ";
+                                levels += costsStuff[1] + " ";
+                                if (costsStuff[1] < 10) {
+                                    levels += " ";
                                 }
-                                levels+=resources[[costsStuff[0]]]+" ";
+                                levels += resources[[costsStuff[0]]] + " ";
                             }
                             levels += "\n"
                         }
-                        embed.addField("LEVELS", levels+"```");
+                        embed.addField("LEVELS", levels + "```");
                     }
                     break;
                 default:
@@ -657,75 +691,87 @@ const commands = [
     {
         names: ["build"],
         description: "builds a station where you currently are at",
-        usage:"build [VALUE]",
-        values:["{STATION_NAME}"],
-        reqs: ["profile","warping false"],
+        usage: "build [VALUE]",
+        values: ["{STATION_NAME}"],
+        reqs: ["profile", "warping false"],
         effect: function (message, args, playerData, prefix) {
-            const freeStation = playerData.stations.length===0;
+            const freeStation = playerData.stations.length === 0;
 
+            var unlocked = true;
             var selectedStation = false;
-            for(var i =0;i<stations.names.length;i++){
+            for (var i = 0; i < stations.names.length; i++) {
                 var name = stations.names[i].split(" ");
-                var match = matchArray(args,name,true);
-                if(match === true){
+                var match = matchArray(args, name, true);
+                if (match === true) {
                     selectedStation = i;
+                    break;
                 }
             }
-            if(selectedStation===false){
+
+            if (selectedStation === false) {
                 sendBasicEmbed({
-                    content:"Invalid Usage\nTry using `"+prefix+"stations list`\nto get the correct spelling",
-                    color:embedColors.red,
-                    channel:message.channel
+                    content: "Invalid Usage\nTry using `" + prefix + "stations list`\nto get the correct spelling",
+                    color: embedColors.red,
+                    channel: message.channel
                 });
             }
-            else{
-                var station = stations[stations.names[selectedStation]];
-                var hasEnough = true;
-                var missingItems = [];
-                for(var i =0;i<station.costs[0].length;i++){
-                    var costsStuff = station.costs[0][i].split(" ");
-                    if(playerData[costsStuff[0]]<costsStuff[1]){
-                        hasEnough=false;
-                        missingItems.push([(costsStuff[1]-playerData[costsStuff[0]]),resources[costsStuff[0]]])
-                    }
-                }
-
-                if(hasEnough||freeStation){
-                    playerData.stations.push({
-                        location:playerData.location,
-                        type:stations.names[selectedStation],
-                        level:0
-                    });
-                    var lostResources = "";
-                    for(var i =0;i<station.costs[0].length;i++){
-                        if(freeStation){
-                            break;
+            else {
+                if (unlocked) {
+                    var station = stations[stations.names[selectedStation]];
+                    var hasEnough = true;
+                    var missingItems = [];
+                    for (var i = 0; i < station.costs[0].length; i++) {
+                        var costsStuff = station.costs[0][i].split(" ");
+                        if (playerData[costsStuff[0]] < costsStuff[1]) {
+                            hasEnough = false;
+                            missingItems.push([(costsStuff[1] - playerData[costsStuff[0]]), resources[costsStuff[0]]])
                         }
-                        var costStuff = station.costs[0][i].split(" ");
-                        playerData[costStuff[0]]-=costStuff[1];
-                        lostResources+=costStuff[0]+" "+resources[costStuff[0]]+" "+costStuff[1]+"\n";
                     }
-                    var embed = new Discord.RichEmbed()
-                        .setDescription("Successfully bought "+stations.names[selectedStation]+"\n")
-                        .setColor(embedColors.pink);
-                    if(!freeStation) {
-                        embed.addField("Lost Resources", lostResources);
-                    }else{
-                        embed.addField("FIRST STATION","As this is your first station\nIts completely free!");
-                        playerData.lastCollection = Date.now();
+
+                    if (hasEnough || freeStation) {
+                        playerData.stations.push({
+                            location: playerData.location,
+                            type: stations.names[selectedStation],
+                            level: 0
+                        });
+                        var lostResources = "";
+                        for (var i = 0; i < station.costs[0].length; i++) {
+                            if (freeStation) {
+                                break;
+                            }
+                            var costStuff = station.costs[0][i].split(" ");
+                            playerData[costStuff[0]] -= costStuff[1];
+                            lostResources += costStuff[0] + " " + resources[costStuff[0]] + " " + costStuff[1] + "\n";
+                        }
+                        var embed = new Discord.RichEmbed()
+                            .setDescription("Successfully bought " + stations.names[selectedStation] + "\n")
+                            .setColor(embedColors.pink);
+                        if (!freeStation) {
+                            embed.addField("Lost Resources", lostResources);
+                        } else {
+                            embed.addField("FIRST STATION", "As this is your first station\nIts completely free!");
+                            playerData.lastCollection = Date.now();
+                        }
+                        message.channel.send(embed);
                     }
-                    message.channel.send(embed);
+                    else {
+                        var missingResources = "";
+                        for (var i = 0; i < missingItems.length; i++) {
+                            missingResources += missingItems[i][0] + " " + missingItems[i][1] + "\n"
+                        }
+                        var embed = new Discord.RichEmbed()
+                            .setColor(embedColors.red)
+                            .setTitle("Missing Resources")
+                            .setDescription(missingResources);
+                        message.channel.send(embed);
+                    }
                 }
-                else{
-                    var missingResources = "";
-                    for(var i =0;i<missingItems.length;i++){
-                        missingResources+=missingItems[i][0]+" "+missingItems[i][1]+"\n"
-                    }
-                    var embed = new Discord.RichEmbed()
-                        .setColor(embedColors.red)
-                        .setTitle("Missing Resources")
-                        .setDescription(missingResources);
-                    message.channel.send(embed);
+                else {
+                    sendBasicEmbed({
+                        content: "You havent unlocked this station yet.\nYou can unlock this by researching *Gravatic Purification*.",
+                        color: embedColors.red,
+                        channel: message.channel
+                    });
                 }
             }
         }
@@ -733,18 +779,18 @@ const commands = [
     {
         names: ["myStations"],
         description: "gives you the locations and level of all your stations",
-        usage:"myStations",
-        values:[],
+        usage: "myStations",
+        values: [],
         reqs: ["profile true"],
         effect: function (message, args, playerData, prefix) {
             var stations = playerData.stations;
             var txt = "```css\n";
-            for(var i =0;i<stations.length;i++){
-                txt+=spacing("["+(stations[i].level+1)+"] "+stations[i].type,"Galaxy: "+(stations[i].location[0]+1)+"  X: "+stations[i].location[1]+" Y: "+stations[i].location[2],50);
-                txt+="\n";
+            for (var i = 0; i < stations.length; i++) {
+                txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  X: " + stations[i].location[1] + " Y: " + stations[i].location[2], 50);
+                txt += "\n";
             }
-            txt +="```";
-            if(!stations.length){
+            txt += "```";
+            if (!stations.length) {
                 txt = "You currently don't have any stations";
             }
             var embed = new Discord.RichEmbed()
@@ -755,11 +801,11 @@ const commands = [
         }
     },
     {
-        names: ["upgradeStation","upStation",""],
+        names: ["upgradeStation", "upStation", ""],
         description: "upgrade the station where you currently are at.",
-        usage:"upgradeStation",
-        values:[],
-        reqs: ["profile","warping false"],
+        usage: "upgradeStation",
+        values: [],
+        reqs: ["profile", "warping false"],
         effect: function (message, args, playerData, prefix) {
             var whichStation = null;
             var stationToUpgrade;
@@ -773,19 +819,19 @@ const commands = [
             var hasEnough = true;
             var missingItems = [];
 
-            if(whichStation == null){
+            if (whichStation == null) {
                 sendBasicEmbed({
-                    content:"Something went wrong.\n**Either:**\n1. You do not own the station here\n2. A station doesn't exist here",
-                    color:embedColors.red,
-                    channel:message.channel
+                    content: "Something went wrong.\n**Either:**\n1. You do not own the station here\n2. A station doesn't exist here",
+                    color: embedColors.red,
+                    channel: message.channel
                 })
             }
             else {
-                var level = stationToUpgrade.level+1;
+                var level = stationToUpgrade.level + 1;
                 var station = stations[playerData.stations[whichStation].type];
 
-                if(station.costs.length>=level){
-                    if(station.extra.upgradeTo) {
+                if (station.costs.length >= level) {
+                    if (station.extra.upgradeTo) {
                         level = 0;
                         station = stations[stations[playerData.stations[whichStation].type].extra.upgradeTo];
                     }
@@ -798,33 +844,33 @@ const commands = [
                         return;
                     }
                 }
-                for(var i =0;i<station.costs[level].length;i++) {
+                for (var i = 0; i < station.costs[level].length; i++) {
                     var costsStuff = station.costs[level][i].split(" ");
                     if (playerData[costsStuff[0]] < costsStuff[1]) {
                         hasEnough = false;
                         missingItems.push([(costsStuff[1] - playerData[costsStuff[0]]), resources[costsStuff[0]]]);
                     }
                 }
-                if(hasEnough){
+                if (hasEnough) {
                     stationToUpgrade.level++;
                     var lostResources = "";
-                    for(var i =0;i<station.costs[level].length;i++){
+                    for (var i = 0; i < station.costs[level].length; i++) {
                         var costStuff = station.costs[level][i].split(" ");
-                        playerData[costStuff[0]]-=costStuff[1];
-                        lostResources+=costStuff[0]+" "+resources[costStuff[0]]+" "+costStuff[1]+"\n";
+                        playerData[costStuff[0]] -= costStuff[1];
+                        lostResources += costStuff[0] + " " + resources[costStuff[0]] + " " + costStuff[1] + "\n";
                     }
                     var embed = new Discord.RichEmbed()
-                        .setDescription("Successfully upgraded "+stationToUpgrade.type+"\n")
+                        .setDescription("Successfully upgraded " + stationToUpgrade.type + "\n")
                         .setColor(embedColors.pink)
-                        .addField("Lost Resources",lostResources);
+                        .addField("Lost Resources", lostResources);
                     message.channel.send(embed);
                     playerData.stations[whichStation].type = station.name;
                     playerData.stations[whichStation].level = 0;
                 }
-                else{
+                else {
                     var missingResources = "";
-                    for(var i =0;i<missingItems.length;i++){
-                        missingResources+=missingItems[i][0]+" "+missingItems[i][1]+"\n"
+                    for (var i = 0; i < missingItems.length; i++) {
+                        missingResources += missingItems[i][0] + " " + missingItems[i][1] + "\n"
                     }
                     var embed = new Discord.RichEmbed()
                         .setColor(embedColors.red)
@@ -838,16 +884,16 @@ const commands = [
 
     "FACTIONS",
     {
-        names: ["factionCreate","fCreate","createFaction"],
+        names: ["factionCreate", "fCreate", "createFaction"],
         description: "create your faction",
-        usage:"factioncreate [VALUE] ",
-        values:["{NAME}"],
-        reqs: ["profile true","faction false"],
+        usage: "factioncreate [VALUE] ",
+        values: ["{NAME}"],
+        reqs: ["profile true", "faction false"],
         effect: function (message, args, playerData, prefix) {
 
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.darkblue);
-            if(playerData["credits"]>=500) {
+            if (playerData["credits"] >= 500) {
                 if (args[0] != null) {
                     var txt = "";
                     for (var i = 0; i < args.length; i++) {
@@ -866,14 +912,14 @@ const commands = [
                         }
                         if (canCreate) {
                             embed.setTitle(txt);
-                            embed.setDescription("You have successfully created the faction `" + txt + "`\n-500 "+resources["credits"]+" credits");
+                            embed.setDescription("You have successfully created the faction `" + txt + "`\n-500 " + resources["credits"] + " credits");
                             playerData.faction = txt.toLowerCase();
-                            factions.names.push({lowerCaseName:txt.toLowerCase(),regularName:txt});
+                            factions.names.push({lowerCaseName: txt.toLowerCase(), regularName: txt});
                             var newFactionData = new createFaction();
                             newFactionData.creator = message.author.id;
                             newFactionData.name = txt;
                             factions[txt.toLowerCase()] = newFactionData;
-                            playerData["credits"]-=500;
+                            playerData["credits"] -= 500;
                         }
                         else {
                             embed.setColor(embedColors.red);
@@ -888,147 +934,147 @@ const commands = [
                     embed.setColor(embedColors.red);
                 }
             }
-            else{
+            else {
                 embed.setColor(embedColors.red);
-                embed.setDescription("You are missing\n"+(500-playerData["credits"])+" "+resources["credits"]+" credits");
+                embed.setDescription("You are missing\n" + (500 - playerData["credits"]) + " " + resources["credits"] + " credits");
             }
             message.channel.send(embed);
         }
     },
     {
-        names: ["factionJoin","fJoin","joinFaction"],
+        names: ["factionJoin", "fJoin", "joinFaction"],
         description: "join faction",
-        usage:"factioncreate [VALUE] ",
-        values:["{FACTION_NAME}"],
-        reqs: ["profile true","faction false"],
+        usage: "factioncreate [VALUE] ",
+        values: ["{FACTION_NAME}"],
+        reqs: ["profile true", "faction false"],
         effect: function (message, args, playerData, prefix) {
             var txt = "";
-            for(var i=0;i<args.length;i++){
-                txt+=args[i];
-                if(i + 1!==args.length){
-                    txt+=" ";
+            for (var i = 0; i < args.length; i++) {
+                txt += args[i];
+                if (i + 1 !== args.length) {
+                    txt += " ";
                 }
             }
             var faction = null;
-            for(var i=0;i<factions.names;i++){
-                if(factions.names[i].lowerCaseName === txt.toLowerCase()){
+            for (var i = 0; i < factions.names; i++) {
+                if (factions.names[i].lowerCaseName === txt.toLowerCase()) {
                     faction = factions[factions.names[i].lowerCaseName];
                     break;
                 }
             }
-            if(faction){
-                if(faction.members.length<faction.maxMembers){
+            if (faction) {
+                if (faction.members.length < faction.maxMembers) {
                     faction.members.push(message.author.id);
                     playerData.faction = faction.name.toLowerCase();
                     sendBasicEmbed({
-                        content:"You joined "+faction.name+"!",
-                        channel:message.channel,
-                        color:faction.color
+                        content: "You joined " + faction.name + "!",
+                        channel: message.channel,
+                        color: faction.color
                     })
-                }else{
+                } else {
                     sendBasicEmbed({
-                        content:"That faction is full!",
-                        channel:message.channel,
-                        color:embedColors.red
+                        content: "That faction is full!",
+                        channel: message.channel,
+                        color: embedColors.red
                     })
                 }
             }
-            else{
+            else {
                 sendBasicEmbed({
-                    content:"Unknown Faction\nEither```css\n1. That faction doesnt exist\n2. You misspelled the faction's name",
-                    channel:message.channel,
-                    color:embedColors.red
+                    content: "Unknown Faction\nEither```css\n1. That faction doesn't exist\n2. You misspelled the faction's name",
+                    channel: message.channel,
+                    color: embedColors.red
                 })
             }
         }
     },
     {
-        names: ["factionDonate","fDonate"],
+        names: ["factionDonate", "fDonate"],
         description: "donate resources to your faction",
-        usage:"factionDonate [VALUE]",
-        values:["{RESOURCES_NAME} {AMOUNT}"],
-        reqs: ["profile true","faction true"],
+        usage: "factionDonate [VALUE]",
+        values: ["{RESOURCES_NAME} {AMOUNT}"],
+        reqs: ["profile true", "faction true"],
         effect: function (message, args, playerData, prefix) {
             var validResource = false;
-            for(var i =0;i<resources.names.length;i++){
-                if(args[0] === resources.names[i].toLowerCase()){
-                    validResource =true;
+            for (var i = 0; i < resources.names.length; i++) {
+                if (args[0] === resources.names[i].toLowerCase()) {
+                    validResource = true;
                     break;
                 }
             }
-            if(validResource){
-                var numbers = getNumbers(args[1],false);
-                if(numbers.length){
-                    factions[playerData.faction][args[0]]+=parseInt(numbers[0],10);
-                    playerData[args[0]]-=parseInt(numbers[0],10);
+            if (validResource) {
+                var numbers = getNumbers(args[1], false);
+                if (numbers.length) {
+                    factions[playerData.faction][args[0]] += parseInt(numbers[0], 10);
+                    playerData[args[0]] -= parseInt(numbers[0], 10);
                     sendBasicEmbed({
-                        content:"Thank you for donating `"+numbers[0]+"` "+args[0]+" to your faction.",
-                        color:embedColors.darkblue,
-                        channel:message.channel
+                        content: "Thank you for donating `" + numbers[0] + "` " + args[0] + " to your faction.",
+                        color: embedColors.darkblue,
+                        channel: message.channel
                     });
                 }
-                else{
+                else {
                     sendBasicEmbed({
-                        content:"You need to include how much you want to donate.",
-                        color:embedColors.red,
-                        channel:message.channel
+                        content: "You need to include how much you want to donate.",
+                        color: embedColors.red,
+                        channel: message.channel
                     });
                 }
             }
-            else{
+            else {
                 sendBasicEmbed({
-                    content:"That is not a valid resource.",
-                    color:embedColors.red,
-                    channel:message.channel
+                    content: "That is not a valid resource.",
+                    color: embedColors.red,
+                    channel: message.channel
                 });
             }
 
         }
     },
     {
-        names: ["factionStats","fStats"],
+        names: ["factionStats", "fStats"],
         description: "Gives you the list of everything the faction has",
-        usage:"factionStats",
-        values:[],
-        reqs: ["profile true","faction true"],
+        usage: "factionStats",
+        values: [],
+        reqs: ["profile true", "faction true"],
         effect: function (message, args, playerData, prefix) {
 
             var faction = factions[playerData.faction];
             var embed = new Discord.RichEmbed()
-                .setTitle(playerData.faction+ "'s stats")
+                .setTitle(playerData.faction + "'s stats")
                 .setFooter(playerData.userID)
                 .setColor(faction.color);
             var factionsResources = "css\n";
 
             var spaceLength = 1;
-            for(var i =0;i<resources.names.length;i++){
-                var len = ""+faction[resources.names[i]];
-                if(len.length>spaceLength){
+            for (var i = 0; i < resources.names.length; i++) {
+                var len = "" + faction[resources.names[i]];
+                if (len.length > spaceLength) {
                     spaceLength = len.length;
                 }
             }
             for (var i = 0; i < resources.names.length; i++) {
                 var space = "";
-                var len = ""+faction[resources.names[i]];
-                for(var j =0;j<spaceLength-len.length;j++){
-                    space+=" ";
+                var len = "" + faction[resources.names[i]];
+                for (var j = 0; j < spaceLength - len.length; j++) {
+                    space += " ";
                 }
-                factionsResources += faction[resources.names[i]]+space+"| " + resources[resources.names[i]] + " " + resources.names[i];
+                factionsResources += faction[resources.names[i]] + space + "| " + resources[resources.names[i]] + " " + resources.names[i];
                 factionsResources += "\n";
             }
             factionsResources += "```";
 
-            embed.addField("Info", "Level:"+faction.level+"\nImage: "+faction.canUseDescription+"\nDescription: "+faction.canUseDescription+"Color: "+faction.color+"\nEmoji: "+faction.emoji,true);
-            embed.addField("Resources", factionsResources,true);
+            embed.addField("Info", "Level:" + faction.level + "\nImage: " + faction.canUseDescription + "\nDescription: " + faction.canUseDescription + "Color: " + faction.color + "\nEmoji: " + faction.emoji, true);
+            embed.addField("Resources", factionsResources, true);
             message.channel.send(embed);
         }
     },
     {
-        names: ["factionUpgrade","fUpgrade","upgradeFaction","uFaction","upgradeF"],
+        names: ["factionUpgrade", "fUpgrade", "upgradeFaction", "uFaction", "upgradeF"],
         description: "Upgrade your faction",
-        usage:"factionUpgrade",
-        values:[],
-        reqs: ["profile true","faction true","factionMod","upgradableFaction"],
+        usage: "factionUpgrade",
+        values: [],
+        reqs: ["profile true", "faction true", "factionMod", "upgradableFaction"],
         effect: function (message, args, playerData, prefix) {
             var faction = factions[playerData.faction];
             var stuff = factions.costs[faction.level].split(" ");
@@ -1067,50 +1113,50 @@ const commands = [
         }
     },
     {
-        names: ["factionDescription","fDescription"],
+        names: ["factionDescription", "fDescription"],
         description: "change your faction's description",
-        usage:"factionDescription [VALUE]",
-        values:["{TEXT}"],
-        reqs: ["profile true","faction true","factionMod"],
+        usage: "factionDescription [VALUE]",
+        values: ["{TEXT}"],
+        reqs: ["profile true", "faction true", "factionMod"],
         effect: function (message, args, playerData, prefix) {
             var txt = "";
-            for(var i =0;i<args.length;i++){
-                txt+=args[i];
-                if(i+1!==args.length){
-                    txt+=" ";
+            for (var i = 0; i < args.length; i++) {
+                txt += args[i];
+                if (i + 1 !== args.length) {
+                    txt += " ";
                 }
             }
-            if(txt.length<500){
+            if (txt.length < 500) {
                 factions[playerData.faction].description = txt;
                 sendBasicEmbed({
-                    content:"Your faction's description has been updated.",
-                    color:factions[playerData.faction].color,
-                    channel:message.channel
+                    content: "Your faction's description has been updated.",
+                    color: factions[playerData.faction].color,
+                    channel: message.channel
                 })
-            }else{
+            } else {
                 sendBasicEmbed({
-                    content:"Your factions Description cannot exceed 500 characters",
-                    color:embedColors.red,
-                    channel:message.channel
+                    content: "Your factions Description cannot exceed 500 characters",
+                    color: embedColors.red,
+                    channel: message.channel
                 })
             }
         }
     },
     {
-        names: ["factionImage","fimage"],
+        names: ["factionImage", "fimage"],
         description: "Set's you faction's image to the image you uploaded.",
-        usage:"factionImage",
-        values:[],
-        reqs: ["profile true","faction true","factionMod","factionImage"],
+        usage: "factionImage",
+        values: [],
+        reqs: ["profile true", "faction true", "factionMod", "factionImage"],
         effect: function (message, args, playerData, prefix) {
             console.log(message.attachments.first());
-            if(message.attachments.first()) {
+            if (message.attachments.first()) {
                 var image = message.attachments.first();
                 var fileType = "";
-                for(var i=image.url.length-3;i<image.url.length;i++){
-                    fileType+=image.url[i].toLowerCase();
+                for (var i = image.url.length - 3; i < image.url.length; i++) {
+                    fileType += image.url[i].toLowerCase();
                 }
-                if(fileType === "png"||fileType === "jpg"||fileType === "tif") {
+                if (fileType === "png" || fileType === "jpg" || fileType === "tif") {
                     factions[playerData.faction].image = image.url;
                     console.log(image.url);
                     var embed = new Discord.RichEmbed()
@@ -1120,19 +1166,19 @@ const commands = [
                         .setDescription("Your faction's image has been updated.");
                     message.channel.send(embed);
                 }
-                else{
+                else {
                     sendBasicEmbed({
-                        content:"Only `.png`, `.jpg` and `.tif` files are allowed",
-                        channel:message.channel,
-                        color:embedColors.red
+                        content: "Only `.png`, `.jpg` and `.tif` files are allowed",
+                        channel: message.channel,
+                        color: embedColors.red
                     })
                 }
             }
-            else{
+            else {
                 sendBasicEmbed({
-                    content:"You need to upload an image.",
-                    channel:message.channel,
-                    color:embedColors.red
+                    content: "You need to upload an image.",
+                    channel: message.channel,
+                    color: embedColors.red
                 })
             }
             message.delete();
@@ -1141,64 +1187,64 @@ const commands = [
     {
         names: ["promote"],
         description: "promote somebody",
-        usage:"promote [VALUE]",
-        values:["{@NAME}","{USER_ID}"],
-        reqs: ["profile true","faction false","factionOwner"],
+        usage: "promote [VALUE]",
+        values: ["{@NAME}", "{USER_ID}"],
+        reqs: ["profile true", "faction false", "factionOwner"],
         effect: function (message, args, playerData, prefix) {
             var ID = "";
-            if(args[0][0] === "<"){
-                for(var i=3;i<args[0].length-1;i++){
-                    ID+=args[0][i];
+            if (args[0][0] === "<") {
+                for (var i = 3; i < args[0].length - 1; i++) {
+                    ID += args[0][i];
                 }
-            }else{
+            } else {
                 ID = args[0];
             }
             var faction = factions[playerData.faction];
             var member = null;
             var mod = false;
-            for(var i =0;i<faction.members.length;i++){
-                if(ID === faction.members[i]){
+            for (var i = 0; i < faction.members.length; i++) {
+                if (ID === faction.members[i]) {
                     member = i;
                     break;
                 }
             }
-            for(var i =0;i<faction.mods.length;i++){
-                if(ID === faction.mods[i]){
+            for (var i = 0; i < faction.mods.length; i++) {
+                if (ID === faction.mods[i]) {
                     member = i;
                     mod = true;
                     break;
                 }
             }
-            if(member === null){
+            if (member === null) {
                 sendBasicEmbed({
-                    content:"Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isnt in your faction```",
-                    channel:message.channel,
-                    color:embedColors.red
+                    content: "Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isn't in your faction```",
+                    channel: message.channel,
+                    color: embedColors.red
                 })
             }
-            else{
-                if(mod){
-                    if(faction.aboutToBecomeOwner.length){
+            else {
+                if (mod) {
+                    if (faction.aboutToBecomeOwner.length) {
                         sendBasicEmbed({
-                            content:"<@!"+ID+"> is now owner of "+faction.name+"\n<@!"+message.author.id+"> is now a mod",
-                            channel:message.channel,
-                            color:faction.color
+                            content: "<@!" + ID + "> is now owner of " + faction.name + "\n<@!" + message.author.id + "> is now a mod",
+                            channel: message.channel,
+                            color: faction.color
                         });
-                        faction.mods.splice(member,1);
+                        faction.mods.splice(member, 1);
                         faction.mods.push(message.author.id);
                         faction.creator = ID;
-                    }else{
+                    } else {
                         sendBasicEmbed({
-                            content:"Are you sure you want <@!"+ID+"> to be the owner of this faction?\nif you do please send ```fix\n"+prefix+"promote <@!"+ID+">```",
-                            channel:message.channel,
-                            color:embedColors.red
+                            content: "Are you sure you want <@!" + ID + "> to be the owner of this faction?\nif you do please send ```fix\n" + prefix + "promote <@!" + ID + ">```",
+                            channel: message.channel,
+                            color: embedColors.red
                         })
                     }
-                }else{
+                } else {
                     sendBasicEmbed({
-                        content:"You promoted <@!"+ID+"> to `Mod`",
-                        channel:message.channel,
-                        color:faction.color
+                        content: "You promoted <@!" + ID + "> to `Mod`",
+                        channel: message.channel,
+                        color: faction.color
                     });
                     faction.mods.push(ID);
                 }
@@ -1208,9 +1254,9 @@ const commands = [
     {
         names: ["demote"],
         description: "demote somebody",
-        usage:"demote [VALUE]",
-        values:["{@NAME}","{USER_ID}"],
-        reqs: ["profile true","faction false","factionOwner"],
+        usage: "demote [VALUE]",
+        values: ["{@NAME}", "{USER_ID}"],
+        reqs: ["profile true", "faction false", "factionOwner"],
         effect: function (message, args, playerData, prefix) {
             var ID = "";
             if (args[0][0] === "<") {
@@ -1231,7 +1277,7 @@ const commands = [
             }
             if (member === null) {
                 sendBasicEmbed({
-                    content: "Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isnt in your faction\n3. The user cant be demoted```",
+                    content: "Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isn't in your faction\n3. The user can't be demoted```",
                     channel: message.channel,
                     color: embedColors.red
                 })
@@ -1252,54 +1298,54 @@ const commands = [
     {
         names: ["kick"],
         description: "kick somebody out of your faction",
-        usage:"kick [VALUE]",
-        values:["{@NAME}","{USER_ID}"],
-        reqs: ["profile true","faction false","factionMod"],
+        usage: "kick [VALUE]",
+        values: ["{@NAME}", "{USER_ID}"],
+        reqs: ["profile true", "faction false", "factionMod"],
         effect: function (message, args, playerData, prefix) {
             var ID = "";
-            if(args[0][0] === "<"){
-                for(var i=3;i<args[0].length-1;i++){
-                    ID+=args[0][i];
+            if (args[0][0] === "<") {
+                for (var i = 3; i < args[0].length - 1; i++) {
+                    ID += args[0][i];
                 }
             }
-            else{
+            else {
                 ID = args[0];
             }
             var faction = factions[playerData.faction];
             var member = null;
             var mod = false;
-            for(var i =0;i<faction.members.length;i++){
-                if(ID === faction.members[i]){
+            for (var i = 0; i < faction.members.length; i++) {
+                if (ID === faction.members[i]) {
                     member = i;
                     break;
                 }
             }
-            for(var i =0;i<faction.mods.length;i++){
-                if(ID === faction.mods[i]){
+            for (var i = 0; i < faction.mods.length; i++) {
+                if (ID === faction.mods[i]) {
                     member = i;
                     mod = true;
                     break;
                 }
             }
-            if(ID === message.author.id) {
+            if (ID === message.author.id) {
                 sendBasicEmbed({
-                    content:"You cant kick yourself.\nIf you want to leave send\n`"+prefix+"factionLeave`",
-                    channel:message.channel,
-                    color:embedColors.red
+                    content: "You can't kick yourself.\nIf you want to leave send\n`" + prefix + "factionLeave`",
+                    channel: message.channel,
+                    color: embedColors.red
                 })
             }
             else {
                 if (ID === faction.creator) {
                     sendBasicEmbed({
-                        content: "You cant kick the owner of the faction.",
+                        content: "You can't kick the owner of the faction.",
                         channel: message.channel,
                         color: embedColors.red
                     })
                 }
-                else{
+                else {
                     if (member === null) {
                         sendBasicEmbed({
-                            content: "Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isnt in your faction```",
+                            content: "Something went wrong. Either\n```css\n1. Invalid ID\n2. That member isn't in your faction```",
                             channel: message.channel,
                             color: embedColors.red
                         })
@@ -1308,25 +1354,25 @@ const commands = [
                         if (mod) {
                             if (message.author.id === faction.creator) {
                                 sendBasicEmbed({
-                                    content: "Kicked <@!"+ID+"> from the faction.",
+                                    content: "Kicked <@!" + ID + "> from the faction.",
                                     channel: message.channel,
                                     color: faction.color
                                 });
-                                faction.mods.splice(member,1);
+                                faction.mods.splice(member, 1);
                             } else {
                                 sendBasicEmbed({
-                                    content: "Only <@!"+faction.creator+"> can kick Mods.",
+                                    content: "Only <@!" + faction.creator + "> can kick Mods.",
                                     channel: message.channel,
                                     color: embedColors.red
                                 })
                             }
                         } else {
                             sendBasicEmbed({
-                                content: "Kicked <@!"+ID+"> from the faction.",
+                                content: "Kicked <@!" + ID + "> from the faction.",
                                 channel: message.channel,
                                 color: faction.color
                             });
-                            faction.members.splice(member,1);
+                            faction.members.splice(member, 1);
                         }
                     }
                 }
@@ -1334,34 +1380,34 @@ const commands = [
         }
     },
     {
-        names: ["factionDisband","fDisband","disbandFaction"],
+        names: ["factionDisband", "fDisband", "disbandFaction"],
         description: "disband your faction",
-        usage:"factionDisband",
-        values:[],
-        reqs: ["profile true","faction","factionOwner"],
+        usage: "factionDisband",
+        values: [],
+        reqs: ["profile true", "faction", "factionOwner"],
         effect: function (message, args, playerData, prefix) {
             var embed = new Discord.RichEmbed()
                 .setColor(embedColors.red)
-                .setDescription("Disbanding your faction is irreversible.\nIf you *really* want to disband your faction please do\n`"+prefix+"factionDisband "+factions[playerData.faction].name+"`");
+                .setDescription("Disbanding your faction is irreversible.\nIf you *really* want to disband your faction please do\n`" + prefix + "factionDisband " + factions[playerData.faction].name + "`");
             var txt = "";
-            for(var i =0;i<args.length;i++){
-                txt+=args[0].toLowerCase();
+            for (var i = 0; i < args.length; i++) {
+                txt += args[0].toLowerCase();
             }
-            if(!txt.length){
+            if (!txt.length) {
                 embed.setTitle("WARNING");
-            }else{
+            } else {
                 embed.setDescription("Faction was disbanded");
-                factions.splice(playerData.faction,1);
+                factions.splice(playerData.faction, 1);
             }
             message.channel.send(embed)
         }
     },
     {
-        names: ["factionLeave","fLeave","leaveFaction"],
+        names: ["factionLeave", "fLeave", "leaveFaction"],
         description: "leave your current faction",
-        usage:"factionLeave",
-        values:[],
-        reqs: ["profile true","faction"],
+        usage: "factionLeave",
+        values: [],
+        reqs: ["profile true", "faction"],
         effect: function (message, args, playerData, prefix) {
             var txt = "";
             for (var i = 0; i < args.length; i++) {
@@ -1378,15 +1424,15 @@ const commands = [
                         color: embedColors.red,
                         channel: message.channel
                     });
-                    for(var i=0;i<faction.members.length;i++){
-                        if(faction.members[i] === message.author.id){
-                            faction.members.splice(i,1);
+                    for (var i = 0; i < faction.members.length; i++) {
+                        if (faction.members[i] === message.author.id) {
+                            faction.members.splice(i, 1);
                             break;
                         }
                     }
-                    for(var i=0;i<faction.mods.length;i++){
-                        if(faction.mods[i] === message.author.id){
-                            faction.mods.splice(i,1);
+                    for (var i = 0; i < faction.mods.length; i++) {
+                        if (faction.mods[i] === message.author.id) {
+                            faction.mods.splice(i, 1);
                             break;
                         }
                     }
@@ -1401,7 +1447,7 @@ const commands = [
             }
             else {
                 sendBasicEmbed({
-                    content: "You are the owner of this faction\nYou cannot leave! But you can do\n```css\n"+prefix+"factionDisband        Delete your faction\n"+prefix+"promote     promote somebody to a mod/owner```",
+                    content: "You are the owner of this faction\nYou cannot leave! But you can do\n```css\n" + prefix + "factionDisband        Delete your faction\n" + prefix + "promote     promote somebody to a mod/owner```",
                     color: embedColors.red,
                     channel: message.channel
                 })
@@ -1411,20 +1457,47 @@ const commands = [
 
     "MOD",
     {
-        names: ["exit"],
-        description: "Turns off the bot",
-        usage:"exit",
-        values:[],
-        reqs: ["owner"],
+        names: ["changePrefix", "prefixChange"],
+        description: "change your server's prefix",
+        usage: "changePrefix [VALUE]",
+        values: ["{NEW_PREFIX}"],
+        reqs: ["channel text", "userPerms MANAGE_MEMBERS", "userPerms MANAGE_ROLES"],
         effect: function (message, args, playerData, prefix) {
-            process.exit();
+            if (args[0]) {
+                if (args[0].length > 3) {
+                    sendBasicEmbed({
+                        content: "Prefix must be 3 or less characters long.",
+                        color: embedColors.red,
+                        channel: message.channel
+                    })
+                } else {
+                    for (var i = 0; i < prefixes.length; i++) {
+                        if (prefixes[i].serverID === message.channel.guild.id) {
+                            prefixes[i].prefix = args[0];
+                            break;
+                        }
+                    }
+                    sendBasicEmbed({
+                        content: "Changed server's prefix to `" + args[0] + "`.",
+                        color: embedColors.purple,
+                        channel: message.channel
+                    })
+                }
+            }
+            else {
+                sendBasicEmbed({
+                    content: "Prefix cannot be removed",
+                    color: embedColors.red,
+                    channel: message.channel
+                })
+            }
         }
     },
     {
-        names: ["clear","purge","prune"],
+        names: ["clear", "purge", "prune"],
         description: "Clear a channel",
-        usage:"clear [VALUE]",
-        values:["All","{NUMBER}"],
+        usage: "clear [VALUE]",
+        values: ["All", "{NUMBER}"],
         reqs: ["userPerms MANAGE_MESSAGES"],
         effect: function (message, args, playerData, prefix) {
             var theNumbersInput = getNumbers(message.content, true);
@@ -1444,6 +1517,17 @@ const commands = [
         }
     },
     {
+        names: ["exit"],
+        description: "Turns off the bot",
+        usage: "exit",
+        values: [],
+        reqs: ["owner"],
+        effect: function (message, args, playerData, prefix) {
+            process.exit();
+        }
+    },
+
+    {
         names: ["give"],
         description: "gives items to the player or yourself",
         usage: "give [VALUE]",
@@ -1454,26 +1538,26 @@ const commands = [
             if (args.length === 2) {
                 playerData[args[0]] += parseInt(args[1], 10);
                 sendBasicEmbed({
-                    content:"You gave yourself "+args[1]+" "+resources[args[0]]+" "+args[0],
-                    channel:message.channel,
-                    color:embedColors.purple
+                    content: "You gave yourself " + args[1] + " " + resources[args[0]] + " " + args[0],
+                    channel: message.channel,
+                    color: embedColors.purple
                 })
             } else {
                 var id = "";
                 for (var i = 3; i < args[0].length - 1; i++) {
-                    id+=args[0][i];
+                    id += args[0][i];
                 }
                 var data = findPlayerData(id);
-                data[args[1]]+=parseInt(args[2],10);
+                data[args[1]] += parseInt(args[2], 10);
                 sendBasicEmbed({
-                    content:"You gave "+args[0]+" "+args[2]+" "+resources[args[1]]+" "+args[1],
-                    channel:message.channel,
-                    color:embedColors.purple
+                    content: "You gave " + args[0] + " " + args[2] + " " + resources[args[1]] + " " + args[1],
+                    channel: message.channel,
+                    color: embedColors.purple
                 })
             }
 
         }
-    },
+    }
 
 ];
 const reqChecks = {
@@ -1509,7 +1593,7 @@ const reqChecks = {
                 perms: reqArgs[0],
                 message: message
             }),
-            msg: "The bot currently doesnt have: `" + reqArgs[0] + "`"
+            msg: "The bot currently doesn't have: `" + reqArgs[0] + "`"
         };
     },
     "userPerms": function (reqArgs, message, args, playerData, prefix) {
@@ -1519,7 +1603,7 @@ const reqChecks = {
                 perms: reqArgs[0],
                 message: message
             }),
-            msg: "You currently dont have: `" + reqArgs[0] + "`"
+            msg: "You currently don't have: `" + reqArgs[0] + "`"
         };
     },
     "owner": function (reqArgs, message, args, playerData, prefix) {
@@ -1543,7 +1627,7 @@ const reqChecks = {
             if (reqArgs[0] === "true") {
                 return {val: false, msg: "You have to be warping to use this command."}
             }
-            return {val: false, msg: "You cant be warping to use this command."}
+            return {val: false, msg: "You can't be warping to use this command."}
         }
     },
     "profile": function (reqArgs, message, args, playerData, prefix) {
@@ -1557,73 +1641,83 @@ const reqChecks = {
         if (reqArgs[0] === "true") {
             return {val: playerData.faction !== null, msg: "You need to be in a faction."};
         } else {
-            return {val: playerData.faction === null, msg: "You cant be in a faction"};
+            return {val: playerData.faction === null, msg: "You can't be in a faction"};
         }
     },
     "factionMod": function (reqArgs, message, args, playerData, prefix) {
         var fac = factions[playerData.faction];
-        if(message.author.id === fac.creator){
-            return {val:true,msg:""};
+        if (message.author.id === fac.creator) {
+            return {val: true, msg: ""};
         }
-        for(var i =0;i<fac.mods.length;i++){
-            if(message.author.id === fac.mods[i]){
-                return {val:true,msg:""};
+        for (var i = 0; i < fac.mods.length; i++) {
+            if (message.author.id === fac.mods[i]) {
+                return {val: true, msg: ""};
             }
         }
-        return {val: false,msg:"You need to be a mod of your faction"}
+        return {val: false, msg: "You need to be a mod of your faction"}
     },
     "factionOwner": function (reqArgs, message, args, playerData, prefix) {
         var fac = factions[playerData.faction];
-        if(message.author.id === fac.creator){
-            return {val:true,msg:""};
+        if (message.author.id === fac.creator) {
+            return {val: true, msg: ""};
         }
-        return {val: false,msg:"You need to be a owner of your faction"}
+        return {val: false, msg: "You need to be a owner of your faction"}
     },
     "factionImage": function (reqArgs, message, args, playerData, prefix) {
-        if (playerData){
-            if(playerData.faction){
-                if(factions[playerData.faction].canUseImage){
-                    return {val:true,msg:""}
+        if (playerData) {
+            if (playerData.faction) {
+                if (factions[playerData.faction].canUseImage) {
+                    return {val: true, msg: ""}
                 }
             }
         }
-        return {val:false,msg:"You haven't unlocked this yet."}
+        return {val: false, msg: "You haven't unlocked this yet."}
     },
     "upgradableFaction": function (reqArgs, message, args, playerData, prefix) {
         var faction = factions[playerData.faction];
-        if(faction.level+1 !== factions.costs.length) {
+        if (faction.level + 1 !== factions.costs.length) {
             var missing = "";
-                var stuff = factions.costs[faction.level].split(" ");
+            var stuff = factions.costs[faction.level].split(" ");
             if (faction[stuff[0]] < parseInt(stuff[1], 10)) {
-                missing += (parseInt(stuff[1],10)-faction[stuff[0]]) + " " + resources[stuff[0]] + " " + stuff[0];
+                missing += (parseInt(stuff[1], 10) - faction[stuff[0]]) + " " + resources[stuff[0]] + " " + stuff[0];
             }
-            if (missing.length>0) {
+            if (missing.length > 0) {
                 return {val: false, msg: "Your faction is missing\n```css\n" + missing + "```"}
             }
             return {val: true, msg: ""}
         }
-        else{
-            return {val:false,msg:"Your faction is at the maxed level."}
+        else {
+            return {val: false, msg: "Your faction is at the maxed level."}
+        }
+    },
+    "channel": function (reqArgs, message, args, playerData, prefix) {
+        if (reqArgs[0] === "text") {
+            return {val: message.channel.type === "text", msg: "You need to be in a text channel"};
+        } else if (reqArgs[0] === "dm") {
+            return {val: message.channel.type === "dm", msg: "You cannot be in a text channel"};
+        } else {
+            return {
+                val: false, msg: "A bug occurred. please report this code `channelMustBeTextOrDm`"
+            }
         }
     }
 };
 
 
 /**FUNCTIONS**/
-
-function getBorders(location){
+function getBorders(location) {
     var bordering = [];
-    if(location[1]>0) {
+    if (location[1] > 0) {
         bordering.push(map[location[0]][location[1] - 1][location[2]].type);
     }
-    if(location[1]<map[location[0]].length) {
+    if (location[1] < map[location[0]].length) {
         bordering.push(map[location[0]][location[1] + 1][location[2]].type);
     }
-    if(location[2]>0) {
-        bordering.push(map[location[0]][location[1]][location[2]-1].type);
+    if (location[2] > 0) {
+        bordering.push(map[location[0]][location[1]][location[2] - 1].type);
     }
-    if(location[2]<map[location[0]][location[1]].length) {
-        bordering.push(map[location[0]][location[1]][location[2]+1].type);
+    if (location[2] < map[location[0]][location[1]].length) {
+        bordering.push(map[location[0]][location[1]][location[2] + 1].type);
     }
     return bordering;
 }
@@ -1755,8 +1849,8 @@ function runCommand(command, message, args, playerData, prefix) {
             }
         }
     }
-    
-    command.effect(message, args, playerData, universalPrefix);
+
+    command.effect(message, args, playerData, prefix);
     return;
 }
 function getNumbers(text, parsed) {
@@ -1841,7 +1935,7 @@ function checkPerms(args) {
     if (args.message.channel.permissionsFor(user).has(args.perms)) {
         permsCheck.channelPerms = true;
     }//does it have channel perms
-    if (args.message.member.hasPermission(args.perms,null,true,true)) {//args.message.guild.members.get(user.id).hasPermission(args.perms)
+    if (args.message.member.hasPermission(args.perms, null, true, true)) {//args.message.guild.members.get(user.id).hasPermission(args.perms)
         permsCheck.serverPerms = true;
     }//does it have role perms
     if (permsCheck.serverPerms !== true) {//check first if you have role perms
@@ -1860,13 +1954,13 @@ function spacing(text, text2, max) {
     newText += text2;
     return newText;
 }
-function matchArray(arr1, arr2,text){
+function matchArray(arr1, arr2, text) {
     var match = true;
-    text = text||false;
-    if(text){
+    text = text || false;
+    if (text) {
         for (var i = 0; i < arr1.length; i++) {
             if (arr1[i].toLowerCase() !== arr2[i].toLowerCase()) {
-                console.log(arr1[i]+"|"+arr2);
+                console.log(arr1[i] + "|" + arr2);
                 match = false;
             }
         }
@@ -1880,12 +1974,12 @@ function matchArray(arr1, arr2,text){
     }
     return match;
 }
-function isValidText(str){
-    if(typeof(str)!=='string'){
+function isValidText(str) {
+    if (typeof(str) !== 'string') {
         return false;
     }
-    for(var i=0;i<str.length;i++){
-        if(str.charCodeAt(i)>127){
+    for (var i = 0; i < str.length; i++) {
+        if (str.charCodeAt(i) > 127) {
             return false;
         }
     }
@@ -1893,6 +1987,19 @@ function isValidText(str){
 }
 
 /**CLIENTS**/
+client.on("GuildCreate", function (Guild) {
+    prefixes.push({prefix: "-", serverID: Guild.id});
+    saveJsonFile("./other.json");
+});
+client.on("GuildDelete", function (Guild) {
+    for (var i = 0; i < prefixes.length; i++) {
+        if (prefixes[i].serverID === Guild.id) {
+            prefixes.splice(i, 1);
+            saveJsonFile("./other.json");
+            break;
+        }
+    }
+});
 client.on("ready", function () {
     console.log("Galactica | Online");
     client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
@@ -1901,10 +2008,19 @@ client.on("message", function (message) {
     if (message.author.bot) {
         return;
     }
-    if(message.content[0] === universalPrefix) {
-        var command = message.content.toLowerCase().split(" ")[0];
-        var args = message.content.toLowerCase().split(" ");
-        args.shift();
+    var command = message.content.toLowerCase().split(" ")[0];
+    var args = message.content.toLowerCase().split(" ");
+    args.shift();
+    var serverPrefix = universalPrefix;
+    if (message.channel.type === "text") {
+        for (var i = 0; i < prefixes.length; i++) {
+            if (prefixes[i].serverID === message.channel.guild.id) {
+                serverPrefix = prefixes[i].prefix;
+                break;
+            }
+        }
+    }
+    if (args[0] === universalPrefix || args[0] === "<!@" + client.id + ">" || args[0] === serverPrefix) {
         for (var i = 0; i < commands.length; i++) {
             if (typeof commands[i] === "object") {
                 for (var j = 0; j < commands[i].names.length; j++) {
@@ -1930,7 +2046,7 @@ client.on("message", function (message) {
                             }
                         }
                         if (isValidText(message.content)) {
-                            runCommand(commands[i], message, args, findPlayerData(message.author.id));
+                            runCommand(commands[i], message, args, findPlayerData(message.author.id), serverPrefix);
                             saveJsonFile("./accounts.json");
                             saveJsonFile("./factions.json");
                             break;
