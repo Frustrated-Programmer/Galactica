@@ -141,6 +141,20 @@ const commands = [
         }
     },
     {
+        names: ["version"],
+        description: "get the server' current version",
+        usage: "version",
+        values: [],
+        reqs: [],
+        effect: function (message, args, playerData, prefix) {
+            sendBasicEmbed({
+                content:"Galactica's current version is `"+version+"`",
+                color:embedColors.purple,
+                channel:message.channel
+            })
+        }
+    },
+    {
         names: ["ping"],
         description: "ping the server and find how long is the response time",
         usage: "ping",
@@ -1498,7 +1512,7 @@ const commands = [
         description: "Clear a channel",
         usage: "clear [VALUE]",
         values: ["All", "{NUMBER}"],
-        reqs: ["userPerms MANAGE_MESSAGES"],
+        reqs: ["channel text","userPerms MANAGE_MESSAGES"],
         effect: function (message, args, playerData, prefix) {
             var theNumbersInput = getNumbers(message.content, true);
             if (args[0] === "all") {
@@ -1509,7 +1523,7 @@ const commands = [
                 })
             } else {
                 sendBasicEmbed({
-                    content: "Invalid usage!",
+                    content: "Invalid usage!\nYou need to have the amount of messages to clear.",
                     color: embedColors.red,
                     channel: message.channel
                 })
@@ -1526,7 +1540,31 @@ const commands = [
             process.exit();
         }
     },
-
+    {
+        names: ["changeVersion","versionChange","changeV","vChange"],
+        description: "change the version",
+        usage: "version {VALUE}",
+        values: ["{VERSION}"],
+        reqs: ["owner"],
+        effect: function (message, args, playerData, prefix) {
+            if(args[0]){
+                version = args[0];
+                saveJsonFile("./other.json");
+                sendBasicEmbed({
+                    content:"Version is now `"+version+"`",
+                    color:embedColors.purple,
+                    channel:message.channel
+                })
+            }
+            else{
+                sendBasicEmbed({
+                    content:"Version cannot be blank",
+                    color:embedColors.red,
+                    channel:message.channel
+                })
+            }
+        }
+    },
     {
         names: ["give"],
         description: "gives items to the player or yourself",
