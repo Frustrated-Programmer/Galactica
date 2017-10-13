@@ -1,0 +1,45 @@
+{
+    "factions": {
+        "names": [
+            {
+                "lowerCaseName": "boogie",
+                "regularName": "boogie"
+            }
+        ],
+        "costs": [
+            "credits 1000",
+            "credits 5000",
+            "credits 25000",
+            "credits 50000"
+        ],
+        "boogie": {
+            "name": "boogie",
+            "description": "testing 123 and testing123 and once again",
+            "canUseDescription": true,
+            "image": "",
+            "niceAdLevel": 0,
+            "canUseImage": false,
+            "color": 2437107,
+            "canUseColor": false,
+            "emoji": "",
+            "level": 1,
+            "members": [],
+            "maxMembers": 15,
+            "mods": [],
+            "creator": "244590122811523082",
+            "maxMods": 3,
+            "credits": 1000,
+            "beryllium": 0,
+            "silicon": 0,
+            "food": 0,
+            "steel": 0,
+            "titanium": 0,
+            "carbon": 0,
+            "neutronium": 0,
+            "electricity": 0,
+            "research": 0,
+            "people": 0,
+            "aboutToBecomeOwner": ""
+        }
+    }
+}
