@@ -1,3 +1,3 @@
 exports.runFunction=function (message){
-	message.channel.send("test complete")
+	message.channel.send("test complete");
 };
