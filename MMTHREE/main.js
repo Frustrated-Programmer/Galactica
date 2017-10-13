@@ -1,3 +1,5 @@
 exports.runFunction=function (message){
-	message.channel.send("test complete");
+	if(message.content ===".test") {
+		message.channel.send("test complete");
+	}
 };
