@@ -15,8 +15,6 @@ var Faction = function (data) {
 
     this.members = data.members || [];
     this.maxMembers = data.maxMembers || 0;
-    this.mods = data.mods || [];
-    this.creator = data.creator || "";
     this.maxMods = data.maxMods || 0;
     this.aboutToBecomeOwner = data.aboutToBecomeOwner || "";
 

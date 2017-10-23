@@ -1,13 +1,25 @@
 {
-    "players": [
-        {
-            "userID": "244590122811523082",
+    "players": {
+        "names": [
+            "319929729236992002",
+            "244590122811523082",
+            "342061552632987648",
+            "198590928166977537"
+        ],
+        "319929729236992002": {
+            "userID": "319929729236992002",
+            "username": "🍎🍑🍍Fruit Programming🍍🍑🍎",
+            "faction": null,
             "location": [
                 0,
                 0,
                 0
             ],
             "happiness": 0.5,
+            "stations": [],
+            "lastCollection": "new",
+            "attacking": false,
+            "messagesXp": 0,
             "credits": 0,
             "beryllium": 0,
             "silicon": 0,
@@ -19,19 +31,107 @@
             "electricity": 0,
             "research": 0,
             "people": 0,
+            "health": 100,
+            "Inductive Isolation Methods": 0,
+            "Gravitic Purification": 0
+        },
+        "244590122811523082": {
+            "userID": "244590122811523082",
+            "username": "︎︎ ︎︎ ︎︎ ︎︎ ︎︎ ︎︎ ︎︎",
+            "faction": null,
+            "location": [
+                0,
+                0,
+                0
+            ],
+            "happiness": 0.5,
             "stations": [
                 {
                     "location": [
                         0,
-                        0,
-                        0
+                        1,
+                        1
                     ],
                     "type": "Mining Station",
                     "level": 0
                 }
             ],
+            "colonies": [],
+            "lastCollection": 1508531354386,
+            "attacking": true,
+            "messagesXp": 0,
+            "credits": 0,
+            "beryllium": 0,
+            "silicon": 0,
+            "food": 0,
+            "steel": 0,
+            "titanium": 0,
+            "carbon": 0,
+            "neutronium": 0,
+            "electricity": 0,
+            "research": 0,
+            "people": 0,
+            "health": 100,
+            "Inductive Isolation Methods": 0,
+            "Gravitic Purification": 0
+        },
+        "342061552632987648": {
+            "userID": "342061552632987648",
+            "username": "FPnoober2",
+            "faction": null,
+            "location": [
+                0,
+                0,
+                0
+            ],
+            "happiness": 0.5,
+            "stations": [],
+            "lastCollection": "new",
+            "attacking": true,
+            "messagesXp": 0,
+            "credits": 0,
+            "beryllium": 0,
+            "silicon": 0,
+            "food": 0,
+            "steel": 0,
+            "titanium": 0,
+            "carbon": 0,
+            "neutronium": 0,
+            "electricity": 0,
+            "research": 0,
+            "people": 0,
+            "health": 100,
+            "Inductive Isolation Methods": 0,
+            "Gravitic Purification": 0
+        },
+        "198590928166977537": {
+            "userID": "198590928166977537",
+            "username": "TemporalFuzz",
+            "faction": null,
+            "location": [
+                0,
+                0,
+                0
+            ],
+            "happiness": 0.5,
+            "stations": [],
+            "lastCollection": "new",
+            "attacking": false,
+            "messagesXp": 0,
+            "credits": 0,
+            "beryllium": 0,
+            "silicon": 0,
+            "food": 0,
+            "steel": 0,
+            "titanium": 0,
+            "carbon": 0,
+            "neutronium": 0,
+            "electricity": 0,
+            "research": 0,
+            "people": 0,
+            "health": 100,
             "Inductive Isolation Methods": 0,
             "Gravitic Purification": 0
         }
-    ]
+    }
 }

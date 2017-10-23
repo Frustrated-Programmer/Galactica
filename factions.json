@@ -1,0 +1,11 @@
+{
+    "factions": {
+        "names": [],
+        "costs": [
+            "credits 1000",
+            "credits 5000",
+            "credits 25000",
+            "credits 50000"
+        ]
+    }
+}
