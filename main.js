@@ -18,7 +18,7 @@ let waitTimesInterval = false;
 let factions = require("./factions.json").factions;
 let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let map = require("./other.json").map;
-
+console.log(require("./other.json"));
 
 /**FUNCTIONS**/
 function checkNearbyArea(want) {
