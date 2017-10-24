@@ -667,8 +667,15 @@ function checkGP(station, level, playerData) {
 	}
 	return {val: false, msg: "ERROR please report this immediately\n`" + station + "mustbeanactualstation`"}
 }
-function log(msg) {
+function log(msg,message) {
 	console.log(msg);
+	if(message){
+		sendBasicEmbed({
+			content:msg,
+			color:embedColors.blue,
+			channel:message.channel
+		})
+	}
 }
 function saveJsonFile(file) {
 	fs.writeFileSync(file, JSON.stringify(require(file), null, 4));//the (null, 4) "cleans" up the json file
