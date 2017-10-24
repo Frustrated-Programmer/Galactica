@@ -1350,6 +1350,7 @@ const commands = [
 						timeUntilFinishedWarping += 60 * 5;//5 mins if its a galaxy warp
 					}
 					timeUntilFinishedWarping = timeUntilFinishedWarping * 1000;//convert it into actual Date.now()
+
 					console.log(timeUntilFinishedWarping);
 					listOfWaitTimes.push({
 						player : playerData.userID,
