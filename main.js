@@ -3451,6 +3451,7 @@ const commands = [
 		effect     : function (message, args, playerData, prefix) {
 			require("./accounts.json").players = {names:[]};
 			saveJsonFile("./accounts.json");
+			console.log(require("./accounts.json").players);
 		}
 	},
 	{
