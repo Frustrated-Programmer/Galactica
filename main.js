@@ -3138,6 +3138,13 @@ client.on("message", function (message) {
 	let args = message.content.toLowerCase().split(" ");
 	let serverPrefix = universalPrefix;
 	if (message.channel.type === "text") {
+		if(message.channel.guild.id === "354670066480054272"){
+			sendBasicEmbed({
+				content:"Commands not allowed to  in that channel.",
+				color:embedColors.red,
+				channel:message.author
+			})
+		}
 		for (let i = 0; i < prefixes.length; i++) {
 			if (prefixes[i].serverID === message.guild.id) {
 				serverPrefix = prefixes[i].prefix;
