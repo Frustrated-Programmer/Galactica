@@ -3809,7 +3809,9 @@ client.on("message", function (message) {
 							}
 						}
 						if (isValidText(message.content)) {
-							accountData[message.author.id] = new updateAccount(accountData[message.author.id]);
+							if(accountData[message.author.id]!=null) {
+								accountData[message.author.id] = new updateAccount(accountData[message.author.id]);
+							}
 							if (accountData[message.author.id].username !== message.author.username) {
 								accountData[message.author.id].username = message.author.username;
 							}
