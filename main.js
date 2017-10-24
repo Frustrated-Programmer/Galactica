@@ -3694,7 +3694,7 @@ client.on("guildCreate", function (Guild) {
 			prefix    : "-",
 			serverID  : Guild.id,
 			modChannel: null,
-			warnings  : {}
+			warnings  : {},
 			allowedChannels: {},
 			welcomeChannel: {
 				id: null,
