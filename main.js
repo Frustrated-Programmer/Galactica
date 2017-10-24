@@ -328,7 +328,7 @@ function checkWaitTimes() {
 					});
 					break;
 				case "colonization":
-					if (matchArray(accountData[listOfWaitTimes[i].player].location, listOfWaitTimes[i].at, false)) {
+					if (accountData[listOfWaitTimes[i].player].didntMove) {
 						accountData[listOfWaitTimes[i].player].colonies.push({
 							location: accountData[listOfWaitTimes[i].player].location,
 							type    : map[listOfWaitTimes[i].at[0]][listOfWaitTimes[i].at[1]][listOfWaitTimes[i].at[2]].type
@@ -352,13 +352,38 @@ function checkWaitTimes() {
 					}
 					break;
 				case "attackColony":
+					let player = accountData[listOfWaitTimes[i].player];
+					let colony = listOfWaitTimes[i].at;
+					if (player.didntMove) {
+						if (player.attacking) {
+							player.colonies.push({
+								people  : 0,
+								type    : map[colony[0]][colony[1]][colony[2]].type,
+								location: colony
+							})
+						}
+						else {
+							sendBasicEmbed({
+								content: "Attack at the colony\nGalaxy: `" + colony[0] + "` Area: `" + colony[1] + "x" + colony[2] + "`\nHas failed.\n**Reason:** You were/are under attack.",
+								color  : embedColors.red,
+								channel: client.users.get(player.userID)
+							})
+						}
+					}
+					else {
+						sendBasicEmbed({
+							content: "Attack at the colony\nGalaxy: `" + colony[0] + "` Area: `" + colony[1] + "x" + colony[2] + "`\nHas failed.\n**Reason:** You moved from your spot.",
+							color  : embedColors.red,
+							channel: client.users.get(player.userID)
+						})
+					}
 					break;
 				case "research":
 					accountData[listOfWaitTimes[i].player][listOfWaitTimes[i].which]++;
 					sendBasicEmbed({
-						content:"Your research `"+listOfWaitTimes[i].which+"` has finished.",
-						color:embedColors.yellow,
-						channel:client.users.get(listOfWaitTimes[i].player)
+						content: "Your research `" + listOfWaitTimes[i].which + "` has finished.",
+						color  : embedColors.yellow,
+						channel: client.users.get(listOfWaitTimes[i].player)
 					});
 					break;
 
@@ -445,10 +470,15 @@ function createMap(galaxys, xSize, ySize) {
 	return map;
 }
 function sendBasicEmbed(args) {
-	let embed = new Discord.RichEmbed()
-		.setColor(args.color)
-		.setDescription(args.content);
-	args.channel.send({embed});
+	if (args.channel != null && args.color != null && args.content != null) {
+		let embed = new Discord.RichEmbed()
+			.setColor(args.color)
+			.setDescription(args.content);
+		args.channel.send({embed});
+	}
+	else {
+		console.log("EMBED MUST HAVE `CONTENT` `COLOR` and `CHANNEL` AND ALL ARGS WAS:\n" + args);
+	}
 }
 function channelClear(channel, msgnum) {
 	if (msgnum) {
@@ -652,23 +682,35 @@ function runCommand(command, message, args, playerData, prefix) {
 		let reqArgs = command.reqs[i].split(" ");
 		reqArgs.shift();
 		let reqCheck = reqChecks[typeReq](reqArgs, message, args, playerData, prefix);
+
 		if (!reqCheck.val) {
 			if (reqCheck.msg) {
-				sendBasicEmbed({
-					content: reqCheck.msg,
-					color  : embedColors.red,
-					channel: message.channel
-				});
-				return;
+				if (reqCheck.author) {
+					sendBasicEmbed({
+						content: reqCheck.msg,
+						color  : embedColors.red,
+						channel: message.author
+					});
+					return;
+
+				}
+				else {
+					sendBasicEmbed({
+						content: reqCheck.msg,
+						color  : embedColors.red,
+						channel: message.channel
+					});
+					return;
+				}
 			}
 		}
+
 	}
 
 //	playerData.messagesXp += Math.round(15 + (Math.random() * 10));
 	command.effect(message, args, playerData, prefix);
 	return;
 }
-
 
 
 /**CONSTANTS**/
@@ -679,7 +721,6 @@ const resources = require("./items.js").resources;
 const stations = require("./items.js").stations;
 const researches = require("./items.js").researches;
 const reqChecks = {
-
 	"argNum"           : function (reqArgs, message, args, playerData, prefix) {
 		return {
 			val: args[reqArgs][0] !== parseInt(args[reqArgs][0], 10)
@@ -730,6 +771,25 @@ const reqChecks = {
 			return {val: true, msg: ""};
 		}
 		return {val: false, msg: "You must be an owner of the bot."}
+	},
+	"modChannel"       : function (reqArgs, message, args, playerData, prefix) {
+		if (message.channel.type === "text") {
+			for (let i = 0; i < serverStuff.names.length; i++) {
+				if (serverStuff[serverStuff.names[i]].serverID === message.channel.guild.id) {
+					if (serverStuff[serverStuff.names[i]].modChannel != null) {
+						return {
+							val: client.channels.get(serverStuff[serverStuff.names[i]].modChannel) != null,
+							msg: "You must have a mod channel."
+						}
+					}
+					return {val: false, msg: "You must have a mod channel."}
+				}
+			}
+			return {val: false, msg: "You must have a mod channel."}
+		}
+		else {
+			return {val: false, msg: "You must be in a text channel."}
+		}
 	},
 	"warping"          : function (reqArgs, message, args, playerData, prefix) {
 		let x = "false";
@@ -850,9 +910,28 @@ const reqChecks = {
 				val: false, msg: "A bug occurred. please report this code `channelMustBeTextOrDm`"
 			}
 		}
+	},
+	"normCommand"      : function (reqArgs, message, args, playerData, prefix) {
+		if (message.channel.type === "text") {
+			function checkSize(obj) {
+				let size = 0, key;
+				for (key in obj) {
+					if (obj.hasOwnProperty(key)) size++;
+				}
+				return size;
+			}
+
+			if (checkSize(serverStuff[message.channel.guild.id].allowedChannels) > 0) {
+				if (serverStuff[message.channel.guild.id].allowedChannels[message.channel.id] == null) {
+					return {val: false, msg: "Commands not allowed in that channel", author: true}
+				}
+			}
+			return {val: true, msg: ""}
+		}
+		return {val: true, msg: ""}
 	}
 };
-const prefixes = require("./other.json").prefixes;
+const serverStuff = require("./other.json").serverStuff;
 const updateAccount = require("./account.js");
 const commands = [
 	"HELP",
@@ -861,7 +940,7 @@ const commands = [
 		description: "get a list of all the commands you can do",
 		usage      : "help",
 		values     : [],
-		reqs       : [],
+		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
 			let txt = "```css\n";
 			for (let i = 0; i < commands.length; i++) {
@@ -895,7 +974,7 @@ const commands = [
 		description: "get a list of all the commands",
 		usage      : "commands [VALUE]",
 		values     : ["List", "{COMMAND_NAME}"],
-		reqs       : [],
+		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
 			if (args[0] == "" || args[0] == null) {
 				args[0] = "list";
@@ -976,7 +1055,7 @@ const commands = [
 		description: "get the server' current version",
 		usage      : "version",
 		values     : [],
-		reqs       : [],
+		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
 			sendBasicEmbed({
 				content: "Galactica's current version is `" + version + "`",
@@ -990,7 +1069,7 @@ const commands = [
 		description: "ping the server and find how long is the response time",
 		usage      : "ping",
 		values     : [],
-		reqs       : [],
+		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
 			let storedTimeForPingCommand = Date.now();
 			let embed = new Discord.RichEmbed()
@@ -1011,7 +1090,7 @@ const commands = [
 		description: "join the game",
 		usage      : "join",
 		values     : [],
-		reqs       : ["profile false"],
+		reqs       : ["normCommand", "profile false"],
 		effect     : function (message, args, playerData, prefix) {
 			let newPlayerData = new updateAccount();
 			newPlayerData.userID = message.author.id;
@@ -1032,7 +1111,7 @@ const commands = [
 		description: "collect resources from your stations",
 		usage      : "collect",
 		values     : [],
-		reqs       : ["profile true", "attacking false"],
+		reqs       : ["normCommand", "profile true", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let canContinue = true;
 			if (playerData.stations.length === 0) {
@@ -1172,7 +1251,7 @@ const commands = [
 		description: "Get your stats",
 		usage      : "stats",
 		values     : [],
-		reqs       : ["profile true"],
+		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			let embed = new Discord.RichEmbed()
 				.setTitle(message.member.displayName + "'s stats")
@@ -1219,7 +1298,7 @@ const commands = [
 		description: "warp to somewhere",
 		usage      : "warp [VALUE]",
 		values     : ["{GALAXY}", "{X} {Y}", "{GALAXY} {X} {Y}"],
-		reqs       : ["profile true", "warping false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			if (typeof playerData.location === "object") {
 				let numbers = getNumbers(message.content);
@@ -1248,6 +1327,7 @@ const commands = [
 					sendBasicEmbed({content: "Invalid usage", color: embedColors.red, channel: message.channel})
 				}
 				else {
+					playerData.didntMove = false;
 					let timeUntilFinishedWarping = 0;
 					if (goToPos[1] + 1 > playerData.location[1]) {
 						timeUntilFinishedWarping += goToPos[1] + 1 - playerData.location[1];
@@ -1314,7 +1394,7 @@ const commands = [
 		description: "See where you are currently at",
 		usage      : "lookAround",
 		values     : [],
-		reqs       : ["profile true", "warping false"],
+		reqs       : ["normCommand", "profile true", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
 			let pos = playerData.location;
 			let loc = map[pos[0]][pos[1]][pos[2]];
@@ -1402,7 +1482,7 @@ const commands = [
 		description: "scan the area around you",
 		usage      : "scan",
 		values     : [],
-		reqs       : ["profile true", "warping false"],
+		reqs       : ["normCommand", "profile true", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
 			let mainSize = require("./other.json").imageSize;
 			let go = null;
@@ -1454,93 +1534,118 @@ const commands = [
 				});
 			};
 			let image = new Jimp(mainSize, mainSize, function (err, newimage) {
-				for (let i = 0; i < m.length; i++) {
-					done.push([]);
-					for (let j = 0; j < m[i].length; j++) {
-						done[i].push(false);
-						let canShow = true;
-						let setSomething = false;
-						if (i === 0 && j === 0) {
-							console.log(m[i][j]);
-						}
-						if (m[i][j].type !== "empty") {
-							if (m[i][j].ownersID !== null) {
-								if (m[i][j].ownersID === playerData.userID) {
-									let r = m[i][j].type;
-									setImage(i, j, "images/Stations/You/" + r + ".png", newimage);
-									setSomething = true;
-								}
-								else if (playerData.faction !== null && canShow) {
-									let fac = factions[playerData.faction];
-									if (fac) {
-										let found = false;
-										for (let f = 0; f < fac.members.length; f++) {
-											if (m[i][j].ownersID === fac.members[i]) {
-												found = true;
-												break;
-											}
-										}
-										let r = m[i][j].type;
-										if (found) {
-											setImage(i, j, "images/Stations/Faction/" + r + ".png", newimage);
-										}
-										else {
-											setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
-										}
+				let canShowFunc = function (loc) {
+					let theMap = map[playerData.location[0]];
+					let y = loc[1];
+					let x = loc[2];
+					let found = false;
 
-										setSomething = true;
-									}
-								}
-								else if (canShow) {
-									let r = m[i][j].type;
-									setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
-									setSomething = true;
-								}
+					if(y!=theMap.length){
+						if(matchArray([playerData.location[0],y+1,x],playerData.location,false)){
+							found = true;
+						}
+
+						if(x!=theMap[y+1].length){
+							if(matchArray([playerData.location[0],y+1,x],playerData.location,false)){
+								found = true;
+							}
+						}
+					}
+				};
+					for (let i = 0; i < m.length; i++) {
+						done.push([]);
+						for (let j = 0; j < m[i].length; j++) {
+							done[i].push(false);
+							let canShow = true;
+							console.log(i, j);
+							if (i === loc[1] && j === loc[2]) {
+								console.log("ran");
+								setImage(i, j, "images/Other/You.png", newimage);
 							}
 							else {
-								setImage(i, j, "images/Planets/" + m[i][j].type + "Planet" + ".png", newimage);
+								let setSomething = false;
+
+								if(canShow) {
+									if (m[i][j].type !== "empty") {
+										if (m[i][j].ownersID !== null) {
+											if (m[i][j].ownersID === playerData.userID) {
+												let r = m[i][j].type;
+												setImage(i, j, "images/Stations/You/" + r + ".png", newimage);
+												setSomething = true;
+											}
+											else if (playerData.faction !== null && canShow) {
+												let fac = factions[playerData.faction];
+												if (fac) {
+													let found = false;
+													for (let f = 0; f < fac.members.length; f++) {
+														if (m[i][j].ownersID === fac.members[i]) {
+															found = true;
+															break;
+														}
+													}
+													let r = m[i][j].type;
+													if (found) {
+														setImage(i, j, "images/Stations/Faction/" + r + ".png", newimage);
+													}
+													else {
+														setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
+													}
+
+													setSomething = true;
+												}
+											}
+											else if (canShow) {
+												let r = m[i][j].type;
+												setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
+												setSomething = true;
+											}
+										}
+										else {
+											setImage(i, j, "images/Planets/" + m[i][j].type + "Planet" + ".png", newimage);
+										}
+									}
+									else {
+										setImage(i, j, "images/Other/EmptySpace.png", newimage);
+									}
+								}else {
+									setImage(i, j, "images/Other/Unknown.png", newimage);
+								}
+
 							}
 						}
-						else if (!setSomething && !canShow) {
-							setImage(i, j, "images/Other/Unknown.png", newimage);
+					}
+					done[loc[1]][loc[2]] = false;
+					for (let i = 0; i < accountData.names.length; i++) {
+						let loc2 = accountData[accountData.names[i]].location;
+						if (loc2[0] === playerData.location[0] && accountData[accountData.names[i]].userID !== playerData.userID) {
+							setImage(loc2[1], loc2[2], "images/Other/Player.png", newimage);
+						}
+					}
+					function doFun() {
+						let finished = true;
+						for (let i = 0; i < done.length; i++) {
+							for (let j = 0; j < done[i].length; j++) {
+								if (done[i][j] === false) {
+									finished = false;
+									break;
+								}
+							}
+						}
+						if (finished) {
+							newimage.write("images/mapImage" + playerData.userID + ".png");
 						}
 						else {
-							setImage(i, j, "images/Other/EmptySpace.png", newimage);
+							setTimeout(function () {
+								doFun();
+							}, 1000)
 						}
 					}
-				}
-				done[loc[1]][loc[2]] = false;
-				for (let i = 0; i < accountData.names.length; i++) {
-					let loc2 = accountData[accountData.names[i]].location;
-					if (loc2[0] === playerData.location[0] && accountData[accountData.names[i]].userID !== playerData.userID) {
-						setImage(loc2[1], loc2[2], "images/Other/Player.png", newimage);
-					}
-				}
-				setImage(loc[1], loc[2], "images/Other/You.png", newimage);
-				function doFun() {
-					let finished = true;
-					for (let i = 0; i < done.length; i++) {
-						for (let j = 0; j < done[i].length; j++) {
-							if (done[i][j] === false) {
-								finished = false;
-								break;
-							}
-						}
-					}
-					if (finished) {
-						newimage.write("images/mapImage" + playerData.userID + ".png");
-					}
-					else {
-						setTimeout(function () {
-							doFun();
-						}, 1000)
-					}
-				}
 
-				setTimeout(function () {
-					doFun();
-				}, 1000);
-			});
+					setTimeout(function () {
+						doFun();
+					}, 1000);
+				}
+			);
 		}
 	},
 	{
@@ -1548,7 +1653,7 @@ const commands = [
 		description: "research something",
 		usage      : "research [VALUE]",
 		values     : ["List", "Info {RESEARCH_NAME}", "{RESEARCH_NAME}"],
-		reqs       : ["profile true"],
+		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.yellow);
@@ -1616,7 +1721,7 @@ const commands = [
 						let item = researches[researches.names[number]];
 						let level = playerData[researches.names[number]];
 						if (playerData["research"] >= item.costs[level]) {
-							playerData["research"]-=item.costs[level];
+							playerData["research"] -= item.costs[level];
 							listOfWaitTimes.push({
 								expires: item.timesToResearch[level],
 								type   : "research",
@@ -1626,7 +1731,7 @@ const commands = [
 							sendBasicEmbed({
 								color  : embedColors.yellow,
 								channel: message.channel,
-								content: "Researching `" + researches.names[number] + "`...\nWill take about " + getTimeRemaining(item.timesToResearch)+"\nCosts: "+item.costs[level]+"💡 Research"
+								content: "Researching `" + researches.names[number] + "`...\nWill take about " + getTimeRemaining(item.timesToResearch) + "\nCosts: " + item.costs[level] + "💡 Research"
 							})
 						}
 						else {
@@ -1648,7 +1753,7 @@ const commands = [
 		description: "attack the player",
 		usage      : "attackPlayer [VALUE]",
 		values     : ["@player", "PLAYER_ID", "STATION_NAME", "PLANET_NAME"],
-		reqs       : ["profile true", "warping false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 
 			let numbers = getNumbers(args[0], false);
@@ -1779,7 +1884,7 @@ const commands = [
 		description: "colonize a planet",
 		usage      : "colonize",
 		values     : [],
-		reqs       : ["profile true", "warping false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let isValid = false;
 			let mapSpot = map[loc[0]][loc[1]][loc[2]];
@@ -1825,16 +1930,16 @@ const commands = [
 		}
 	},
 	{
-		names      : ["myColonies", "myColonys"],
-		description: "Gives you a lost of all your colonies",
-		usage      : "mycolonies",
+		names      : ["myColonies", "myColonys", "myC"],
+		description: "Gives you a list of all your colonies",
+		usage      : "myColonies",
 		values     : [],
-		reqs       : ["profile true"],
+		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			let colonies = playerData.colonies;
 			let txt = "```css\n";
 			for (let i = 0; i < colonies.length; i++) {
-				txt += spacing("[" + (colonies[i].level + 1) + "] " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  X: " + colonies[i].location[1] + " Y: " + colonies[i].location[2], 50);
+				txt += spacing(colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + colonies[i].location[1] + "x" + colonies[i].location[2], 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -1843,7 +1948,7 @@ const commands = [
 			}
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.pink)
-				.setTitle("LEVEL----NAME-----------------------LOCATION")
+				.setTitle("NAME-----------------------LOCATION")
 				.setDescription(txt);
 			message.channel.send({embed});
 		}
@@ -1853,7 +1958,7 @@ const commands = [
 		description: "attack the colony on the planet.",
 		usage      : "attackColony",
 		values     : [],
-		reqs       : ["profile true", "warping false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let isValid = false;
 			let mapSpot = map[loc[0]][loc[1]][loc[2]];
@@ -1863,11 +1968,12 @@ const commands = [
 				}
 			}
 			if (isValid) {
+				playerData.didntMove = true;
 				if (mapSpot.ownersID !== null) {
+					playerData.didntMove = true;
 					listOfWaitTimes.push({
 						player : playerData.userID,
 						expires: Date.now() + 120000,
-						headTo : null,
 						type   : "attackColony",
 						at     : playerData.location
 					});
@@ -1906,14 +2012,13 @@ const commands = [
 		}
 	},
 
-
 	"STATIONS",
 	{
 		names      : ["stations", "station", "s"],
 		description: "get info on stations",
 		usage      : "station [VALUE]",
 		values     : ["List", "Info {STATION_NAME}"],
-		reqs       : [],
+		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.pink);
@@ -2014,7 +2119,7 @@ const commands = [
 		description: "builds a station where you currently are at",
 		usage      : "build [VALUE]",
 		values     : ["{STATION_NAME}"],
-		reqs       : ["profile true", "warping false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			const freeStation = playerData.stations.length === 0;
 
@@ -2117,7 +2222,7 @@ const commands = [
 		description: "gives you the locations and level of all your stations",
 		usage      : "myStations",
 		values     : [],
-		reqs       : ["profile true"],
+		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			let stations = playerData.stations;
 			let txt = "```css\n";
@@ -2141,7 +2246,7 @@ const commands = [
 		description: "upgrade the station where you currently are at.",
 		usage      : "upgradeStation",
 		values     : [],
-		reqs       : ["profile true", "warping false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let whichStation = null;
 			let stationToUpgrade;
@@ -2233,7 +2338,7 @@ const commands = [
 		description: "create your faction",
 		usage      : "factioncreate [VALUE] ",
 		values     : ["{NAME}"],
-		reqs       : ["profile true", "faction false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "faction false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 
 			let embed = new Discord.RichEmbed()
@@ -2293,7 +2398,7 @@ const commands = [
 		description: "join faction",
 		usage      : "factioncreate [VALUE] ",
 		values     : ["{FACTION_NAME}"],
-		reqs       : ["profile true", "faction false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "faction false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let txt = "";
 			for (let i = 0; i < args.length; i++) {
@@ -2341,7 +2446,7 @@ const commands = [
 		description: "donate resources to your faction",
 		usage      : "factionDonate [VALUE]",
 		values     : ["{RESOURCES_NAME} {AMOUNT}"],
-		reqs       : ["profile true", "faction true"],
+		reqs       : ["normCommand", "profile true", "faction true"],
 		effect     : function (message, args, playerData, prefix) {
 			let validResource = false;
 			for (let i = 0; i < resources.names.length; i++) {
@@ -2384,7 +2489,7 @@ const commands = [
 		description: "Gives you the list of everything the faction has",
 		usage      : "factionStats",
 		values     : [],
-		reqs       : ["profile true", "faction true"],
+		reqs       : ["normCommand", "profile true", "faction true"],
 		effect     : function (message, args, playerData, prefix) {
 
 			let faction = factions[playerData.faction];
@@ -2422,7 +2527,7 @@ const commands = [
 		description: "Upgrade your faction",
 		usage      : "factionUpgrade",
 		values     : [],
-		reqs       : ["profile true", "faction true", "factionMod", "upgradableFaction", "attacking false"],
+		reqs       : ["normCommand", "profile true", "faction true", "factionMod", "upgradableFaction", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let faction = factions[playerData.faction];
 			let stuff = factions.costs[faction.level].split(" ");
@@ -2465,7 +2570,7 @@ const commands = [
 		description: "change your faction's description",
 		usage      : "factionDescription [VALUE]",
 		values     : ["{TEXT}"],
-		reqs       : ["profile true", "faction true", "factionMod", "attacking false"],
+		reqs       : ["normCommand", "profile true", "faction true", "factionMod", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let txt = "";
 			for (let i = 0; i < args.length; i++) {
@@ -2496,7 +2601,7 @@ const commands = [
 		description: "Set's you faction's image to the image you uploaded.",
 		usage      : "factionImage",
 		values     : [],
-		reqs       : ["profile true", "faction true", "factionMod", "factionImage", "attacking false"],
+		reqs       : ["normCommand", "profile true", "faction true", "factionMod", "factionImage", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			if (message.attachments.first()) {
 				let image = message.attachments.first();
@@ -2536,7 +2641,7 @@ const commands = [
 		description: "promote somebody",
 		usage      : "promote [VALUE]",
 		values     : ["{@NAME}", "{USER_ID}"],
-		reqs       : ["profile true", "faction false", "factionOwner"],
+		reqs       : ["normCommand", "profile true", "faction false", "factionOwner"],
 		effect     : function (message, args, playerData, prefix) {
 			let numbers = getNumbers(message.content, false);
 			let ID = numbers[0];
@@ -2602,7 +2707,7 @@ const commands = [
 		description: "demote somebody",
 		usage      : "demote [VALUE]",
 		values     : ["{@NAME}", "{USER_ID}"],
-		reqs       : ["profile true", "faction false", "factionOwner"],
+		reqs       : ["normCommand", "profile true", "faction false", "factionOwner"],
 		effect     : function (message, args, playerData, prefix) {
 			let numbers = getNumbers(message.content, false);
 			let ID = numbers[0];
@@ -2643,7 +2748,7 @@ const commands = [
 		description: "kick somebody out of your faction",
 		usage      : "kick [VALUE]",
 		values     : ["{@NAME}", "{USER_ID}"],
-		reqs       : ["profile true", "faction false", "factionMod"],
+		reqs       : ["normCommand", "profile true", "faction false", "factionMod"],
 		effect     : function (message, args, playerData, prefix) {
 			let numbers = getNumbers(message.content, false);
 			let ID = numbers[0];
@@ -2722,7 +2827,7 @@ const commands = [
 		description: "disband your faction",
 		usage      : "factionDisband",
 		values     : [],
-		reqs       : ["profile true", "faction", "factionOwner"],
+		reqs       : ["normCommand", "profile true", "faction", "factionOwner"],
 		effect     : function (message, args, playerData, prefix) {
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.red)
@@ -2751,7 +2856,7 @@ const commands = [
 		description: "leave your current faction",
 		usage      : "factionLeave",
 		values     : [],
-		reqs       : ["profile true", "faction"],
+		reqs       : ["normCommand", "profile true", "faction"],
 		effect     : function (message, args, playerData, prefix) {
 			let txt = "";
 			for (let i = 0; i < args.length; i++) {
@@ -2812,9 +2917,9 @@ const commands = [
 					})
 				}
 				else {
-					for (let i = 0; i < prefixes.length; i++) {
-						if (prefixes[i].serverID === message.guild.id) {
-							prefixes[i].prefix = args[0];
+					for (let i = 0; i < serverStuff.names.length; i++) {
+						if (serverStuff[serverStuff.names[i]].serverID === message.guild.id) {
+							serverStuff[serverStuff.names[i]].prefix = args[0];
 							break;
 						}
 					}
@@ -2831,6 +2936,176 @@ const commands = [
 					color  : embedColors.red,
 					channel: message.channel
 				})
+			}
+		}
+	},
+	{
+		names      : ["allowChannel"],
+		description: "allow a channel for galactica usage",
+		usage      : "allowChannel [VALUE]",
+		values     : ["{CHANNEL_ID}", "{#CHANNEL}"],
+		reqs       : ["channel text", "userPerms ADMINISTRATOR"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			if (nums.length) {
+				if (client.channels.get(nums[0]) != null) {
+					serverStuff[message.guild.id].allowedChannels[nums[0]] = true;
+					sendBasicEmbed({
+						content: "Set <#" + nums[0] + "> as an allowed channel.",
+						color  : embedColors.purple,
+						channel: message.channel
+					});
+				}
+				else {
+					sendBasicEmbed({
+						content: "Something went wrong, its either\n```fix\nThe bot doesnt have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				sendBasicEmbed({
+					content: "Invalid Usage\nYou must send the channel you to allow",
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : ["disallowChannel"],
+		description: "disallow a channel for galactica usage",
+		usage      : "disallowChannel [VALUE]",
+		values     : ["{CHANNEL_ID}", "{#CHANNEL}"],
+		reqs       : ["channel text", "userPerms ADMINISTRATOR"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			if (nums.length) {
+				if (client.channels.get(nums[0]) != null) {
+					delete serverStuff[message.guild.id].allowedChannels[nums[0]];
+					sendBasicEmbed({
+						content: "Set <#" + nums[0] + "> as a disallowed channel.",
+						color  : embedColors.purple,
+						channel: message.channel
+					})
+				}
+				else {
+					sendBasicEmbed({
+						content: "Something went wrong, its either\n```fix\nThe bot doesnt have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				sendBasicEmbed({
+					content: "Invalid Usage\nYou must send the channel you to disallow",
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : ["setModChannel", "setMC"],
+		description: "set your server's mod channel",
+		usage      : "setModChannel [VALUE]",
+		values     : ["{CHANNEL_ID}", "{#CHANNEL}"],
+		reqs       : ["channel text", "userPerms ADMINISTRATOR"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			if (nums.length) {
+				if (client.channels.get(nums[0]) != null) {
+					serverStuff[message.guild.id].modChannel = nums[0];
+					sendBasicEmbed({
+						content: "Set <#" + nums[0] + "> as the mod channel.\nYou may now use `warn`, `kick`, `mute` and `ban`",
+						color  : embedColors.purple,
+						channel: message.channel
+					})
+
+				}
+				else {
+					sendBasicEmbed({
+						content: "Something went wrong, its either\n```fix\nThe bot doesnt have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				sendBasicEmbed({
+					content: "Invalid Usage!\nYou must include the channel you want to be the mod channel.",
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : ["setWelcomeChannel", "setWC"],
+		description: "set your server's welcome channel and its message",
+		usage      : "setModChannel [VALUE]",
+		values     : ["{CHANNEL_ID} {MESSAGE}", "{#CHANNEL} {MESSAGE}"],
+		reqs       : ["channel text", "userPerms ADMINISTRATOR"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			if (nums.length) {
+				let welcomeTxt = "Welcome {username} to {server} owned by {owner} you are member #{members}";
+				if (client.channels.get(nums[0]) != null) {
+					if (args.length >= 2) {
+						welcomeTxt = "";
+						for (let i = 0; i < args.length; i++) {
+							welcomeTxt += args[i] + " ";
+						}
+					}
+					serverStuff[message.guild.id].welcomeChannel.id = nums[0];
+					serverStuff[message.guild.id].welcomeChannel.message = welcomeTxt;
+					sendBasicEmbed({
+						content: "Set <#" + nums[0] + "> as the welcome channel.\nWith the welcome message as\n" + welcomeTxt,
+						color  : embedColors.purple,
+						channel: message.channel
+					});
+					if (serverStuff[message.channel.guild.id].modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle("Welcome Message")
+							.setDescription("Welcome message was changed by <@!" + message.author.id + "> to\n" + welcomeTxt)
+							.setColor(embedColors.purple);
+						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: "Something went wrong, its either\n```fix\nThe bot doesnt have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				if (args[0] === "none") {
+					sendBasicEmbed({
+						content: "Disabled the welcome message.",
+						color  : embedColors.red,
+						channel: message.channel
+					});
+					serverStuff[message.channel.guild.id].welcomeChannel.id = null;
+					serverStuff[message.channel.guild.id].welcomeChannel.message = null;
+					if (serverStuff[message.channel.guild.id].modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle("Welcome Message")
+							.setDescription("Welcome message was deleted by <@!" + message.author.id + ">")
+							.setColor(embedColors.purple);
+						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: "Invalid Usage!\nYou must include the channel you want to be the mod channel.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				}
 			}
 		}
 	},
@@ -2859,6 +3134,290 @@ const commands = [
 			}
 		}
 	},
+	{
+		names      : ["warn"],
+		description: "warn a user",
+		usage      : "warn [VALUE]",
+		values     : ["{@USER} [REASON]", "{@USER_ID} [REASON]"],
+		reqs       : ["channel text", "userPerms KICK_MEMBERS", "modChannel"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			let reason = "No reason supplied";
+			if (args.length >= 2) {
+				reason = "";
+				for (let i = 1; i < args.length; i++) {
+					reason += args[i] + " ";
+				}
+			}
+			if (nums.length) {
+				client.fetchUser(nums[0]).then(function (user) {
+
+					let warningNum = "This is the 1st warning given to this user.";
+					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
+						serverStuff[message.guild.id].warnings[nums[0]]++;
+						warningNum = "This the " + serverStuff[message.guild.id].warnings[nums[0]];
+						let num = "" + serverStuff[message.guild.id].warnings[nums[0]];
+						console.log(num[num.length - 1]);
+						switch (num[num.length - 1]) {
+							case "1":
+								warningNum += "st";
+								break;
+							case "2":
+								warningNum += "nd";
+								break;
+							case "3":
+								warningNum += "rd";
+								break;
+							default:
+								warningNum += "th";
+								break;
+						}
+						warningNum += " warning given to this user.";
+					}
+					else {
+						serverStuff[message.guild.id].warnings[nums[0]] = 1;
+					}
+					let embed = new Discord.RichEmbed()
+						.setTitle("WARNING <@!" + nums[0] + ">")
+						.setColor(embedColors.yellow)
+						.setDescription("<@!" + nums[0] + "> has been warned\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
+						.setFooter(warningNum);
+					client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+					let deleteIt = checkPerms({
+						message: message,
+						user   : "bot",
+						perms  : "MANAGE_MESSAGES"
+					});
+					let embedNew = new Discord.RichEmbed()
+						.setDescription("warned the user")
+						.setColor(embedColors.purple);
+					message.channel.send({embed: embedNew}).then(function (mess) {
+						if (deleteIt) {
+							message.delete();
+							setTimeout(function () {
+								mess.delete();
+							}, 10000)
+						}
+					});
+
+				}).catch(function (err) {
+					console.log(err);
+					sendBasicEmbed({
+						content: "that user doesnt exist",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				});
+
+			}
+			else {
+				sendBasicEmbed({
+					content: "Invalid Usage\nPlease add in the USER you want to warn",
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : ["clearWarnings", "clearWarning", "clearWarns", "clearWarn"],
+		description: "Clear warnings from a user",
+		usage      : "clearWarnings [VALUE]",
+		values     : ["{USER_ID}", "{@USER}"],
+		reqs       : ["channel text", "userPerms KICK_MEMBERS", "modChannel"],
+		effect     : function (message, args, playerData, prefix) {
+			let deleteIt = checkPerms({
+				message: message,
+				user   : "bot",
+				perms  : "MANAGE_MESSAGES"
+			});
+			let nums = getNumbers(message.content);
+			let reason = "No reason supplied";
+			if (args.length >= 2) {
+				reason = "";
+				for (let i = 1; i < args.length; i++) {
+					reason += args[i] + " ";
+				}
+			}
+			if (nums.length) {
+				client.fetchUser(nums[0]).then(function (user) {
+
+					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
+						let clearedWarnings = "This user HAD " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
+						delete serverStuff[message.guild.id].warnings[nums[0]];
+						let embed = new Discord.RichEmbed()
+							.setTitle("CLEARING <@!" + nums[0] + ">'S WARNINGS")
+							.setColor(embedColors.green)
+							.setDescription("<@!" + nums[0] + "> has had his warnings removed\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
+							.setFooter(clearedWarnings);
+						client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+						let embed2 = new Discord.RichEmbed()
+							.setDescription("cleared user's warnings.")
+							.setColor(embedColors.purple);
+						message.channel.send({embed: embed2}).then(function (mess) {
+							if (deleteIt) {
+								message.delete();
+								setTimeout(function () {
+									mess.delete();
+								}, 10000)
+							}
+						});
+
+					}
+					else {
+						sendBasicEmbed({
+							content: "That user had no warnings",
+							color  : embedColors.red,
+							channel: message.channel
+						})
+					}
+				}).catch(function (err) {
+					sendBasicEmbed({
+						content: "That user doesnt exist",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				});
+
+
+			}
+			else {
+				sendBasicEmbed({
+					content: "Invalid Usage\nPlease add in the USER you want to warn",
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : ["kick"],
+		description: "kick a user",
+		usage      : "kick [VALUE]",
+		values     : ["{@USER} [REASON]", "{@USER_ID} [REASON]"],
+		reqs       : ["channel text", "userPerms KICK_MEMBERS", "modChannel", "botPerms KICK_MEMBERS"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			let reason = "No reason supplied";
+			if (args.length >= 2) {
+				reason = "";
+				for (let i = 1; i < args.length; i++) {
+					reason += args[i] + " ";
+				}
+			}
+			if (nums.length) {
+				client.fetchUser(nums[0]).then(function (user) {
+					let warningNum = "This user had 0 warnings.";
+					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
+						warningNum = "This user had " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
+					}
+					let embed = new Discord.RichEmbed()
+						.setTitle("KICKING <@!" + nums[0] + ">")
+						.setColor(embedColors.orange)
+						.setDescription("<@!" + nums[0] + "> has been kicked!\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
+						.setFooter(warningNum);
+					client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+					client.guilds.get(message.guild.id).members.get(nums[0]).kick(reason);
+					let deleteIt = checkPerms({
+						message: message,
+						user   : "bot",
+						perms  : "MANAGE_MESSAGES"
+					});
+					let embed2 = new Discord.RichEmbed()
+						.setDescription("kicked the user")
+						.setColor(embedColors.purple);
+					message.channel.send({embed: embed2}).then(function (mess) {
+						if (deleteIt) {
+							message.delete();
+							setTimeout(function () {
+								mess.delete();
+							}, 10000)
+						}
+					});
+				}).catch(function (err) {
+					sendBasicEmbed({
+						content: "That user doesn't exist.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				});
+
+			}
+			else {
+				sendBasicEmbed({
+					content: "Invalid Usage\nPlease add in the USER you want to warn",
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : ["ban"],
+		description: "ban a user",
+		usage      : "ban [VALUE]",
+		values     : ["{@USER} [REASON] [DELETE_DAYS_OF_MESSAGES]", "{@USER_ID} [REASON] [DELETE_DAYS_OF_MESSAGES]"],
+		reqs       : ["channel text", "userPerms BAN_MEMBERS", "modChannel", "botPerms BAN_MEMBERS"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			let reason = "No reason supplied";
+
+			if (args.length >= 2) {
+				reason = "";
+				for (let i = 1; i < args.length; i++) {
+					reason += args[i] + " ";
+				}
+			}
+			if (nums.length) {
+				client.fetchUser(nums[0]).then(function (user) {
+
+					let warningNum = "This user had 0 warnings.";
+					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
+						warningNum = "This user had " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
+					}
+					let embed = new Discord.RichEmbed()
+						.setTitle("BANNING <@!" + nums[0] + ">")
+						.setColor(embedColors.red)
+						.setDescription("<@!" + nums[0] + "> has been banned!\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
+						.setFooter(warningNum);
+					client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+					let days = nums[1] || 0;
+					client.guilds.get(message.guild.id).members.get(nums[0]).ban({days: days, reason: reason});
+					let deleteIt = checkPerms({
+						message: message,
+						user   : "bot",
+						perms  : "MANAGE_MESSAGES"
+					});
+					let embed2 = new Discord.RichEmbed()
+						.setDescription("banned the user")
+						.setColor(embedColors.purple);
+					message.channel.send({embed: embed2}).then(function (mess) {
+						if (deleteIt) {
+							message.delete();
+							setTimeout(function () {
+								mess.delete();
+							}, 10000)
+						}
+					});
+
+				}).catch(function (err) {
+					sendBasicEmbed({
+						content: "That user doesn't exist.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				});
+
+			}
+			else {
+				sendBasicEmbed({
+					content: "Invalid Usage\nPlease add in the USER you want to warn",
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
 
 	"OWNER",
 	{
@@ -2866,7 +3425,7 @@ const commands = [
 		description: "test",
 		usage      : "test",
 		values     : [],
-		reqs       : ["owner", "profile true"],
+		reqs       : ["normCommand", "owner", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			message.channel.fetchMessage("372089230639366146").then(function (message) {
 				console.log(message.reactions.get("🛡"));
@@ -2878,7 +3437,7 @@ const commands = [
 		description: "does some code",
 		usage      : "eval [VALUE]",
 		values     : ["{CODE}"],
-		reqs       : ["owner"],
+		reqs       : ["normCommand", "owner"],
 		effect     : function (message, args, playerData, prefix) {
 			let words = message.content.split(";");
 			words[0] = words[0].slice((universalPrefix + "eval ").length, words[0].length);
@@ -2913,7 +3472,7 @@ const commands = [
 		description: "Turns off the bot",
 		usage      : "exit",
 		values     : [],
-		reqs       : ["owner"],
+		reqs       : ["normCommand", "owner"],
 		effect     : function (message, args, playerData, prefix) {
 			client.destroy().then(function () {
 				console.log("Successfully logged out");
@@ -2926,7 +3485,7 @@ const commands = [
 		description: "change the version",
 		usage      : "version {VALUE}",
 		values     : ["{VERSION}"],
-		reqs       : ["owner"],
+		reqs       : ["normCommand", "owner"],
 		effect     : function (message, args, playerData, prefix) {
 			if (args[0]) {
 				let other = require("./other.json");
@@ -2952,7 +3511,7 @@ const commands = [
 		description: "recreate the map",
 		usage      : "resetMap",
 		values     : [],
-		reqs       : ["owner"],
+		reqs       : ["normCommand", "owner"],
 		effect     : function (message, args, playerData, prefix) {
 			let other = require("./other.json");
 			other.map = createMap(4, 25, 25);
@@ -2969,7 +3528,7 @@ const commands = [
 		description: "gives items to the player or yourself",
 		usage      : "give [VALUE]",
 		values     : ["{ITEM} {AMOUNT}", "{PLAYER} {ITEM} {AMOUNT}"],
-		reqs       : ["profile true", "owner"],
+		reqs       : ["normCommand", "profile true", "owner"],
 		effect     : function (message, args, playerData, prefix) {
 			if (args.length === 2) {
 				playerData[args[0]] += parseInt(args[1], 10);
@@ -3000,7 +3559,7 @@ const commands = [
 		description: "delete a players account",
 		usage      : "delete [VALUE]",
 		values     : ["{ID}", "{@PLAYER}"],
-		reqs       : ["owner"],
+		reqs       : ["normCommand", "owner"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(message.content);
 			let player = accountData[nums[0]];
@@ -3071,15 +3630,55 @@ const commands = [
 setInterval(function () {
 	client.sweepMessages((60000 * 60) * 24);
 }, 60000 * 60);
-client.on("guildCreate", function (Guild) {
-	prefixes.push({prefix: "-", serverID: Guild.id});
-});
-client.on("guildDelete", function (Guild) {
-	for (let i = 0; i < prefixes.length; i++) {
-		if (prefixes[i].serverID === Guild.id) {
-			prefixes.splice(i, 1);
-			break;
+client.on("guildMemberAdd", function (member) {
+	if (serverStuff[member.guild.id].welcomeChannel.id != null) {
+		let txt = "";
+		let msg = serverStuff[member.guild.id].welcomeChannel.message.split(" ");
+		for (let i = 0; i < msg.length; i++) {
+			let value = msg[i].split("{");
+			if (value.length <= 1) {
+				txt += msg[i] + " ";
+			}
+			else {
+				value = value[1].split("}")[0];
+				switch (value) {
+					case "username":
+						txt += member.user.username + " ";
+						break;
+					case "server":
+						txt += member.guild.name + " ";
+						break;
+					case "members":
+						txt += member.guild.members.size + " ";
+						break;
+					case "owner":
+						txt += member.guild.owner + " ";
+						break;
+					default:
+						txt += msg[i] + " ";
+						break;
+				}
+			}
 		}
+		let embed = new Discord.RichEmbed()
+			.setTitle(member.user.username.toUpperCase() + " HAS JOINED!")
+			.setDescription(txt)
+			.setColor(embedColors.green);
+		client.channels.get(serverStuff[member.guild.id].welcomeChannel.id).send({embed});
+	}
+});
+client.on("guildCreate", function (Guild) {
+	if (serverStuff[Guild.id] == null) {
+		serverStuff[Guild.id] = {
+			prefix    : "-",
+			serverID  : Guild.id,
+			modChannel: null,
+			warnings  : {}
+		};
+		//TODO: add a welcome message
+	}
+	else {
+		//TODO: add a thank you for inviting me back
 	}
 });
 client.on("ready", function () {
@@ -3138,16 +3737,10 @@ client.on("message", function (message) {
 	let args = message.content.toLowerCase().split(" ");
 	let serverPrefix = universalPrefix;
 	if (message.channel.type === "text") {
-		if(message.channel.guild.id === "354670066480054272"){
-			sendBasicEmbed({
-				content:"Commands not allowed to  in that channel.",
-				color:embedColors.red,
-				channel:message.author
-			})
-		}
-		for (let i = 0; i < prefixes.length; i++) {
-			if (prefixes[i].serverID === message.guild.id) {
-				serverPrefix = prefixes[i].prefix;
+		for (let i = 0; i < serverStuff.names.length; i++) {
+			let server = serverStuff[serverStuff.names[i]];
+			if (server.serverID === message.guild.id) {
+				serverPrefix = server.prefix;
 				break;
 			}
 		}
