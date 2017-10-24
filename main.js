@@ -18,7 +18,6 @@ let waitTimesInterval = false;
 let factions = require("./factions.json").factions;
 let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let map = require("./other.json").map;
-console.log(require("./other.json"));
 
 /**FUNCTIONS**/
 function checkNearbyArea(want) {
@@ -318,14 +317,12 @@ function checkWaitTimes() {
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
 					let pla = accountData[listOfWaitTimes[i].player];
-					pla.location = listOfWaitTimes[i].headTo;
-					client.fetchUser(listOfWaitTimes[i].player).then(function (user) {
+					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
 						sendBasicEmbed({
 							content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + listOfWaitTimes[i].headTo[1] + "x" + listOfWaitTimes[i].headTo[2] + "`\nhas finished.",
-							channel: user,
+							channel: client.users.get(listOfWaitTimes[i].player),
 							color  : embedColors.blue
 						});
-					});
 					break;
 				case "colonization":
 					if (accountData[listOfWaitTimes[i].player].didntMove) {
@@ -1353,10 +1350,7 @@ const commands = [
 						timeUntilFinishedWarping += 60 * 5;//5 mins if its a galaxy warp
 					}
 					timeUntilFinishedWarping = timeUntilFinishedWarping * 1000;//convert it into actual Date.now()
-					if (skipWarpTime) {
-						//
-						// timeUntilFinishedWarping = 0;
-					}
+					console.log(timeUntilFinishedWarping);
 					listOfWaitTimes.push({
 						player : playerData.userID,
 						expires: Date.now() + timeUntilFinishedWarping,
@@ -1372,9 +1366,7 @@ const commands = [
 						color  : embedColors.blue,
 						channel: message.channel
 					})
-					if (skipWarpTime) {
-						playerData.location = goToPos;
-					}
+
 				}
 			}
 			else {
