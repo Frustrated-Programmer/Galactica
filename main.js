@@ -717,6 +717,7 @@ function runCommand(command, message, args, playerData, prefix) {
 }
 
 
+
 /**CONSTANTS**/
 const embedColors = require("./items").colors;
 const createFaction = require("./faction.js");

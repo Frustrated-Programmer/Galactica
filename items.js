@@ -119,7 +119,8 @@ const colors = {
 	blue    : 0x00C8C8,//Game Notifications
 	darkblue: 0x252FF3,//Factions
 	green   : 0x09c612,//Confirmed, Something Good
-	darkRed : 0x640000//Attacking
+	darkRed : 0x640000,//Attacking
+	orange  : 0xE64403//warn user
 
 };
 const resources = {
