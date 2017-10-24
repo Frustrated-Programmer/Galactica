@@ -1,14 +1,38 @@
 {
-    "prefixes": [
-        {
+    "serverStuff": {
+        "names": [
+            "354670066480054272",
+            "252888319078301699"
+        ],
+        "354670066480054272": {
+            "allowedChannels": {
+                "370017513213526017": true,
+                "370753766749896704": true,
+                "354670066480054273": true
+            },
+            "welcomeChannel": {
+                "id": null,
+                "message": null
+            },
             "prefix": "-",
-            "serverID": "354670066480054272"
+            "serverID": "354670066480054272",
+            "modChannel": "372219822559199242",
+            "warnings": {
+                "342061552632987648": 1
+            }
         },
-        {
+        "252888319078301699": {
+            "allowedChannels": {},
+            "welcomeChannel": {
+                "id": null,
+                "message": null
+            },
             "prefix": "-",
-            "serverID": "252888319078301699"
+            "serverID": "252888319078301699",
+            "modChannel": null,
+            "warnings": {}
         }
-    ],
+    },
     "version": "0.3.9",
     "listOfWaitTimes": [],
     "imageSize": 1024,
