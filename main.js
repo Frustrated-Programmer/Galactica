@@ -3443,6 +3443,17 @@ const commands = [
 		}
 	},
 	{
+		names      : ["test"],
+		description: "test",
+		usage      : "test",
+		values     : [],
+		reqs       : ["owner"],
+		effect     : function (message, args, playerData, prefix) {
+			require("./accounts.json").players = {names:[]};
+			saveJsonFile("./accounts.json");
+		}
+	},
+	{
 		names      : ["eval"],
 		description: "does some code",
 		usage      : "eval [VALUE]",
@@ -3684,6 +3695,11 @@ client.on("guildCreate", function (Guild) {
 			serverID  : Guild.id,
 			modChannel: null,
 			warnings  : {}
+			allowedChannels: {},
+			welcomeChannel: {
+				id: null,
+				message: null
+			},
 		};
 		//TODO: add a welcome message
 	}
