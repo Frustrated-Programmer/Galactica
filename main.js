@@ -1,6 +1,6 @@
 /**for testing purposes**/
-let skipWarpTime = true;
-let skipCollectTime = true;
+let skipWarpTime = false;
+let skipCollectTime = false;
 
 /**Set Up **/
 let version = require("./other.json").version;
@@ -996,7 +996,12 @@ const commands = [
 						.setTitle("COMMAND'S LIST")
 						.setDescription(commandsList)
 						.setFooter(prefix + "command [NAME]");
-					message.channel.send({embed});
+					message.author.send({embed});
+					sendBasicEmbed({
+						content:"Command sent to your DMs",
+						channel:message.channel,
+						color:embedColors.blue
+					})
 					break;
 				default:
 					let commandIs = null;
@@ -2122,9 +2127,10 @@ const commands = [
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			const freeStation = playerData.stations.length === 0;
-
+			let nums = getNumbers(message.content);
 			let unlocked = true;
 			let selectedStation = false;
+
 			for (let i = 0; i < stations.names.length; i++) {
 				let name = stations.names[i].split(" ");
 				let match = matchArray(args, name, true);
@@ -2132,6 +2138,11 @@ const commands = [
 				if (match === true) {
 					selectedStation = i;
 					break;
+				}
+			}
+			if(nums.length){
+				if(parseInt(nums[0],10)<stations.names.length){
+					selectedStation = parseInt(nums[0],10);
 				}
 			}
 
@@ -3421,15 +3432,13 @@ const commands = [
 
 	"OWNER",
 	{
-		names      : ["test"],
-		description: "test",
-		usage      : "test",
+		names      : ["clearLogs"],
+		description: "clearLogs",
+		usage      : "clearLogs",
 		values     : [],
-		reqs       : ["normCommand", "owner", "profile true"],
+		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			message.channel.fetchMessage("372089230639366146").then(function (message) {
-				console.log(message.reactions.get("🛡"));
-			});
+			//require("galatica.log");
 		}
 	},
 	{
