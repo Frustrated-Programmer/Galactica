@@ -1385,7 +1385,6 @@ const commands = [
 			let loc = map[pos[0]][pos[1]][pos[2]];
 			let station = "Unoccupied";
 			let items = "**Boost to stations:**\n```\n";
-			let items = "**Boost to stations:**\n```\n";
 			if (loc.type === "empty") {
 				items = "";
 			}
