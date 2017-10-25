@@ -1413,8 +1413,10 @@ const commands = [
 			let otherPlayers = [];
 			for (let i = 0; i < accountData.names.length; i++) {
 				let player = accountData[accountData.names[i]];
-				if (matchArray(playerData.location, player.location, false)) {
-					otherPlayers.push(player);
+				if(player.userID !== playerData.userID) {
+					if (matchArray(playerData.location, player.location, false)) {
+						otherPlayers.push(player);
+					}
 				}
 			}
 			if (otherPlayers.length) {
