@@ -3439,8 +3439,10 @@ const commands = [
 		values     : [],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			fs.writeFile("/galactica.log","Cleared Logs",function(err){
-				console.log(err);
+			fs.writeFile("./galactica.log","Cleared Logs",function(err){
+				if(err) {
+					console.log(err);
+				 }
 			});
 			sendBasicEmbed({
 				content:"Cleared all logs",
