@@ -1404,8 +1404,8 @@ const commands = [
 				items += "```";
 			}
 			if (loc.ownersID !== "none") {
-				items = "attack `" + accountData[loc.ownersID].name + "`'s staion via `" + prefix + "UnImplemented`";
-				station = "occupied by `" + accountData[loc.ownersID].name + "`";
+				items = "attack `" + accountData[loc.ownersID].username + "`'s staion via `" + prefix + "UnImplemented`";
+				station = "occupied by `" + accountData[loc.ownersID].username + "`";
 			}
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.blue)
