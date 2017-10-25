@@ -1874,6 +1874,7 @@ const commands = [
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let isValid = false;
+			let loc = playerData.location;
 			let mapSpot = map[loc[0]][loc[1]][loc[2]];
 			for (let i = 0; i < planets.names.length; i++) {
 				if (mapSpot.type.toLowerCase() === planets.names[i].toLowerCase()) {
