@@ -312,17 +312,15 @@ function getBorders(location) {
 function checkWaitTimes() {
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires < Date.now()) {
-			console.log("finished");
-
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
 					console.log(listOfWaitTimes);
 					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
-						sendBasicEmbed({
-							content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + listOfWaitTimes[i].headTo[1] + "x" + listOfWaitTimes[i].headTo[2] + "`\nhas finished.",
-							channel: client.users.get(listOfWaitTimes[i].player),
-							color  : embedColors.blue
-						});
+					sendBasicEmbed({
+						content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + listOfWaitTimes[i].headTo[1] + "x" + listOfWaitTimes[i].headTo[2] + "`\nhas finished.",
+						channel: client.users.get(listOfWaitTimes[i].player),
+						color  : embedColors.blue
+					});
 					break;
 				case "colonization":
 					if (accountData[listOfWaitTimes[i].player].didntMove) {
@@ -336,6 +334,10 @@ function checkWaitTimes() {
 								channel: user,
 								color  : embedColors.blue
 							});
+							let loc = accountData[listOfWaitTimes[i].player].location;
+							map[loc[0]][loc[1]][loc[2]].item = "colony";
+							map[loc[0]][loc[1]][loc[2]].ownersID = listOfWaitTimes[i].player;
+							map[loc[0]][loc[1]][loc[2]].soonOwner = null;
 						});
 					}
 					else {
@@ -352,24 +354,11 @@ function checkWaitTimes() {
 					let player = accountData[listOfWaitTimes[i].player];
 					let colony = listOfWaitTimes[i].at;
 					if (player.didntMove) {
-						if (player.attacking) {
-							player.colonies.push({
-								people  : 0,
-								type    : map[colony[0]][colony[1]][colony[2]].type,
-								location: colony
-							})
-						}
-						else {
-							sendBasicEmbed({
-								content: "Attack at the colony\nGalaxy: `" + colony[0] + "` Area: `" + colony[1] + "x" + colony[2] + "`\nHas failed.\n**Reason:** You were/are under attack.",
-								color  : embedColors.red,
-								channel: client.users.get(player.userID)
-							})
-						}
+
 					}
 					else {
 						sendBasicEmbed({
-							content: "Attack at the colony\nGalaxy: `" + colony[0] + "` Area: `" + colony[1] + "x" + colony[2] + "`\nHas failed.\n**Reason:** You moved from your spot.",
+							content: "Attack at the colony\nGalaxy: `" + colony[0] + "` Area: `" + colony[1] + "x" + colony[2] + "`\nHas failed.\nYou either\nmoved from your spot\nwere under attack",
 							color  : embedColors.red,
 							channel: client.users.get(player.userID)
 						})
@@ -386,12 +375,12 @@ function checkWaitTimes() {
 
 
 			}
-			saveJsonFile("./accounts.json");
-			saveJsonFile("./factions.json");
-			saveJsonFile("./other.json");
 			listOfWaitTimes.splice(i, 1)
 		}
 	}
+	saveJsonFile("./accounts.json");
+	saveJsonFile("./factions.json");
+	saveJsonFile("./other.json");
 	if (!listOfWaitTimes.length) {
 		clearInterval(waitTimesInterval);
 		waitTimesInterval = false;
@@ -452,9 +441,15 @@ function createMap(galaxys, xSize, ySize) {
 				if (planet === undefined) {
 					planet = 0;
 				}
+				let item = "planet";
+				if (planets[planet].name === "empty") {
+					item = "empty";
+				}
 				yMap.push({
-					type    : planets[planet].name,
-					ownersID: null
+					type     : planets[planet].name,
+					item     : item,
+					ownersID : null,
+					soonOwner: null
 				});
 			}
 			galaxy.push(yMap);
@@ -665,13 +660,13 @@ function checkGP(station, level, playerData) {
 	}
 	return {val: false, msg: "ERROR please report this immediately\n`" + station + "mustbeanactualstation`"}
 }
-function log(msg,message) {
+function log(msg, message) {
 	console.log(msg);
-	if(message){
+	if (message) {
 		sendBasicEmbed({
-			content:msg,
-			color:embedColors.blue,
-			channel:message.channel
+			content: msg,
+			color  : embedColors.blue,
+			channel: message.channel
 		})
 	}
 }
@@ -713,7 +708,6 @@ function runCommand(command, message, args, playerData, prefix) {
 	command.effect(message, args, playerData, prefix);
 	return;
 }
-
 
 
 /**CONSTANTS**/
@@ -812,7 +806,7 @@ const reqChecks = {
 		}
 	},
 	"attacking"        : function (reqArgs, message, args, playerData, prefix) {
-		if(playerData!=null) {
+		if (playerData != null) {
 			if (reqArgs[0] === "false") {
 				return {val: playerData.attacking === false, msg: "You cannot be attacking"}
 			}
@@ -982,9 +976,9 @@ const commands = [
 						.setFooter(prefix + "command [NAME]");
 					message.author.send({embed});
 					sendBasicEmbed({
-						content:"Command sent to your DMs",
-						channel:message.channel,
-						color:embedColors.blue
+						content: "Command sent to your DMs",
+						channel: message.channel,
+						color  : embedColors.blue
 					})
 					break;
 				default:
@@ -1138,16 +1132,18 @@ const commands = [
 
 					let planetBonus = 0;
 					let borders = getBorders(playerData.stations[i].location);
-					for (let bor = 0; bor < borders.length; bor++) {
+					for (let bor = 0; bor < borders.length; bor++) {0
 						let planet = planets[borders[bor]];
-						for (let bons = 0; bons < planet.bonuses.length; bons++) {
-							if (planet.bonuses[bons][0].toLowerCase() === station.name.toLowerCase()) {
-								planetBonus = parseInt(planet.bonuses[bons][1], 10);
+						if(planet != null) {
+							for (let bons = 0; bons < planet.bonuses.length; bons++) {
+								if (planet.bonuses[bons][0].toLowerCase() === station.name.toLowerCase()) {
+									planetBonus = parseInt(planet.bonuses[bons][1], 10);
+									break;
+								}
+							}
+							if (planetBonus !== 0) {
 								break;
 							}
-						}
-						if (planetBonus !== 0) {
-							break;
 						}
 					}
 					for (let j = 0; j < station.gives[playerData.stations[i].level].length; j++) {
@@ -1402,7 +1398,7 @@ const commands = [
 				items += "```";
 			}
 			if (loc.ownersID !== null) {
-				items = "attack `" + accountData[loc.ownersID].username + "`'s staion via `" + prefix + "UnImplemented`";
+				items = "attack `" + accountData[loc.ownersID].username + "`'s station via `" + prefix + "UnImplemented`";
 				station = "occupied by `" + accountData[loc.ownersID].username + "`";
 			}
 			let embed = new Discord.RichEmbed()
@@ -1413,7 +1409,8 @@ const commands = [
 			let otherPlayers = [];
 			for (let i = 0; i < accountData.names.length; i++) {
 				let player = accountData[accountData.names[i]];
-				if(player.userID !== playerData.userID) {
+				if (player.userID !== playerData.userID) {
+					console.log(player.userID + "|" + playerData.userID);
 					if (matchArray(playerData.location, player.location, false)) {
 						otherPlayers.push(player);
 					}
@@ -1521,30 +1518,12 @@ const commands = [
 				});
 			};
 			let image = new Jimp(mainSize, mainSize, function (err, newimage) {
-				let canShowFunc = function (loc) {
-					let theMap = map[playerData.location[0]];
-					let y = loc[1];
-					let x = loc[2];
-					let found = false;
 
-					if(y!=theMap.length){
-						if(matchArray([playerData.location[0],y+1,x],playerData.location,false)){
-							found = true;
-						}
-
-						if(x!=theMap[y+1].length){
-							if(matchArray([playerData.location[0],y+1,x],playerData.location,false)){
-								found = true;
-							}
-						}
-					}
-				};
 					for (let i = 0; i < m.length; i++) {
 						done.push([]);
 						for (let j = 0; j < m[i].length; j++) {
 							done[i].push(false);
 							let canShow = true;
-							console.log(i, j);
 							if (i === loc[1] && j === loc[2]) {
 								console.log("ran");
 								setImage(i, j, "images/Other/You.png", newimage);
@@ -1552,7 +1531,7 @@ const commands = [
 							else {
 								let setSomething = false;
 
-								if(canShow) {
+								if (canShow) {
 									if (m[i][j].type !== "empty") {
 										if (m[i][j].ownersID !== null) {
 											if (m[i][j].ownersID === playerData.userID) {
@@ -1594,7 +1573,8 @@ const commands = [
 									else {
 										setImage(i, j, "images/Other/EmptySpace.png", newimage);
 									}
-								}else {
+								}
+								else {
 									setImage(i, j, "images/Other/Unknown.png", newimage);
 								}
 
@@ -1891,6 +1871,8 @@ const commands = [
 						at     : playerData.location
 					});
 					let loc = playerData.location;
+					map[loc[0]][loc[1]][loc[2]].item = "colonizing";
+					map[loc[0]][loc[1]][loc[2]].soonOwner = playerData.userID;
 					if (!waitTimesInterval) {
 						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
 					}
@@ -2123,9 +2105,9 @@ const commands = [
 					break;
 				}
 			}
-			if(nums.length){
-				if(parseInt(nums[0],10)<stations.names.length){
-					selectedStation = parseInt(nums[0],10);
+			if (nums.length) {
+				if (parseInt(nums[0], 10) < stations.names.length) {
+					selectedStation = parseInt(nums[0], 10);
 				}
 			}
 
@@ -2952,7 +2934,7 @@ const commands = [
 				}
 				else {
 					sendBasicEmbed({
-						content: "Something went wrong, its either\n```fix\nThe bot doesnt have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						content: "Something went wrong, its either\n```fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
 						color  : embedColors.red,
 						channel: message.channel
 					})
@@ -2986,7 +2968,7 @@ const commands = [
 				}
 				else {
 					sendBasicEmbed({
-						content: "Something went wrong, its either\n```fix\nThe bot doesnt have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						content: "Something went wrong, its either\n```fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
 						color  : embedColors.red,
 						channel: message.channel
 					})
@@ -3021,7 +3003,7 @@ const commands = [
 				}
 				else {
 					sendBasicEmbed({
-						content: "Something went wrong, its either\n```fix\nThe bot doesnt have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						content: "Something went wrong, its either\n```fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
 						color  : embedColors.red,
 						channel: message.channel
 					})
@@ -3070,7 +3052,7 @@ const commands = [
 				}
 				else {
 					sendBasicEmbed({
-						content: "Something went wrong, its either\n```fix\nThe bot doesnt have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						content: "Something went wrong, its either\n```fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
 						color  : embedColors.red,
 						channel: message.channel
 					})
@@ -3197,7 +3179,7 @@ const commands = [
 				}).catch(function (err) {
 					console.log(err);
 					sendBasicEmbed({
-						content: "that user doesnt exist",
+						content: "that user doesn't exist",
 						color  : embedColors.red,
 						channel: message.channel
 					})
@@ -3267,7 +3249,7 @@ const commands = [
 					}
 				}).catch(function (err) {
 					sendBasicEmbed({
-						content: "That user doesnt exist",
+						content: "That user doesn't exist",
 						color  : embedColors.red,
 						channel: message.channel
 					})
@@ -3421,15 +3403,15 @@ const commands = [
 		values     : [],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			fs.writeFile("./galactica.log","Cleared Logs",function(err){
-				if(err) {
+			fs.writeFile("./galactica.log", "Cleared Logs", function (err) {
+				if (err) {
 					console.log(err);
-				 }
+				}
 			});
 			sendBasicEmbed({
-				content:"Cleared all logs",
-				color:embedColors.purple,
-				channel:message.channel
+				content: "Cleared all logs",
+				color  : embedColors.purple,
+				channel: message.channel
 			})
 		}
 	},
@@ -3440,7 +3422,7 @@ const commands = [
 		values     : [],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			require("./accounts.json").players = {names:[]};
+			require("./accounts.json").players = {names: []};
 			saveJsonFile("./accounts.json");
 			console.log(require("./accounts.json").players);
 		}
@@ -3610,7 +3592,7 @@ const commands = [
 				if (player.stations.length) {
 					for (let i = 0; i < player.stations.length; i++) {
 						let loc = player.stations[i].location;
-						map[loc[0]][loc[1]][loc[2]].type = "Empty";
+						map[loc[0]][loc[1]][loc[2]].type = "empty";
 						map[loc[0]][loc[1]][loc[2]].ownersID = null;
 					}
 				}
@@ -3629,7 +3611,7 @@ const commands = [
 			}
 			else {
 				sendBasicEmbed({
-					content: "Something went wrong...\n```fix\nEither that player doesnt have an account\nOr invalid ID```",
+					content: "Something went wrong...\n```fix\nEither that player doesn't have an account\nOr invalid ID```",
 					color  : embedColors.red,
 					channel: message.channel
 				})
@@ -3683,15 +3665,15 @@ client.on("guildMemberAdd", function (member) {
 client.on("guildCreate", function (Guild) {
 	if (serverStuff[Guild.id] == null) {
 		serverStuff[Guild.id] = {
-			prefix    : "-",
-			serverID  : Guild.id,
-			modChannel: null,
-			warnings  : {},
+			prefix         : "-",
+			serverID       : Guild.id,
+			modChannel     : null,
+			warnings       : {},
 			allowedChannels: {},
-			welcomeChannel: {
-				id: null,
+			welcomeChannel : {
+				id     : null,
 				message: null
-			},
+			}
 		};
 		//TODO: add a welcome message
 	}
@@ -3800,7 +3782,7 @@ client.on("message", function (message) {
 							}
 						}
 						if (isValidText(message.content)) {
-							if(accountData[message.author.id]!=null) {
+							if (accountData[message.author.id] != null) {
 								accountData[message.author.id] = new updateAccount(accountData[message.author.id]);
 
 								if (accountData[message.author.id].username !== message.author.username) {
