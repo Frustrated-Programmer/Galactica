@@ -20,9 +20,6 @@ let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let map = require("./other.json").map;
 
 /**FUNCTIONS**/
-function checkNearbyArea(want) {
-	/**want = playerData**/
-}
 function attackPlayerFunction() {
 	/**
 	 @attacks is an array full of
@@ -730,6 +727,9 @@ const reqChecks = {
 
 			if (checkSize(serverStuff[message.channel.guild.id].allowedChannels) > 0) {
 				if (serverStuff[message.channel.guild.id].allowedChannels[message.channel.id] == null) {
+					if (checkPerms({user: "bot", perms: "MANAGE_MESSAGES", message: message})) {
+						message.delete();
+					}
 					return {val: false, msg: "Commands not allowed in that channel", author: true}
 				}
 			}
@@ -1132,9 +1132,10 @@ const commands = [
 
 					let planetBonus = 0;
 					let borders = getBorders(playerData.stations[i].location);
-					for (let bor = 0; bor < borders.length; bor++) {0
+					for (let bor = 0; bor < borders.length; bor++) {
+						0
 						let planet = planets[borders[bor]];
-						if(planet != null) {
+						if (planet != null) {
 							for (let bons = 0; bons < planet.bonuses.length; bons++) {
 								if (planet.bonuses[bons][0].toLowerCase() === station.name.toLowerCase()) {
 									planetBonus = parseInt(planet.bonuses[bons][1], 10);
@@ -1295,21 +1296,39 @@ const commands = [
 					case 1:
 						warpType = "galaxy";
 						goToPos[0] = parseInt(numbers[0], 10);
+						if(goToPos[0]>=map.length){
+							warpType = "Invalid";
+						}
 						break;
 					case 2:
 						warpType = "positionBase";
 						goToPos[1] = parseInt(numbers[0], 10);
 						goToPos[2] = parseInt(numbers[1], 10);
+						if(goToPos[1]>=map[goToPos[0]].length){
+							warpType = "Invalid";
+						}
+						if(goToPos[2]>=map[goToPos[0]][goToPos[1]].length){
+							warpType = "Invalid";
+						}
 						break;
 					case 3:
 						warpType = "galaxyAndPosition";
 						goToPos[0] = parseInt(numbers[0], 10);
 						goToPos[1] = parseInt(numbers[1], 10);
 						goToPos[2] = parseInt(numbers[2], 10);
+						if(goToPos[0]>=map.length){
+							warpType = "Invalid";
+						}
+						if(goToPos[1]>=map[goToPos[0]].length){
+							warpType = "Invalid";
+						}
+						if(goToPos[2]>=map[goToPos[0]][goToPos[1]].length){
+							warpType = "Invalid";
+						}
 						break;
 				}
 				if (warpType === "Invalid") {
-					sendBasicEmbed({content: "Invalid usage", color: embedColors.red, channel: message.channel})
+					sendBasicEmbed({content: "Invalid usage!\nEither\n```fix\nYou didn't put in the position to warp to\nThe position doesnt exist on the map.```", color: embedColors.red, channel: message.channel})
 				}
 				else {
 					playerData.didntMove = false;
@@ -1470,7 +1489,10 @@ const commands = [
 		effect     : function (message, args, playerData, prefix) {
 			let mainSize = require("./other.json").imageSize;
 			let go = null;
-
+			let mess = null;
+			message.channel.send("```fix\nLoading...\nPlease give the bot some time```").then(function (m) {
+				mess = m;
+			});
 			function doFun(num) {
 				console.log("waiting for " + num + " seconds");
 				fs.exists("images/mapImage" + playerData.userID + ".png", function (exists) {
@@ -1495,7 +1517,8 @@ const commands = [
 						doFun(num + 1)
 					}, 1000);
 				}
-			};
+			}
+
 			setTimeout(function () {
 				doFun(1);
 			}, 1000);
@@ -1504,11 +1527,8 @@ const commands = [
 			let m = map[loc[0]];
 			let size = mainSize / m.length;
 
-			let mess = null;
-			message.channel.send("```fix\nLoading...\nPlease give the bot some time```").then(function (m) {
-				mess = m;
-			});
 			let done = [];
+			
 			let setImage = function (y, x, which, newimage) {
 				Jimp.read(which, function (err, image) {
 					if (err) throw err;
@@ -1518,7 +1538,6 @@ const commands = [
 				});
 			};
 			let image = new Jimp(mainSize, mainSize, function (err, newimage) {
-
 					for (let i = 0; i < m.length; i++) {
 						done.push([]);
 						for (let j = 0; j < m[i].length; j++) {
@@ -1530,7 +1549,6 @@ const commands = [
 							}
 							else {
 								let setSomething = false;
-
 								if (canShow) {
 									if (m[i][j].type !== "empty") {
 										if (m[i][j].ownersID !== null) {
@@ -1568,9 +1586,10 @@ const commands = [
 										}
 										else {
 											setImage(i, j, "images/Planets/" + m[i][j].type + "Planet" + ".png", newimage);
+											setSomething = true;
 										}
 									}
-									else {
+									if(!setSomething){
 										setImage(i, j, "images/Other/EmptySpace.png", newimage);
 									}
 								}
@@ -1637,8 +1656,8 @@ const commands = [
 			else {
 				for (let i = 0; i < researches.names.length; i++) {
 					let name = researches.names[i].split(" ");
-					let found = matchArray(newArgs, name);
 					let newArgs = [];
+					let found = matchArray(newArgs, name);
 					for (let q = 0; q < args.length; q++) {
 						newArgs.push(args[q]);
 					}
@@ -3731,6 +3750,9 @@ client.on("message", function (message) {
 	map = require("./other.json").map;
 
 	if (message.author.bot) {
+		return;
+	}
+	if(message.author.id !== "244590122811523082"){
 		return;
 	}
 	let command = message.content.toLowerCase().split(" ")[0];
