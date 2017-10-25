@@ -1401,7 +1401,7 @@ const commands = [
 				}
 				items += "```";
 			}
-			if (loc.ownersID !== "none") {
+			if (loc.ownersID !== null) {
 				items = "attack `" + accountData[loc.ownersID].username + "`'s staion via `" + prefix + "UnImplemented`";
 				station = "occupied by `" + accountData[loc.ownersID].username + "`";
 			}
