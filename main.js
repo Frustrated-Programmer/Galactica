@@ -3818,9 +3818,10 @@ client.on("message", function (message) {
 						if (isValidText(message.content)) {
 							if(accountData[message.author.id]!=null) {
 								accountData[message.author.id] = new updateAccount(accountData[message.author.id]);
-							}
-							if (accountData[message.author.id].username !== message.author.username) {
-								accountData[message.author.id].username = message.author.username;
+
+								if (accountData[message.author.id].username !== message.author.username) {
+									accountData[message.author.id].username = message.author.username;
+								}
 							}
 							runCommand(commands[i], message, args, accountData[message.author.id], serverPrefix);
 							saveJsonFile("./accounts.json");
