@@ -1528,7 +1528,94 @@ const commands = [
 			let size = mainSize / m.length;
 
 			let done = [];
-			
+			let canShowFunc = function (y,x) {
+				let theMap = map[playerData.location[0]];
+				let found = false;
+				let checkIfCanBe = function (x, y, dis) {
+
+					let theMap = map[playerData.location[0]];
+					if(x === 25 || y === 25) {
+						console.log(x, y);
+						console.log(theMap[y][x]);
+					}
+					if (matchArray([playerData.location[0], y, x], playerData.location, false)&&dis<=3) {
+						found = true;
+					}
+					if (theMap[y][x].ownersID != null) {
+						if (theMap[y][x].ownersID === playerData.userID) {
+							if (theMap[y][x].type.toLowerCase() === "military station") {
+								for (let i = 0; i < playerData.stations.length; i++) {
+									let stats = playerData.stations[i];
+									if (matchArray([playerData.location[0], y, x], stats.location)) {
+										if (stats.level + 1 >= dis) {
+											found = true;
+										}
+									}
+								}
+							}
+							else if (theMap[y][x].item === "station") {
+								if (dis === 1) {
+									found = true;
+								}
+							}
+							else if (theMap[y][x].item === "colony") {
+								if (dis === 1) {
+									found = true;
+								}
+							}
+
+						}
+					}
+				};
+				checkIfCanBe(x,y,0);
+				for(let i = 0;i<4;i++){
+					if (y+i < theMap.length) {
+						checkIfCanBe(x, y + i, i);
+						for(let j =0;j<4-i;j++) {
+							if (x + j < theMap[y + i].length) {
+								checkIfCanBe(y + i, x + j, i+j);
+							}
+							if (x > j) {
+								checkIfCanBe(y + i, x - j, i+j);
+							}
+						}
+					}
+					if (y > i) {
+						checkIfCanBe(x, y - i, 1);
+						for(let j =0;j<4-i;j++) {
+							if (x + j < theMap[y - i].length) {
+								checkIfCanBe(y - i, x + j, i+j);
+							}
+							if (x > j) {
+								checkIfCanBe(y - i, x - j, i+j);
+							}
+						}
+					}
+					if (x+i < theMap[y].length) {
+						checkIfCanBe(x+i, y, i);
+						for(let j =0;j<4-i;j++) {
+							if (y + j < theMap.length) {
+								checkIfCanBe(y + j, x + i, i+j);
+							}
+							if (y > j) {
+								checkIfCanBe(y + j, x - i, i+j);
+							}
+						}
+					}
+					if (x > i) {
+						checkIfCanBe(x-i, y, i);
+						for(let j =0;j<4-i;j++) {
+							if (y + j < theMap.length) {
+								checkIfCanBe(y - j, x + i, i+j);
+							}
+							if (y > j) {
+								checkIfCanBe(y - j, x - i, i+j);
+							}
+						}
+					}
+				}
+				return found;
+			};
 			let setImage = function (y, x, which, newimage) {
 				Jimp.read(which, function (err, image) {
 					if (err) throw err;
@@ -1542,7 +1629,7 @@ const commands = [
 						done.push([]);
 						for (let j = 0; j < m[i].length; j++) {
 							done[i].push(false);
-							let canShow = true;
+							let canShow = canShowFunc(i,j);
 							if (i === loc[1] && j === loc[2]) {
 								console.log("ran");
 								setImage(i, j, "images/Other/You.png", newimage);
@@ -1630,8 +1717,7 @@ const commands = [
 					setTimeout(function () {
 						doFun();
 					}, 1000);
-				}
-			);
+				});
 		}
 	},
 	{
