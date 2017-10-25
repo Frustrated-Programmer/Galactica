@@ -3439,7 +3439,14 @@ const commands = [
 		values     : [],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			//require("galatica.log");
+			fs.writeFile("/galactica.log","Cleared Logs",function(err){
+				console.log(err);
+			});
+			sendBasicEmbed({
+				content:"Cleared all logs",
+				color:embedColors.purple,
+				channel:message.channel
+			})
 		}
 	},
 	{
