@@ -726,30 +726,24 @@ const resources = require("./items.js").resources;
 const stations = require("./items.js").stations;
 const researches = require("./items.js").researches;
 const reqChecks = {
-	"argNum"           : function (reqArgs, message, args, playerData, prefix) {
-		return {
-			val: args[reqArgs][0] !== parseInt(args[reqArgs][0], 10)
-		};
-	},
-	"argOver"          : function (reqArgs, message, args, playerData, prefix) {
-		if (reqChecks.argNum(reqArgs, message, args, playerData, prefix)) return {
-			val: false
-		};
-		return {val: args[reqArgs[0]] > parseInt(reqArgs[1])};
-	},
-	"argUnder"         : function (reqArgs, message, args, playerData, prefix) {
-		if (reqChecks.argNum(reqArgs, message, args, playerData, prefix)) return {
-			val: false
-		};
-		return {val: args[reqArgs[0]] < parseInt(reqArgs[1])};
-	},
-	"argNot"           : function (reqArgs, message, args, playerData, prefix) {
-		if (reqChecks.argNum(reqArgs, message, args, playerData, prefix)) return {
-			val: false
-		};
-		return {
-			val: args[reqArgs[0]] !== parseInt(reqArgs[1])
-		};
+	"normCommand"      : function (reqArgs, message, args, playerData, prefix) {
+		if (message.channel.type === "text") {
+			function checkSize(obj) {
+				let size = 0, key;
+				for (key in obj) {
+					if (obj.hasOwnProperty(key)) size++;
+				}
+				return size;
+			}
+
+			if (checkSize(serverStuff[message.channel.guild.id].allowedChannels) > 0) {
+				if (serverStuff[message.channel.guild.id].allowedChannels[message.channel.id] == null) {
+					return {val: false, msg: "Commands not allowed in that channel", author: true}
+				}
+			}
+			return {val: true, msg: ""}
+		}
+		return {val: true, msg: ""}
 	},
 	"botPerms"         : function (reqArgs, message, args, playerData, prefix) {
 		return {
@@ -820,12 +814,17 @@ const reqChecks = {
 		}
 	},
 	"attacking"        : function (reqArgs, message, args, playerData, prefix) {
-		if (reqArgs[0] === "false") {
-			return {val: playerData.attacking === false, msg: "You cannot be attacking"}
+		if(playerData!=null) {
+			if (reqArgs[0] === "false") {
+				return {val: playerData.attacking === false, msg: "You cannot be attacking"}
+			}
+			else {
+				return {val: playerData.attacking === true, msg: "You need be attacking"}
+			}
 		}
-		else {
-			return {val: playerData.attacking === true, msg: "You need be attacking"}
-		}
+		return {val: false, msg: "You need a profile"}
+
+
 	},
 	"faction"          : function (reqArgs, message, args, playerData, prefix) {
 		if (playerData !== null) {
@@ -915,25 +914,6 @@ const reqChecks = {
 				val: false, msg: "A bug occurred. please report this code `channelMustBeTextOrDm`"
 			}
 		}
-	},
-	"normCommand"      : function (reqArgs, message, args, playerData, prefix) {
-		if (message.channel.type === "text") {
-			function checkSize(obj) {
-				let size = 0, key;
-				for (key in obj) {
-					if (obj.hasOwnProperty(key)) size++;
-				}
-				return size;
-			}
-
-			if (checkSize(serverStuff[message.channel.guild.id].allowedChannels) > 0) {
-				if (serverStuff[message.channel.guild.id].allowedChannels[message.channel.id] == null) {
-					return {val: false, msg: "Commands not allowed in that channel", author: true}
-				}
-			}
-			return {val: true, msg: ""}
-		}
-		return {val: true, msg: ""}
 	}
 };
 const serverStuff = require("./other.json").serverStuff;
