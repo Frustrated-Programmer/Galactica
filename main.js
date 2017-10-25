@@ -316,7 +316,7 @@ function checkWaitTimes() {
 
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
-					let pla = accountData[listOfWaitTimes[i].player];
+					console.log(listOfWaitTimes);
 					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
 						sendBasicEmbed({
 							content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + listOfWaitTimes[i].headTo[1] + "x" + listOfWaitTimes[i].headTo[2] + "`\nhas finished.",
