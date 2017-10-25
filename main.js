@@ -938,6 +938,7 @@ const commands = [
 						let reqCheck = reqChecks[typeReq](reqArgs, message, args, playerData, prefix);
 						if (!reqCheck.val) {
 							sendIt = false;
+							break;
 						}
 					}
 					if (sendIt) {
