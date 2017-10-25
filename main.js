@@ -399,8 +399,6 @@ function checkWaitTimes() {
 
 }
 function createMap(galaxys, xSize, ySize) {
-	throw "map ran";
-	console.log("map change");
 	let planets = [
 		{
 			name  : "empty",
@@ -1386,6 +1384,7 @@ const commands = [
 			let pos = playerData.location;
 			let loc = map[pos[0]][pos[1]][pos[2]];
 			let station = "Unoccupied";
+			let items = "**Boost to stations:**\n```\n";
 			let items = "**Boost to stations:**\n```\n";
 			if (loc.type === "empty") {
 				items = "";
