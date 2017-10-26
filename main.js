@@ -1419,7 +1419,7 @@ const commands = [
 				}
 				else {
 					for (let i = 0; i < planets["" + loc.type].bonuses.length; i++) {
-						items += planets[loc.type].bonuses[i][0]+"\n";
+						items += planets[loc.type].bonuses[i][0] + "\n";
 					}
 				}
 				items += "```";
@@ -1536,10 +1536,10 @@ const commands = [
 			let size = mainSize / m.length;
 
 			let done = [];
-			let canShowFunc = function (y,x) {
+			let canShowFunc = function (y, x) {
 				let theMap = map[playerData.location[0]];
 				let found = false;
-				let checkIfCanBe = function (x,y, dis) {
+				let checkIfCanBe = function (x, y, dis) {
 					let theMap = map[playerData.location[0]];
 					if (matchArray([playerData.location[0], y, x], playerData.location, false) && dis <= 3) {
 						found = true;
@@ -1633,7 +1633,7 @@ const commands = [
 					done.push([]);
 					for (let j = 0; j < m[i].length; j++) {
 						done[i].push(false);
-						let canShow = canShowFunc(i,j);
+						let canShow = canShowFunc(i, j);
 						if (i === loc[1] && j === loc[2]) {
 							console.log("ran");
 							setImage(i, j, "images/Other/You.png", newimage);
@@ -2292,7 +2292,7 @@ const commands = [
 				}
 				else {
 					sendBasicEmbed({
-						content: "You cannot *build* **on** a planet.",
+						content: "You cannot *build* **on** a " + map[loc[0]][loc[1]][loc[2]].type + ".",
 						color  : embedColors.red,
 						channel: message.channel
 					});
@@ -3617,15 +3617,15 @@ const commands = [
 		effect     : function (message, args, playerData, prefix) {
 			let other = require("./other.json");
 			other.map = createMap(4, 25, 25);
-			for(let i =0;i<accountData.names.length;i++){
+			for (let i = 0; i < accountData.names.length; i++) {
 				let acc = accountData[accountData.names[i]];
-				for(let j =0;j<acc.stations.length;j++){
+				for (let j = 0; j < acc.stations.length; j++) {
 					let statsLoc = acc.stations[j].location;
 					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
 					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
 					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
 				}
-				for(let j =0;j<acc.colonies.length;j++){
+				for (let j = 0; j < acc.colonies.length; j++) {
 					let statsLoc = acc.colonies[j].location;
 					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
 					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
