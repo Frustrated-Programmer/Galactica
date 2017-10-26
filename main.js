@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "g";
+const universalPrefix = "-";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -1527,6 +1527,7 @@ const commands = [
 				}
 			}
 
+			let somethingUnder = false;
 			setTimeout(function () {
 				doFun(1);
 			}, 1000);
@@ -1584,7 +1585,7 @@ const commands = [
 							}
 						}
 					}
-					if (y > i) {
+					if (y+1 > i) {
 						checkIfCanBe(x, y - i, 1);
 						for (let j = 0; j < 4 - i; j++) {
 							if (x + j < theMap[y - i].length) {
@@ -1606,7 +1607,7 @@ const commands = [
 							}
 						}
 					}
-					if (x > i) {
+					if (x+1 > i) {
 						checkIfCanBe(x - i, y, i);
 						for (let j = 0; j < 4 - i; j++) {
 							if (y + j < theMap.length) {
@@ -1634,60 +1635,56 @@ const commands = [
 					for (let j = 0; j < m[i].length; j++) {
 						done[i].push(false);
 						let canShow = canShowFunc(i, j);
-						if (i === loc[1] && j === loc[2]) {
-							console.log("ran");
-							setImage(i, j, "images/Other/You.png", newimage);
-						}
-						else {
-							let setSomething = false;
-							if (canShow) {
-								if (m[i][j].type !== "empty") {
-									if (m[i][j].ownersID !== null) {
-										if (m[i][j].ownersID === playerData.userID) {
-											let r = m[i][j].type;
-											setImage(i, j, "images/Stations/You/" + r + ".png", newimage);
-											setSomething = true;
-										}
-										else if (playerData.faction !== null && canShow) {
-											let fac = factions[playerData.faction];
-											if (fac) {
-												let found = false;
-												for (let f = 0; f < fac.members.length; f++) {
-													if (m[i][j].ownersID === fac.members[i]) {
-														found = true;
-														break;
-													}
+						let setSomething = false;
+						if (canShow) {
+							if (m[i][j].type !== "empty") {
+								if(i === playerData.location[1] && j === playerData.location[2]){
+									somethingUnder = true;
+								}
+								if (m[i][j].ownersID !== null) {
+									if (m[i][j].ownersID === playerData.userID) {
+										let r = m[i][j].type;
+										setImage(i, j, "images/Stations/You/" + r + ".png", newimage);
+										setSomething = true;
+									}
+									else if (playerData.faction !== null && canShow) {
+										let fac = factions[playerData.faction];
+										if (fac) {
+											let found = false;
+											for (let f = 0; f < fac.members.length; f++) {
+												if (m[i][j].ownersID === fac.members[i]) {
+													found = true;
+													break;
 												}
-												let r = m[i][j].type;
-												if (found) {
-													setImage(i, j, "images/Stations/Faction/" + r + ".png", newimage);
-												}
-												else {
-													setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
-												}
-
-												setSomething = true;
 											}
-										}
-										else if (canShow) {
 											let r = m[i][j].type;
-											setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
+											if (found) {
+												setImage(i, j, "images/Stations/Faction/" + r + ".png", newimage);
+											}
+											else {
+												setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
+											}
+
 											setSomething = true;
 										}
 									}
-									else {
-										setImage(i, j, "images/Planets/" + m[i][j].type + "Planet" + ".png", newimage);
+									else if (canShow) {
+										let r = m[i][j].type;
+										setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
 										setSomething = true;
 									}
 								}
-								if (!setSomething) {
-									setImage(i, j, "images/Other/EmptySpace.png", newimage);
+								else {
+									setImage(i, j, "images/Planets/" + m[i][j].type + "Planet" + ".png", newimage);
+									setSomething = true;
 								}
 							}
-							else {
-								setImage(i, j, "images/Other/Unknown.png", newimage);
+							if (!setSomething) {
+								setImage(i, j, "images/Other/EmptySpace.png", newimage);
 							}
-
+						}
+						else {
+							setImage(i, j, "images/Other/Unknown.png", newimage);
 						}
 					}
 				}
@@ -1695,7 +1692,18 @@ const commands = [
 					let loc2 = accountData[accountData.names[q]].location;
 					if (loc2[0] === playerData.location[0] && accountData[accountData.names[q]].userID !== playerData.userID) {
 						if (canShowFunc(loc2[0], loc2[1])) {
+							if(loc[1] === playerData.location[1] && loc[2] === playerData.location[2]){
+								somethingUnder = true;
+							}
 							setImage(loc2[1], loc2[2], "images/Other/Player.png", newimage);
+						}
+					}
+					if (loc2[0] === playerData.location[0]&& accountData[accountData.names[q]].userID === playerData.userID) {
+						if (somethingUnder) {
+							setImage(loc2[1], loc2[2], "images/Other/You.png", newimage);
+						}
+						else {
+							setImage(loc2[1], loc2[2], "images/Other/YouSolid.png", newimage);
 						}
 					}
 				}
@@ -1787,7 +1795,7 @@ const commands = [
 					let txt = "```css\n";
 					for (let i = 0; i < researches.names.length; i++) {
 						let item = researches[researches.names[i]];
-						let level = playerData[researches.names[i]];
+						let level = playerData[researches.names[i]] || 0;
 						txt += spacing("[" + i + "] " + researches.names[i], item.costs[level] + "\n", 40);
 					}
 					txt += "```";
@@ -1817,7 +1825,8 @@ const commands = [
 								content: "Not enough 💡 research.",
 								color  : embedColors.red,
 								channel: message.channel
-							})
+							});
+							return;
 						}
 					}
 					break;
