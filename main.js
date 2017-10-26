@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "-";
+const universalPrefix = "t";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -253,7 +253,6 @@ function attackPlayerFunction() {
 					saveJsonFile("./other.json");
 				}
 				else {
-					console.log("ran again");
 					setTimeout(function () {
 						doFun(m);
 					}, 500);
@@ -281,9 +280,6 @@ function attackPlayerFunction() {
 				});
 			}, 5000);
 		}
-		else {
-			console.log(attack.timeSinceLastAttack + 20000 - Date.now());
-		}
 	}
 }
 function getBorders(location) {
@@ -307,7 +303,6 @@ function checkWaitTimes() {
 		if (listOfWaitTimes[i].expires < Date.now()) {
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
-					console.log(listOfWaitTimes);
 					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
 					sendBasicEmbed({
 						content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + listOfWaitTimes[i].headTo[1] + "x" + listOfWaitTimes[i].headTo[2] + "`\nhas finished.",
@@ -611,8 +606,8 @@ function checkGP(station, level, playerData) {
 		"Refining Station"             : 0,
 		"Mining Station"               : 0,
 		"Agriculture Station"          : 0,
+		"Research Station"             : 0,
 		"Metalloid Accelerator"        : 1,
-		"Research Station"             : 2,
 		"Military Station"             : 3,
 		"Magnetic Smelter"             : 4,
 		"Electronic Propulsion Station": 5
@@ -1098,7 +1093,7 @@ const commands = [
 				});
 				canContinue = false;
 			}
-			if (playerData.lastCollection + (60000 * 5) > Date.now() && !skipCollectTime) {
+			if (playerData.lastCollection + (60000 * 5) > Date.now()) {
 				sendBasicEmbed({
 					content: "You can only collect once every 5 minutes\nYou currently need to wait:\n" + getTimeRemaining((playerData.lastCollection + (60000 * 5)) - Date.now()),
 					channel: message.channel,
@@ -1236,7 +1231,7 @@ const commands = [
 		}
 	},
 	{
-		names      : ["stats"],
+		names      : ["stats","me","info"],
 		description: "Get your stats",
 		usage      : "stats",
 		values     : [],
@@ -1539,9 +1534,13 @@ const commands = [
 			let done = [];
 			let canShowFunc = function (y, x) {
 				let theMap = map[playerData.location[0]];
+
 				let found = false;
 				let checkIfCanBe = function (x, y, dis) {
 					let theMap = map[playerData.location[0]];
+					if (x < 0 || y < 0 || y + 1 > theMap.length || x + 1 > theMap[y].length) {
+						return;
+					}
 					if (matchArray([playerData.location[0], y, x], playerData.location, false) && dis <= 3) {
 						found = true;
 					}
@@ -1558,12 +1557,12 @@ const commands = [
 								}
 							}
 							else if (theMap[y][x].item === "station") {
-								if (dis === 1) {
+								if (dis <= 1) {
 									found = true;
 								}
 							}
 							else if (theMap[y][x].item === "colony") {
-								if (dis === 1) {
+								if (dis <= 1) {
 									found = true;
 								}
 							}
@@ -1573,50 +1572,16 @@ const commands = [
 				};
 				checkIfCanBe(x, y, 0);
 				for (let i = 0; i < 4; i++) {
-					if (y + i < theMap.length) {
-						checkIfCanBe(x, y + i, i);
-						for (let j = 0; j < 4 - i; j++) {
-							if (x + j < theMap[y + i].length) {
-								checkIfCanBe(x + j, y + i, i + j);
-							}
-							if (x > j) {
+					for (let j = 0; j < 4 - i; j++) {
+						checkIfCanBe(x + j, y + i, i - j);
+						checkIfCanBe(x - j, y + i, i - j);
+						checkIfCanBe(x + j, y - i, i - j);
+						checkIfCanBe(x - j, y - i, i - j);
 
-								checkIfCanBe(x - j, y + i, i + j);
-							}
-						}
-					}
-					if (y+1 > i) {
-						checkIfCanBe(x, y - i, 1);
-						for (let j = 0; j < 4 - i; j++) {
-							if (x + j < theMap[y - i].length) {
-								checkIfCanBe(x + j, y - i, i + j);
-							}
-							if (x > j) {
-								checkIfCanBe(x - j, y - i, i + j);
-							}
-						}
-					}
-					if (x + i < theMap[y].length) {
-						checkIfCanBe(x + i, y, i);
-						for (let j = 0; j < 4 - i; j++) {
-							if (y + j < theMap.length) {
-								checkIfCanBe(x + i, y + j, i + j);
-							}
-							if (y > j) {
-								checkIfCanBe(x + i, y - j, i + j);
-							}
-						}
-					}
-					if (x+1 > i) {
-						checkIfCanBe(x - i, y, i);
-						for (let j = 0; j < 4 - i; j++) {
-							if (y + j < theMap.length) {
-								checkIfCanBe(x - i, y + j, i + j);
-							}
-							if (y > j) {
-								checkIfCanBe(x - i, y - j, i + j);
-							}
-						}
+						checkIfCanBe(x + i, y + j, i - j);
+						checkIfCanBe(x - i, y + j, i - j);
+						checkIfCanBe(x + i, y - j, i - j);
+						checkIfCanBe(x - i, y - j, i - j);
 					}
 				}
 				return found;
@@ -1626,7 +1591,7 @@ const commands = [
 					if (err) throw err;
 					image.resize(size, size);
 					newimage.composite(image, x * size, y * size);
-					done[x][y] = true;
+					done[y][x] = true;
 				});
 			};
 			let image = new Jimp(mainSize, mainSize, function (err, newimage) {
@@ -1638,7 +1603,7 @@ const commands = [
 						let setSomething = false;
 						if (canShow) {
 							if (m[i][j].type !== "empty") {
-								if(i === playerData.location[1] && j === playerData.location[2]){
+								if (i === playerData.location[1] && j === playerData.location[2]) {
 									somethingUnder = true;
 								}
 								if (m[i][j].ownersID !== null) {
@@ -1691,23 +1656,17 @@ const commands = [
 				for (let q = 0; q < accountData.names.length; q++) {
 					let loc2 = accountData[accountData.names[q]].location;
 					if (loc2[0] === playerData.location[0] && accountData[accountData.names[q]].userID !== playerData.userID) {
-						if (canShowFunc(loc2[0], loc2[1])) {
-							if(loc[1] === playerData.location[1] && loc[2] === playerData.location[2]){
+						if (canShowFunc(loc2[1], loc2[2])) {
+							if (loc[1] === playerData.location[1] && loc[2] === playerData.location[2]) {
 								somethingUnder = true;
 							}
 							setImage(loc2[1], loc2[2], "images/Other/Player.png", newimage);
 						}
 					}
-					if (loc2[0] === playerData.location[0]&& accountData[accountData.names[q]].userID === playerData.userID) {
-						if (somethingUnder) {
-							setImage(loc2[1], loc2[2], "images/Other/You.png", newimage);
-						}
-						else {
-							setImage(loc2[1], loc2[2], "images/Other/YouSolid.png", newimage);
-						}
-					}
 				}
 				done[loc[1]][loc[2]] = false;
+				setImage(loc[1], loc[2], "images/Other/You.png", newimage);
+
 				function doFun() {
 					let finished = true;
 					for (let i = 0; i < done.length; i++) {
@@ -1804,6 +1763,7 @@ const commands = [
 					break;
 				default:
 					if (number !== null) {
+						x
 						let item = researches[researches.names[number]];
 						let level = playerData[researches.names[number]];
 						if (playerData["research"] >= item.costs[level]) {
@@ -2257,7 +2217,6 @@ const commands = [
 							});
 							map[playerData.location[0]][playerData.location[1]][playerData.location[2]].ownersID = playerData.userID;
 							map[playerData.location[0]][playerData.location[1]][playerData.location[2]].type = stations.names[selectedStation];
-							console.log(map[playerData.location[0]][playerData.location[1]][playerData.location[2]]);
 							let lostResources = "";
 							for (let i = 0; i < station.costs[0].length; i++) {
 								if (freeStation) {
@@ -3249,7 +3208,6 @@ const commands = [
 						serverStuff[message.guild.id].warnings[nums[0]]++;
 						warningNum = "This the " + serverStuff[message.guild.id].warnings[nums[0]];
 						let num = "" + serverStuff[message.guild.id].warnings[nums[0]];
-						console.log(num[num.length - 1]);
 						switch (num[num.length - 1]) {
 							case "1":
 								warningNum += "st";
@@ -3519,7 +3477,7 @@ const commands = [
 		values     : [],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			fs.writeFile("./galactica.log", "Cleared Logs", function (err) {
+			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
 				if (err) {
 					console.log(err);
 				}
@@ -3538,9 +3496,6 @@ const commands = [
 		values     : [],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			require("./accounts.json").players = {names: []};
-			saveJsonFile("./accounts.json");
-			console.log(require("./accounts.json").players);
 		}
 	},
 	{

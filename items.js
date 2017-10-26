@@ -158,7 +158,7 @@ const researches = {
 		timesToResearch: [3600000, 7200000, 14400000, 14400000, 21600000, 21600000, 25200000, 28800000, 600000],
 		does           : [
 			"Unlocks:\n • Metalloid Accelerator\n • Refining Station level 2\n • Mining Station level 2",
-			"Unlocks:\n • Research Station\n • Refining Station level 3\n • Mining Station level 3\n • Agriculture Station level 2",
+			"Unlocks:\n • Refining Station level 3\n • Mining Station level 3\n • Agriculture Station level 2",
 			"Unlocks:\n • Military Station\n • Refining Station level 4\n • Mining Station level 4\n • Research Station level 2\n • Agriculture Station level 3",
 			"Unlocks:\n • Magnetic Smelter\n • Research Station level 3\n • Mining Station level 5\n • Military Station level 2\n • Agriculture Station level 4",
 			"Unlocks:\n • Electronic Propulsion Station\n • Military Station level 3\n • Magnetic Smelter level 2\n • Agriculture Station level 5",
