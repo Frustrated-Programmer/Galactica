@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "t";
+const universalPrefix = "-";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -2184,6 +2184,7 @@ const commands = [
 			if (nums.length) {
 				if (parseInt(nums[0], 10) < stations.names.length) {
 					selectedStation = parseInt(nums[0], 10);
+					selectedStation--;
 				}
 			}
 
