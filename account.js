@@ -29,6 +29,7 @@ var Account = function (data) {
 
     //research
     this["Inductive Isolation Methods"] = data["Inductive Isolation Methods"] || 0;
-    this["Gravitic Purification"] = data["Gravitic Purification"] || 0;
+	this["Gravitic Purification"] = data["Gravitic Purification"] || 0;
+	this["Compressed Laser Generators"] = data["Compressed Laser Generators"] || 0;
 };
 module.exports = Account;
