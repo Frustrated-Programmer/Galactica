@@ -1,7 +1,3 @@
-/**for testing purposes**/
-let skipWarpTime = false;
-let skipCollectTime = false;
-
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
@@ -369,8 +365,6 @@ function checkWaitTimes() {
 						channel: client.users.get(listOfWaitTimes[i].player)
 					});
 					break;
-
-
 			}
 			listOfWaitTimes.splice(i, 1)
 		}
@@ -382,7 +376,6 @@ function checkWaitTimes() {
 		clearInterval(waitTimesInterval);
 		waitTimesInterval = false;
 	}
-
 }
 function createMap(galaxys, xSize, ySize) {
 	let planets = [
@@ -1114,9 +1107,13 @@ const commands = [
 				canContinue = false;
 			}
 			if (canContinue) {
+				let max = false;
 				let amount = Math.round((Date.now() - playerData.lastCollection) / (60000 * 5));//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
-				if (skipCollectTime) {
-					amount = 10;
+				let oldAmount = null;
+				if(amount>12){
+					max = true;
+					oldAmount = amount;
+					amount = 12;
 				}
 				playerData.lastCollection = Date.now();
 				let gainedResources = {};//amount of resources gained
@@ -1219,9 +1216,14 @@ const commands = [
 				//send the embed
 				let embed = new Discord.RichEmbed()
 					.setColor(embedColors.pink)
-					.setTitle("Current Collection")
-					.setDescription("You have waited " + (amount * 5) + " minutes so your collection is multiplied by `" + amount + "`")
-					.addField("Normal Resources", normalResourcesText);
+					.setTitle("Current Collection");
+				if(!max){
+					embed.setDescription("You have waited " + (amount * 5) + " minutes so your collection is multiplied by `" + amount + "`")
+				}else{
+					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to `60` minutes worth of resources")''
+				}
+				embed.addField("Normal Resources", normalResourcesText);
+
 				if (bonusResourceTextFromPlanets.length) {
 					embed.addField("Bonus Resources from planets", bonusResourceTextFromPlanets);
 				}
@@ -1345,18 +1347,14 @@ const commands = [
 					else {
 						timeUntilFinishedWarping += playerData.location[2] - goToPos[2] + 1;
 					}
-					if (warpType === "galaxy") {
-						timeUntilFinishedWarping = 0;
-					}
 					if (warpType !== "positionBase") {
 						timeUntilFinishedWarping += 60 * 5;//5 mins if its a galaxy warp
 					}
-					timeUntilFinishedWarping = timeUntilFinishedWarping * 1000;//convert it into actual Date.now()
 
 					console.log(timeUntilFinishedWarping);
 					listOfWaitTimes.push({
 						player : playerData.userID,
-						expires: Date.now() + timeUntilFinishedWarping,
+						expires: Date.now() + (timeUntilFinishedWarping*1000),
 						headTo : goToPos,
 						type   : "warp"
 					});
@@ -1970,7 +1968,7 @@ const commands = [
 				if (mapSpot.ownersID === null) {
 					listOfWaitTimes.push({
 						player : playerData.userID,
-						expires: Date.now() + 20000,
+						expires: Date.now() + 120000,
 						headTo : null,
 						type   : "colonization",
 						at     : playerData.location
@@ -1982,7 +1980,7 @@ const commands = [
 						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
 					}
 					sendBasicEmbed({
-						content: "You are colonizing a `" + mapSpot.type + "` planet.\nThis will take `20` seconds to complete.",
+						content: "You are colonizing a `" + mapSpot.type + "` planet.\nThis will take `2` minutes to complete.",
 						color  : embedColors.blue,
 						channel: message.channel
 					});
