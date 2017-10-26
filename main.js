@@ -1220,7 +1220,7 @@ const commands = [
 				if(!max){
 					embed.setDescription("You have waited " + (amount * 5) + " minutes so your collection is multiplied by `" + amount + "`")
 				}else{
-					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to `60` minutes worth of resources")''
+					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to `60` minutes worth of resources");
 				}
 				embed.addField("Normal Resources", normalResourcesText);
 
