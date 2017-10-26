@@ -1291,7 +1291,10 @@ const commands = [
 		effect     : function (message, args, playerData, prefix) {
 			if (typeof playerData.location === "object") {
 				let numbers = getNumbers(message.content);
-				let warpType, goToPos = playerData.location;
+				let warpType, goToPos = [];
+				goToPos[0] = playerData.location[0];
+				goToPos[1] = playerData.location[1];
+				goToPos[1] = playerData.location[2];;
 				switch (numbers.length) {
 					default:
 						warpType = "Invalid";
@@ -1341,16 +1344,16 @@ const commands = [
 					playerData.didntMove = false;
 					let timeUntilFinishedWarping = 0;
 					if (goToPos[1] + 1 > playerData.location[1]) {
-						timeUntilFinishedWarping += goToPos[1] + 1 - playerData.location[1];
+						timeUntilFinishedWarping += (goToPos[1] + 1) - playerData.location[1];
 					}
 					else {
-						timeUntilFinishedWarping += playerData.location[1] - goToPos[1] + 1;
+						timeUntilFinishedWarping += playerData.location[1] - (goToPos[1] + 1);
 					}
 					if (goToPos[2] + 1 > playerData.location[2]) {
-						timeUntilFinishedWarping += goToPos[2] + 1 - playerData.location[2];
+						timeUntilFinishedWarping += (goToPos[2] + 1) - playerData.location[2];
 					}
 					else {
-						timeUntilFinishedWarping += playerData.location[2] - goToPos[2] + 1;
+						timeUntilFinishedWarping += playerData.location[2] - (goToPos[2] + 1);
 					}
 					if (warpType !== "positionBase") {
 						timeUntilFinishedWarping += 60 * 5;//5 mins if its a galaxy warp
@@ -1368,7 +1371,7 @@ const commands = [
 					}
 					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + goToPos[1] + "x" + goToPos[2] + "`";
 					sendBasicEmbed({
-						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
+						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping*1000),
 						color  : embedColors.blue,
 						channel: message.channel
 					})
@@ -1546,6 +1549,7 @@ const commands = [
 					}
 					if (theMap[y][x].ownersID != null) {
 						if (theMap[y][x].ownersID === playerData.userID) {
+
 							if (theMap[y][x].type.toLowerCase() === "military station") {
 								for (let i = 0; i < playerData.stations.length; i++) {
 									let stats = playerData.stations[i];
