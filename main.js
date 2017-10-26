@@ -3844,9 +3844,6 @@ client.on("message", function (message) {
 	if (message.author.bot) {
 		return;
 	}
-	if (message.author.id !== "244590122811523082") {
-		return;
-	}
 	let command = message.content.toLowerCase().split(" ")[0];
 	let args = message.content.toLowerCase().split(" ");
 	let serverPrefix = universalPrefix;
