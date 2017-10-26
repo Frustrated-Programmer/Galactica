@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "-";
+const universalPrefix = "g";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -1110,7 +1110,7 @@ const commands = [
 				let max = false;
 				let amount = Math.round((Date.now() - playerData.lastCollection) / (60000 * 5));//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
 				let oldAmount = null;
-				if(amount>12){
+				if (amount > 12) {
 					max = true;
 					oldAmount = amount;
 					amount = 12;
@@ -1217,9 +1217,10 @@ const commands = [
 				let embed = new Discord.RichEmbed()
 					.setColor(embedColors.pink)
 					.setTitle("Current Collection");
-				if(!max){
+				if (!max) {
 					embed.setDescription("You have waited " + (amount * 5) + " minutes so your collection is multiplied by `" + amount + "`")
-				}else{
+				}
+				else {
 					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to `60` minutes worth of resources");
 				}
 				embed.addField("Normal Resources", normalResourcesText);
@@ -1242,9 +1243,14 @@ const commands = [
 		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			let embed = new Discord.RichEmbed()
-				.setTitle(message.member.displayName + "'s stats")
 				.setFooter(playerData.userID)
 				.setColor(embedColors.blue);
+			if (message.channel.type === "text") {
+				embed.setTitle(message.member.displayName + "'s stats");
+			}
+			else {
+				embed.setTitle(message.author.username + "'s stats");
+			}
 			let location = "";
 			if (typeof playerData.location === "object") {
 				location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + playerData.location[1] + "x" + playerData.location[2] + "`"
@@ -1298,7 +1304,7 @@ const commands = [
 					case 1:
 						warpType = "galaxy";
 						goToPos[0] = parseInt(numbers[0], 10);
-						if(goToPos[0]>=map.length){
+						if (goToPos[0] >= map.length) {
 							warpType = "Invalid";
 						}
 						break;
@@ -1306,10 +1312,10 @@ const commands = [
 						warpType = "positionBase";
 						goToPos[1] = parseInt(numbers[0], 10);
 						goToPos[2] = parseInt(numbers[1], 10);
-						if(goToPos[1]>=map[goToPos[0]].length){
+						if (goToPos[1] >= map[goToPos[0]].length) {
 							warpType = "Invalid";
 						}
-						if(goToPos[2]>=map[goToPos[0]][goToPos[1]].length){
+						if (goToPos[2] >= map[goToPos[0]][goToPos[1]].length) {
 							warpType = "Invalid";
 						}
 						break;
@@ -1318,19 +1324,23 @@ const commands = [
 						goToPos[0] = parseInt(numbers[0], 10);
 						goToPos[1] = parseInt(numbers[1], 10);
 						goToPos[2] = parseInt(numbers[2], 10);
-						if(goToPos[0]>=map.length){
+						if (goToPos[0] >= map.length) {
 							warpType = "Invalid";
 						}
-						if(goToPos[1]>=map[goToPos[0]].length){
+						if (goToPos[1] >= map[goToPos[0]].length) {
 							warpType = "Invalid";
 						}
-						if(goToPos[2]>=map[goToPos[0]][goToPos[1]].length){
+						if (goToPos[2] >= map[goToPos[0]][goToPos[1]].length) {
 							warpType = "Invalid";
 						}
 						break;
 				}
 				if (warpType === "Invalid") {
-					sendBasicEmbed({content: "Invalid usage!\nEither\n```fix\nYou didn't put in the position to warp to\nThe position doesnt exist on the map.```", color: embedColors.red, channel: message.channel})
+					sendBasicEmbed({
+						content: "Invalid usage!\nEither\n```fix\nYou didn't put in the position to warp to\nThe position doesnt exist on the map.```",
+						color  : embedColors.red,
+						channel: message.channel
+					})
 				}
 				else {
 					playerData.didntMove = false;
@@ -1354,7 +1364,7 @@ const commands = [
 					console.log(timeUntilFinishedWarping);
 					listOfWaitTimes.push({
 						player : playerData.userID,
-						expires: Date.now() + (timeUntilFinishedWarping*1000),
+						expires: Date.now() + (timeUntilFinishedWarping * 1000),
 						headTo : goToPos,
 						type   : "warp"
 					});
@@ -1529,14 +1539,9 @@ const commands = [
 			let canShowFunc = function (y,x) {
 				let theMap = map[playerData.location[0]];
 				let found = false;
-				let checkIfCanBe = function (x, y, dis) {
-
+				let checkIfCanBe = function (x,y, dis) {
 					let theMap = map[playerData.location[0]];
-					if(x === 25 || y === 25) {
-						console.log(x, y);
-						console.log(theMap[y][x]);
-					}
-					if (matchArray([playerData.location[0], y, x], playerData.location, false)&&dis<=3) {
+					if (matchArray([playerData.location[0], y, x], playerData.location, false) && dis <= 3) {
 						found = true;
 					}
 					if (theMap[y][x].ownersID != null) {
@@ -1565,49 +1570,50 @@ const commands = [
 						}
 					}
 				};
-				checkIfCanBe(x,y,0);
-				for(let i = 0;i<4;i++){
-					if (y+i < theMap.length) {
+				checkIfCanBe(x, y, 0);
+				for (let i = 0; i < 4; i++) {
+					if (y + i < theMap.length) {
 						checkIfCanBe(x, y + i, i);
-						for(let j =0;j<4-i;j++) {
+						for (let j = 0; j < 4 - i; j++) {
 							if (x + j < theMap[y + i].length) {
-								checkIfCanBe(y + i, x + j, i+j);
+								checkIfCanBe(x + j, y + i, i + j);
 							}
 							if (x > j) {
-								checkIfCanBe(y + i, x - j, i+j);
+
+								checkIfCanBe(x - j, y + i, i + j);
 							}
 						}
 					}
 					if (y > i) {
 						checkIfCanBe(x, y - i, 1);
-						for(let j =0;j<4-i;j++) {
+						for (let j = 0; j < 4 - i; j++) {
 							if (x + j < theMap[y - i].length) {
-								checkIfCanBe(y - i, x + j, i+j);
+								checkIfCanBe(x + j, y - i, i + j);
 							}
 							if (x > j) {
-								checkIfCanBe(y - i, x - j, i+j);
+								checkIfCanBe(x - j, y - i, i + j);
 							}
 						}
 					}
-					if (x+i < theMap[y].length) {
-						checkIfCanBe(x+i, y, i);
-						for(let j =0;j<4-i;j++) {
+					if (x + i < theMap[y].length) {
+						checkIfCanBe(x + i, y, i);
+						for (let j = 0; j < 4 - i; j++) {
 							if (y + j < theMap.length) {
-								checkIfCanBe(y + j, x + i, i+j);
+								checkIfCanBe(x + i, y + j, i + j);
 							}
 							if (y > j) {
-								checkIfCanBe(y + j, x - i, i+j);
+								checkIfCanBe(x + i, y - j, i + j);
 							}
 						}
 					}
 					if (x > i) {
-						checkIfCanBe(x-i, y, i);
-						for(let j =0;j<4-i;j++) {
+						checkIfCanBe(x - i, y, i);
+						for (let j = 0; j < 4 - i; j++) {
 							if (y + j < theMap.length) {
-								checkIfCanBe(y - j, x + i, i+j);
+								checkIfCanBe(x - i, y + j, i + j);
 							}
 							if (y > j) {
-								checkIfCanBe(y - j, x - i, i+j);
+								checkIfCanBe(x - i, y - j, i + j);
 							}
 						}
 					}
@@ -1623,99 +1629,101 @@ const commands = [
 				});
 			};
 			let image = new Jimp(mainSize, mainSize, function (err, newimage) {
-					for (let i = 0; i < m.length; i++) {
-						done.push([]);
-						for (let j = 0; j < m[i].length; j++) {
-							done[i].push(false);
-							let canShow = canShowFunc(i,j);
-							if (i === loc[1] && j === loc[2]) {
-								console.log("ran");
-								setImage(i, j, "images/Other/You.png", newimage);
-							}
-							else {
-								let setSomething = false;
-								if (canShow) {
-									if (m[i][j].type !== "empty") {
-										if (m[i][j].ownersID !== null) {
-											if (m[i][j].ownersID === playerData.userID) {
-												let r = m[i][j].type;
-												setImage(i, j, "images/Stations/You/" + r + ".png", newimage);
-												setSomething = true;
-											}
-											else if (playerData.faction !== null && canShow) {
-												let fac = factions[playerData.faction];
-												if (fac) {
-													let found = false;
-													for (let f = 0; f < fac.members.length; f++) {
-														if (m[i][j].ownersID === fac.members[i]) {
-															found = true;
-															break;
-														}
+				for (let i = 0; i < m.length; i++) {
+					done.push([]);
+					for (let j = 0; j < m[i].length; j++) {
+						done[i].push(false);
+						let canShow = canShowFunc(i,j);
+						if (i === loc[1] && j === loc[2]) {
+							console.log("ran");
+							setImage(i, j, "images/Other/You.png", newimage);
+						}
+						else {
+							let setSomething = false;
+							if (canShow) {
+								if (m[i][j].type !== "empty") {
+									if (m[i][j].ownersID !== null) {
+										if (m[i][j].ownersID === playerData.userID) {
+											let r = m[i][j].type;
+											setImage(i, j, "images/Stations/You/" + r + ".png", newimage);
+											setSomething = true;
+										}
+										else if (playerData.faction !== null && canShow) {
+											let fac = factions[playerData.faction];
+											if (fac) {
+												let found = false;
+												for (let f = 0; f < fac.members.length; f++) {
+													if (m[i][j].ownersID === fac.members[i]) {
+														found = true;
+														break;
 													}
-													let r = m[i][j].type;
-													if (found) {
-														setImage(i, j, "images/Stations/Faction/" + r + ".png", newimage);
-													}
-													else {
-														setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
-													}
-
-													setSomething = true;
 												}
-											}
-											else if (canShow) {
 												let r = m[i][j].type;
-												setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
+												if (found) {
+													setImage(i, j, "images/Stations/Faction/" + r + ".png", newimage);
+												}
+												else {
+													setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
+												}
+
 												setSomething = true;
 											}
 										}
-										else {
-											setImage(i, j, "images/Planets/" + m[i][j].type + "Planet" + ".png", newimage);
+										else if (canShow) {
+											let r = m[i][j].type;
+											setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
 											setSomething = true;
 										}
 									}
-									if(!setSomething){
-										setImage(i, j, "images/Other/EmptySpace.png", newimage);
+									else {
+										setImage(i, j, "images/Planets/" + m[i][j].type + "Planet" + ".png", newimage);
+										setSomething = true;
 									}
 								}
-								else {
-									setImage(i, j, "images/Other/Unknown.png", newimage);
+								if (!setSomething) {
+									setImage(i, j, "images/Other/EmptySpace.png", newimage);
 								}
-
 							}
+							else {
+								setImage(i, j, "images/Other/Unknown.png", newimage);
+							}
+
 						}
 					}
-					done[loc[1]][loc[2]] = false;
-					for (let i = 0; i < accountData.names.length; i++) {
-						let loc2 = accountData[accountData.names[i]].location;
-						if (loc2[0] === playerData.location[0] && accountData[accountData.names[i]].userID !== playerData.userID) {
+				}
+				for (let q = 0; q < accountData.names.length; q++) {
+					let loc2 = accountData[accountData.names[q]].location;
+					if (loc2[0] === playerData.location[0] && accountData[accountData.names[q]].userID !== playerData.userID) {
+						if (canShowFunc(loc2[0], loc2[1])) {
 							setImage(loc2[1], loc2[2], "images/Other/Player.png", newimage);
 						}
 					}
-					function doFun() {
-						let finished = true;
-						for (let i = 0; i < done.length; i++) {
-							for (let j = 0; j < done[i].length; j++) {
-								if (done[i][j] === false) {
-									finished = false;
-									break;
-								}
+				}
+				done[loc[1]][loc[2]] = false;
+				function doFun() {
+					let finished = true;
+					for (let i = 0; i < done.length; i++) {
+						for (let j = 0; j < done[i].length; j++) {
+							if (done[i][j] === false) {
+								finished = false;
+								break;
 							}
 						}
-						if (finished) {
-							newimage.write("images/mapImage" + playerData.userID + ".png");
-						}
-						else {
-							setTimeout(function () {
-								doFun();
-							}, 1000)
-						}
 					}
+					if (finished) {
+						newimage.write("images/mapImage" + playerData.userID + ".png");
+					}
+					else {
+						setTimeout(function () {
+							doFun();
+						}, 1000)
+					}
+				}
 
-					setTimeout(function () {
-						doFun();
-					}, 1000);
-				});
+				setTimeout(function () {
+					doFun();
+				}, 1000);
+			});
 		}
 	},
 	{
@@ -3836,7 +3844,7 @@ client.on("message", function (message) {
 	if (message.author.bot) {
 		return;
 	}
-	if(message.author.id !== "244590122811523082"){
+	if (message.author.id !== "244590122811523082") {
 		return;
 	}
 	let command = message.content.toLowerCase().split(" ")[0];
