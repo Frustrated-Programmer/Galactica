@@ -1419,7 +1419,7 @@ const commands = [
 				}
 				else {
 					for (let i = 0; i < planets["" + loc.type].bonuses.length; i++) {
-						items += planets[loc.type].bonuses[i][0];
+						items += planets[loc.type].bonuses[i][0]+"\n";
 					}
 				}
 				items += "```";
