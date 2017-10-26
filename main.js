@@ -1964,14 +1964,10 @@ const commands = [
 		values     : [],
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
-			let isValid = false;
+
 			let loc = playerData.location;
 			let mapSpot = map[loc[0]][loc[1]][loc[2]];
-			for (let i = 0; i < planets.names.length; i++) {
-				if (mapSpot.type.toLowerCase() === planets.names[i].toLowerCase()) {
-					isValid = true;
-				}
-			}
+			let isValid = mapSpot.item === "planet";
 			if (isValid) {
 				if (mapSpot.ownersID === null) {
 					listOfWaitTimes.push({
@@ -3621,7 +3617,23 @@ const commands = [
 		effect     : function (message, args, playerData, prefix) {
 			let other = require("./other.json");
 			other.map = createMap(4, 25, 25);
+			for(let i =0;i<accountData.names.length;i++){
+				let acc = accountData[accountData.names[i]];
+				for(let j =0;j<acc.stations.length;j++){
+					let statsLoc = acc.stations[j].location;
+					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
+					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
+					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
+				}
+				for(let j =0;j<acc.colonies.length;j++){
+					let statsLoc = acc.colonies[j].location;
+					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
+					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
+					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
+				}
+			}
 			map = other.map;
+
 			sendBasicEmbed({
 				content: "Create map 4x25x25",
 				color  : embedColors.purple,
