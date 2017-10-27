@@ -1435,7 +1435,7 @@ const commands = [
 
 					listOfWaitTimes.push({
 						player : playerData.userID,
-						expires: Date.now() + timeUntilFinishedWarping
+						expires: Date.now() + timeUntilFinishedWarping,
 						headTo : goToPos,
 						type   : "warp"
 					});
