@@ -9,7 +9,8 @@ const client = new Discord.Client();
 setInterval(function(){
 	fs.readFile("./galactica.log", function(err, data) {
         if (err){console.log(err)}
-		let words = data.split(" ");
+		let words = [];
+        console.log(typeof data);
 		for(let i =0;i<words.length;i++){
 			if(words[i].toLowerCase() === "enotfound"||words[i].toLowerCase() === "etimedout"){
 				console.log("rebooted");
@@ -3325,8 +3326,8 @@ const commands = [
 	{
 		names      : ["setWelcomeChannel", "setWC"],
 		description: "set your server's welcome channel and its message",
-		usage      : "setModChannel [VALUE]",
-		values     : ["{CHANNEL_ID} {MESSAGE}", "{#CHANNEL} {MESSAGE}"],
+		usage      : "setWelcomeChannel [VALUE]",
+		values     : ["{CHANNEL_ID} {MESSAGE}", "{#CHANNEL} {MESSAGE}","\"NONE\""],
 		reqs       : ["channel text", "userPerms ADMINISTRATOR"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(message.content);
@@ -3335,7 +3336,7 @@ const commands = [
 				if (client.channels.get(nums[0]) != null) {
 					if (args.length >= 2) {
 						welcomeTxt = "";
-						for (let i = 0; i < args.length; i++) {
+						for (let i = 1;i < args.length; i++) {
 							welcomeTxt += args[i] + " ";
 						}
 					}
@@ -3374,14 +3375,81 @@ const commands = [
 					if (serverStuff[message.channel.guild.id].modChannel != null) {
 						let embed = new Discord.RichEmbed()
 							.setTitle("Welcome Message")
-							.setDescription("Welcome message was deleted by <@!" + message.author.id + ">")
+							.setDescription("Welcome message was removed by <@!" + message.author.id + ">")
 							.setColor(embedColors.purple);
 						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
 					}
 				}
 				else {
 					sendBasicEmbed({
-						content: "Invalid Usage!\nYou must include the channel you want to be the mod channel.",
+						content: "Invalid Usage!\nYou must include the channel you want to be the welcome channel.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				}
+			}
+		}
+	},
+	{
+		names      : ["setGoodbyeChannel", "setGC"],
+		description: "set your server's goodbye channel and its message",
+		usage      : "setGoodbyeChannel [VALUE]",
+		values     : ["{CHANNEL_ID} {MESSAGE}", "{#CHANNEL} {MESSAGE}","\"NONE\""],
+		reqs       : ["channel text", "userPerms ADMINISTRATOR"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			if (nums.length) {
+				let goodbyeTxt = "Goodbye {username} everyone here at {server} misses you";
+				if (client.channels.get(nums[0]) != null) {
+					if (args.length >= 2) {
+						goodbyeTxt = "";
+						for (let i = 1;i < args.length; i++) {
+							goodbyeTxt += args[i] + " ";
+						}
+					}
+					serverStuff[message.guild.id].goodbyeChannel.id = nums[0];
+					serverStuff[message.guild.id].goodbyeChannel.message = goodbyeTxt;
+					sendBasicEmbed({
+						content: "Set <#" + nums[0] + "> as the goodbye channel.\nWith the goodbye message as\n" + goodbyeTxt,
+						color  : embedColors.purple,
+						channel: message.channel
+					});
+					if (serverStuff[message.channel.guild.id].modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle("Goodbye Message")
+							.setDescription("Goodbye message was changed by <@!" + message.author.id + "> to\n" + goodbyeTxt)
+							.setColor(embedColors.purple);
+						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: "Something went wrong, its either\n```fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel```\nThe channel must be a text channel.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				if (args[0] === "none") {
+					sendBasicEmbed({
+						content: "Disabled the Goodbye message.",
+						color  : embedColors.red,
+						channel: message.channel
+					});
+					serverStuff[message.channel.guild.id].welcomeChannel.id = null;
+					serverStuff[message.channel.guild.id].welcomeChannel.message = null;
+					if (serverStuff[message.channel.guild.id].modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle("Goodybye Message")
+							.setDescription("Goodbye message was removed by <@!" + message.author.id + ">")
+							.setColor(embedColors.purple);
+						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: "Invalid Usage!\nYou must include the channel you want to be the goodbye channel.",
 						color  : embedColors.red,
 						channel: message.channel
 					})
@@ -3393,7 +3461,7 @@ const commands = [
 		names      : ["clear", "purge", "prune"],
 		description: "Clear a channel",
 		usage      : "clear [VALUE]",
-		values     : ["All", "{NUMBER}"],
+		values     : ["\"All\"", "{NUMBER}"],
 		reqs       : ["channel text", "userPerms MANAGE_MESSAGES"],
 		effect     : function (message, args, playerData, prefix) {
 			let theNumbersInput = getNumbers(message.content, true);
@@ -3963,6 +4031,43 @@ const commands = [
 setInterval(function () {
 	client.sweepMessages((60000 * 60) * 24);
 }, 60000 * 60);
+client.on("guildMemberRemove",function(member){
+	if (serverStuff[member.guild.id].goodbyeChannel.id != null) {
+		let txt = "";
+		let msg = serverStuff[member.guild.id].goodbyeChannel.message.split(" ");
+		for (let i = 0; i < msg.length; i++) {
+			let value = msg[i].split("{");
+			if (value.length <= 1) {
+				txt += msg[i] + " ";
+			}
+			else {
+				value = value[1].split("}")[0];
+				switch (value) {
+					case "username":
+						txt += member.user.username + " ";
+						break;
+					case "server":
+						txt += member.guild.name + " ";
+						break;
+					case "members":
+						txt += member.guild.members.size + " ";
+						break;
+					case "owner":
+						txt += member.guild.owner + " ";
+						break;
+					default:
+						txt += msg[i] + " ";
+						break;
+				}
+			}
+		}
+		let embed = new Discord.RichEmbed()
+			.setTitle(member.user.username.toUpperCase() + " HAS LEFT!")
+			.setDescription(txt)
+			.setColor(embedColors.red);
+		client.channels.get(serverStuff[member.guild.id].goodbyeChannel.id).send({embed});
+	}
+});
 client.on("guildMemberAdd", function (member) {
 	if (serverStuff[member.guild.id].welcomeChannel.id != null) {
 		let txt = "";
