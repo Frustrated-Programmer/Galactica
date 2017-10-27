@@ -1768,7 +1768,12 @@ const commands = [
 				setTimeout(function () {
 					doFun();
 				}, 1000);
-
+				Jimp.read("images/Other/GridLines.png", function (err, image) {
+					if (err) throw err;
+					image.resize(mainSize,mainSize);
+					newimage.composite(image,0,0);
+					done[m.length][0] = true;
+				});
 			});
 		}
 	},
