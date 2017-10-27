@@ -3794,15 +3794,25 @@ const commands = [
 					let acc = accountData[accountData.names[i]];
 					for (let j = 0; j < acc.stations.length; j++) {
 						let statsLoc = acc.stations[j].location;
-						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
-						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
-						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
+						if (statsLoc[0] >= map.length || statsLoc[1] >= map[0].length || statsLoc[2] >= map[0][0].length) {
+							acc.stations.splice(j,1);
+						}
+						else {
+							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
+							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
+							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
+						}
 					}
 					for (let j = 0; j < acc.colonies.length; j++) {
 						let statsLoc = acc.colonies[j].location;
-						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
-						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
-						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
+						if (statsLoc[0] >= map.length || statsLoc[1] >= map[0].length || statsLoc[2] >= map[0][0].length) {
+							acc.colonies.splice(j, 1);
+						}
+						else {
+							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
+							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
+							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
+						}
 					}
 				}
 				map = other.map;
