@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "-";
+const universalPrefix = "t";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -1231,7 +1231,7 @@ const commands = [
 		}
 	},
 	{
-		names      : ["stats","me","info"],
+		names      : ["stats", "me", "info"],
 		description: "Get your stats",
 		usage      : "stats",
 		values     : [],
@@ -1294,7 +1294,8 @@ const commands = [
 				let warpType, goToPos = [];
 				goToPos[0] = playerData.location[0];
 				goToPos[1] = playerData.location[1];
-				goToPos[1] = playerData.location[2];;
+				goToPos[1] = playerData.location[2];
+				;
 				switch (numbers.length) {
 					default:
 						warpType = "Invalid";
@@ -1371,7 +1372,7 @@ const commands = [
 					}
 					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + goToPos[1] + "x" + goToPos[2] + "`";
 					sendBasicEmbed({
-						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping*1000),
+						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping * 1000),
 						color  : embedColors.blue,
 						channel: message.channel
 					})
@@ -1576,16 +1577,16 @@ const commands = [
 				};
 				checkIfCanBe(x, y, 0);
 				for (let i = 0; i < 4; i++) {
-					for (let j = 0; j < 4 - i; j++) {
-						checkIfCanBe(x + j, y + i, i - j);
-						checkIfCanBe(x - j, y + i, i - j);
-						checkIfCanBe(x + j, y - i, i - j);
-						checkIfCanBe(x - j, y - i, i - j);
+					for (let j = 0; j <= 4 - i; j++) {
+						checkIfCanBe(x + j, y + i, i + j);
+						checkIfCanBe(x - j, y + i, i + j);
+						checkIfCanBe(x + j, y - i, i + j);
+						checkIfCanBe(x - j, y - i, i + j);
 
-						checkIfCanBe(x + i, y + j, i - j);
-						checkIfCanBe(x - i, y + j, i - j);
-						checkIfCanBe(x + i, y - j, i - j);
-						checkIfCanBe(x - i, y - j, i - j);
+						checkIfCanBe(x + i, y + j, i + j);
+						checkIfCanBe(x - i, y + j, i + j);
+						checkIfCanBe(x + i, y - j, i + j);
+						checkIfCanBe(x - i, y - j, i + j);
 					}
 				}
 				return found;
