@@ -1,13 +1,13 @@
 const planets = {
 	names        : ["Ocean", "Colony", "Mine", "Terrestrial", "Gas", "Rocky"],
 	"Ocean"      : {
-		bonuses       : [["Agriculture Station", 15],["Military Station",10]],
+		bonuses       : [["Agriculture Station", 15], ["Military Station", 10]],
 		inhabitedMax  : 80,
 		generatesRates: ["people 50"],
 		loseRates     : []
 	},
-	"Haven"     : {
-		bonuses       : [["Agriculture Station","Life Station", 15],["Military Station",10]],
+	"Haven"      : {
+		bonuses       : [["Agriculture Station", "Life Station", 15], ["Military Station", 10]],
 		inhabitedMax  : 150,
 		generatesRates: ["credits 1 perPerson 10"],
 		loseRates     : []
@@ -19,7 +19,7 @@ const planets = {
 		loseRates     : []
 	},
 	"Terrestrial": {
-		bonuses       : [["Life Station", 20],["Research Station", 15]],
+		bonuses       : [["Life Station", 20], ["Research Station", 15]],
 		inhabitedMax  : 60,
 		generatesRates: ["food 1 perPerson 20", "credits 1 perPerson 10"],
 		loseRates     : []
@@ -138,7 +138,7 @@ const resources = {
 	"silicon"    : "✴"
 };
 const researches = {
-	names: ["Inductive Isolation Methods", "Gravitic Purification","Compressed Laser Generators"],
+	names: ["Inductive Isolation Methods", "Gravitic Purification", "Compressed Laser Generators"],
 
 
 	/**EVERYTHING is in arrays for each of the levels**/
@@ -167,10 +167,10 @@ const researches = {
 			"Unlocks:\n • Electronic Propulsion Station level 4\n • Magnetic Smelter level 5",
 			"Insurance: keep all of *Gravitic Purification's* research the next time you die"
 		],
-		costs          : [25, 50, 100, 200, 500, 1000,1100,1200,1300,100]
+		costs          : [25, 50, 100, 200, 500, 1000, 1100, 1200, 1300, 100]
 	},
 	"Compressed Laser Generators": {
-		timesToResearch: [3600000, 7200000, 14400000, 21600000,2800000,36000000],
+		timesToResearch: [3600000, 7200000, 14400000, 21600000, 2800000, 36000000],
 		does           : [
 			"5% more damage to ships, stations & planets",
 			"10% more damage to ships, stations & planets",
@@ -182,7 +182,22 @@ const researches = {
 		costs          : [50, 130, 200, 450, 700, 1000]
 	}
 };
+const timeTakes = {
+	/***
+	 *    1000 =  1 second
+	 *   60000 =  1 minute
+	 *  600000 = 10 minutes
+	 * 3600000 =  1 hour
+	 */
+	colonize       : (60000 * 5),
+	attackColony   : (60000 * 10),
+	buildStation   : (60000 * 5),
+	attackStation  : (60000 * 10),
+	warpPerPosition: (1000 * 5)
+
+};
 module.exports = {
+	times     : timeTakes,
 	stations  : Station,
 	colors    : colors,
 	resources : resources,

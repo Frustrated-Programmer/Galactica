@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "-";
+const universalPrefix = "t";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -1004,7 +1004,7 @@ const commands = [
 				.setTitle("HELP")
 				.setDescription("For more info\n" + prefix + "command [NAME]")
 				.addField("COMMANDS", txt + "```")
-				.addField("JOIN US", "[INVITE-BOT](https://discordapp.com/oauth2/authorize?client_id=354670433154498560&scope=bot&permissions=67234830)\n[JOIN-OUR-DISCORD](https://discord.gg/U67PyRG)");
+				.addField("JOIN US", "[INVITE-BOT](https://discordapp.com/oauth2/authorize?client_id=354670433154498560&scope=bot&permissions=67234830)\n[JOIN-OUR-DISCORD](https://discord.gg/J7NkgPZ)");
 			message.channel.send({embed});
 		}
 	},
@@ -1418,22 +1418,21 @@ const commands = [
 					playerData.didntMove = false;
 					let timeUntilFinishedWarping = 0;
 					if (goToPos[1] + 1 > playerData.location[1]) {
-						timeUntilFinishedWarping += (goToPos[1] + 1) - playerData.location[1];
+						timeUntilFinishedWarping += ((goToPos[1] + 1) - playerData.location[1]) * timesTake.warpPerPosition;
 					}
 					else {
-						timeUntilFinishedWarping += playerData.location[1] - (goToPos[1] + 1);
+						timeUntilFinishedWarping += (playerData.location[1] - (goToPos[1] + 1)) * timesTake.warpPerPosition;
 					}
 					if (goToPos[2] + 1 > playerData.location[2]) {
-						timeUntilFinishedWarping += (goToPos[2] + 1) - playerData.location[2];
+						timeUntilFinishedWarping += ((goToPos[2] + 1) - playerData.location[2]) * timesTake.warpPerPosition;
 					}
 					else {
-						timeUntilFinishedWarping += playerData.location[2] - (goToPos[2] + 1);
+						timeUntilFinishedWarping += (playerData.location[2] - (goToPos[2] + 1)) * timesTake.warpPerPosition;
 					}
 					if (warpType !== "positionBase") {
 						timeUntilFinishedWarping += 60 * 5;//5 mins if its a galaxy warp
 					}
 
-					console.log(timeUntilFinishedWarping);
 					listOfWaitTimes.push({
 						player : playerData.userID,
 						expires: Date.now() + (timeUntilFinishedWarping * 1000),
@@ -1485,7 +1484,6 @@ const commands = [
 			}
 			else {
 				if (loc.ownersID !== null) {
-					console.log(loc);
 					station = "Occupied by " + accountData[loc.ownersID].username + ".";
 					items = "";
 				}
@@ -1509,7 +1507,6 @@ const commands = [
 			for (let i = 0; i < accountData.names.length; i++) {
 				let player = accountData[accountData.names[i]];
 				if (player.userID !== playerData.userID) {
-					console.log(player.userID + "|" + playerData.userID);
 					if (matchArray(playerData.location, player.location, false)) {
 						otherPlayers.push(player);
 					}
@@ -1574,7 +1571,6 @@ const commands = [
 				mess = m;
 			});
 			function doFun(num) {
-				console.log("waiting for " + num + " seconds");
 				fs.exists("images/mapImage" + playerData.userID + ".png", function (exists) {
 					go = exists;
 				});
@@ -1606,7 +1602,7 @@ const commands = [
 			message.channel.startTyping();
 			let loc = playerData.location;
 			let m = map[loc[0]];
-			let size = mainSize / m.length;
+			let size = mainSize / (m.length+1);
 
 			let done = [];
 			let canShowFunc = function (y, x) {
@@ -1668,11 +1664,13 @@ const commands = [
 				Jimp.read(which, function (err, image) {
 					if (err) throw err;
 					image.resize(size, size);
-					newimage.composite(image, x * size, y * size);
+					newimage.composite(image, (x+1) * size, (y+1) * size);
 					done[y][x] = true;
 				});
 			};
 			let image = new Jimp(mainSize, mainSize, function (err, newimage) {
+
+
 				for (let i = 0; i < m.length; i++) {
 					done.push([]);
 					for (let j = 0; j < m[i].length; j++) {
@@ -1731,6 +1729,8 @@ const commands = [
 						}
 					}
 				}
+				done.push([]);
+				done[m.length].push(false);
 				for (let q = 0; q < accountData.names.length; q++) {
 					let loc2 = accountData[accountData.names[q]].location;
 					if (loc2[0] === playerData.location[0] && accountData[accountData.names[q]].userID !== playerData.userID) {
@@ -1768,6 +1768,7 @@ const commands = [
 				setTimeout(function () {
 					doFun();
 				}, 1000);
+
 			});
 		}
 	},
@@ -2407,6 +2408,10 @@ const commands = [
 
 						if (hasEnough || freeStation) {
 							playerData.didntMove = true;
+
+							if (!waitTimesInterval) {
+								waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
+							}
 							listOfWaitTimes.push({
 								player : playerData.userID,
 								expires: Date.now() + timesTake.buildStation,
@@ -3448,12 +3453,12 @@ const commands = [
 					});
 
 				}).catch(function (err) {
-					console.log(err);
 					sendBasicEmbed({
 						content: "that user doesn't exist",
 						color  : embedColors.red,
 						channel: message.channel
 					})
+
 				});
 
 			}
@@ -3776,30 +3781,39 @@ const commands = [
 		values     : [],
 		reqs       : ["normCommand", "owner"],
 		effect     : function (message, args, playerData, prefix) {
-			let other = require("./other.json");
-			other.map = createMap(4, 25, 25);
-			for (let i = 0; i < accountData.names.length; i++) {
-				let acc = accountData[accountData.names[i]];
-				for (let j = 0; j < acc.stations.length; j++) {
-					let statsLoc = acc.stations[j].location;
-					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
-					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
-					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
+			let nums = getNumbers(message.content,true);
+			if(nums.length===3) {
+				let other = require("./other.json");
+				other.map = createMap(nums[0], nums[1], nums[2]);
+				for (let i = 0; i < accountData.names.length; i++) {
+					let acc = accountData[accountData.names[i]];
+					for (let j = 0; j < acc.stations.length; j++) {
+						let statsLoc = acc.stations[j].location;
+						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
+						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
+						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
+					}
+					for (let j = 0; j < acc.colonies.length; j++) {
+						let statsLoc = acc.colonies[j].location;
+						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
+						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
+						other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
+					}
 				}
-				for (let j = 0; j < acc.colonies.length; j++) {
-					let statsLoc = acc.colonies[j].location;
-					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
-					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
-					other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
-				}
+				map = other.map;
+				sendBasicEmbed({
+					content: `Create map ${nums[0]}x${nums[1]}x${nums[2]}`,
+					color  : embedColors.purple,
+					channel: message.channel
+				})
 			}
-			map = other.map;
-
-			sendBasicEmbed({
-				content: "Create map 4x25x25",
-				color  : embedColors.purple,
-				channel: message.channel
-			})
+			else{
+				sendBasicEmbed({
+					content: `3 numbers required instead of ${nums.length}`,
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
 		}
 	},
 	{
