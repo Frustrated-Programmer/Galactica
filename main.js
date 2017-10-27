@@ -1,10 +1,32 @@
 /**Set Up **/
+
 let version = require("./other.json").version;
 let Jimp = require("jimp");
 const universalPrefix = "-";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
+setInterval(function(){
+	fs.readFile("./galactica.log", function(err, data) {
+        if (err){console.log(err)}
+		let words = data.split(" ");
+		for(let i =0;i<words.length;i++){
+			if(words[i].toLowerCase() === "enotfound"||words[i].toLowerCase() === "etimedout"){
+				console.log("rebooted");
+				process.exit();
+			}
+		}
+		if(words.length >= 5000){
+			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
+				if (err) {
+					console.log(err);
+				}
+				console.log("Refreshed due to amount of logs.");
+			});
+		}
+    });
+},60000*10);
+
 
 /**VARIABLES**/
 let attacks = require("./other.json").attacks;
