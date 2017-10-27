@@ -13,6 +13,7 @@ let accountData = require("./accounts.json").players;
 let waitTimesInterval = false;
 let factions = require("./factions.json").factions;
 let listOfWaitTimes = require("./other.json").listOfWaitTimes;
+let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
 
 /**FUNCTIONS**/
@@ -301,6 +302,7 @@ function getBorders(location) {
 function checkWaitTimes() {
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires < Date.now()) {
+			let playerData = accountData[listOfWaitTimes[i].player];
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
 					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
@@ -339,14 +341,32 @@ function checkWaitTimes() {
 					}
 					break;
 				case "attackColony":
-					let player = accountData[listOfWaitTimes[i].player];
 					let colony = listOfWaitTimes[i].at;
-					if (player.didntMove) {
-
+					if (playerData.didntMove) {
+						let loc = playerData.location;
+						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(user){
+							sendBasicEmbed({
+								content:"Your colony at\nGalaxy: `"+loc[0]+"` Area: `"+loc[1]+"x"+loc[2]+"`\nHas been destroyed by `"+playerData.username+"`",
+								color:embedColors.red,
+								channel:message.channel
+							})
+						}
+						for(let i = 0;i<accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.length;i++){
+							if(matchArray(accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations[i].location,playerData.location,false)) {
+								accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.splice(i,1);
+							}
+						}
+						map[loc[0]][loc[1]][loc[2]].ownersID = null;
+						map[loc[0]][loc[1]][loc[2]].item = "planet";
+						sendBasicEmbed({
+							content:"You have destroyed the station at\nGalaxy: `"+loc[0]+"` Area: `"+loc[1]+"x"+loc[2]+"`",
+							color:embedColors.blue,
+							channel:client.users.get(playerData.userID)
+						})
 					}
 					else {
 						sendBasicEmbed({
-							content: "Attack at the colony\nGalaxy: `" + colony[0] + "` Area: `" + colony[1] + "x" + colony[2] + "`\nHas failed.\nYou either\nmoved from your spot\nwere under attack",
+							content: "Attacking the colony at\nGalaxy: `" + colony[0] + "` Area: `" + colony[1] + "x" + colony[2] + "`\nHas failed.\nYou either\nmoved from your spot\nwere under attack",
 							color  : embedColors.red,
 							channel: client.users.get(player.userID)
 						})
@@ -359,6 +379,61 @@ function checkWaitTimes() {
 						color  : embedColors.yellow,
 						channel: client.users.get(listOfWaitTimes[i].player)
 					});
+					break;
+				case "buildStation":
+					let playerData = accountData[listOfWaitTimes[i].player];
+					if(playerData.didntMove) {
+						playerData.stations.push({
+							location: playerData.location,
+							type    : stations.names[listOfWaitTimes[i].which],
+							level   : 0
+						});
+						map[playerData.location[0]][playerData.location[1]][playerData.location[2]].ownersID = playerData.userID;
+						map[playerData.location[0]][playerData.location[1]][playerData.location[2]].type = stations.names[listOfWaitTimes[i].which];
+
+						let embed = new Discord.RichEmbed()
+							.setDescription("Your "+stations.names[listOfWaitTimes[i].which]+" has finished building.")
+							.setColor(embedColors.pink);
+						client.users.get(listOfWaitTimes[i].player).send({embed});
+					}
+					break;
+				case "attackStation":
+					let station = listOfWaitTimes[i].at;
+					if (playerData.didntMove) {
+						let loc = playerData.location;
+						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(user){
+							sendBasicEmbed({
+								content:"Your station at\nGalaxy: `"+loc[0]+"` Area: `"+loc[1]+"x"+loc[2]+"`\nHas been destroyed by `"+playerData.username+"`",
+								color:embedColors.red,
+								channel:message.channel
+							})
+						}
+						for(let i = 0;i<accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.length;i++){
+							if(matchArray(accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations[i].location,playerData.location,false)) {
+								accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.splice(i,1);
+							}
+						}
+						map[loc[0]][loc[1]][loc[2]] = {
+							ownersID:null,
+							item:"empty",
+							type:"empty",
+							soonOwner:null,
+						};
+						sendBasicEmbed({
+							content:"You have destroyed the station at\nGalaxy: `"+loc[0]+"` Area: `"+loc[1]+"x"+loc[2]+"`",
+							color:embedColors.blue,
+							channel:client.users.get(playerData.userID)
+						})
+					}
+
+					}
+					else {
+						sendBasicEmbed({
+							content: "Attacking the station at\nGalaxy: `" + colony[0] + "` Area: `" + colony[1] + "x" + colony[2] + "`\nHas failed.\nYou either\nmoved from your spot\nwere under attack",
+							color  : embedColors.red,
+							channel: client.users.get(player.userID)
+						})
+					}
 					break;
 			}
 			listOfWaitTimes.splice(i, 1)
@@ -1946,7 +2021,7 @@ const commands = [
 				if (mapSpot.ownersID === null) {
 					listOfWaitTimes.push({
 						player : playerData.userID,
-						expires: Date.now() + 120000,
+						expires: Date.now() + timesTake.colonize,
 						headTo : null,
 						type   : "colonization",
 						at     : playerData.location
@@ -1958,7 +2033,7 @@ const commands = [
 						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
 					}
 					sendBasicEmbed({
-						content: "You are colonizing a `" + mapSpot.type + "` planet.\nThis will take `2` minutes to complete.",
+						content: "You are colonizing a `" + mapSpot.type + "` planet.\nThis will take "+getTimeRemaining(timesTake.colonize)+" to complete.",
 						color  : embedColors.blue,
 						channel: message.channel
 					});
@@ -2011,39 +2086,72 @@ const commands = [
 		values     : [],
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
-			let isValid = false;
+			let loc = playerData.location;
 			let mapSpot = map[loc[0]][loc[1]][loc[2]];
-			for (let i = 0; i < planets.names.length; i++) {
-				if (mapSpot.type.toLowerCase() === planets.names[i].toLowerCase()) {
-					isValid = true;
-				}
-			}
-			if (isValid) {
+			if (mapSpot.item === "colony") {
 				playerData.didntMove = true;
 				if (mapSpot.ownersID !== null) {
-					playerData.didntMove = true;
-					listOfWaitTimes.push({
-						player : playerData.userID,
-						expires: Date.now() + 120000,
-						type   : "attackColony",
-						at     : playerData.location
-					});
-					let loc = playerData.location;
-					if (!waitTimesInterval) {
-						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
-					}
-					sendBasicEmbed({
-						content: "You are attacking `" + accountData[mapSpot.ownersID].username + "`'s colony.\nThis will take `2` minutes to complete.",
-						color  : embedColors.blue,
-						channel: message.channel
-					});
-					client.fetchUser(mapSpot.ownersID).then(function (user) {
-						sendBasicEmbed({
-							content: "Your colony at\nGalaxy `" + loc[0] + "` Area: `" + loc[1] + "x" + loc[2] + "`\nIs under attack by `" + playerData.username + "`\nYou have `2` minutes to save it",
-							color  : embedColors.red,
-							channel: user
+					if (mapSpot.ownersID !== playerData.userID) {
+						playerData.didntMove = true;
+						listOfWaitTimes.push({
+							player : playerData.userID,
+							expires: Date.now() + timesTake.attackColony,
+							type   : "attackColony",
+							at     : playerData.location
 						});
-					})
+						let loc = playerData.location;
+						if (!waitTimesInterval) {
+							waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
+						}
+						sendBasicEmbed({
+							content: "You are attacking `" + accountData[mapSpot.ownersID].username + "`'s colony.\nThis will take " + getTimeRemaining(timesTake.attackColony) + " to complete.",
+							color  : embedColors.blue,
+							channel: message.channel
+						});
+						client.fetchUser(mapSpot.ownersID).then(function (user) {
+							sendBasicEmbed({
+								content: "Your colony at\nGalaxy `" + loc[0] + "` Area: `" + loc[1] + "x" + loc[2] + "`\nIs under attack by `" + playerData.username + "`\nYou have " + getTimeRemaining(timesTake.attackColony) + " to save it",
+								color  : embedColors.red,
+								channel: user
+							});
+						})
+					}
+					else {
+						if(args.length){
+							if(args[0] === "removemine"){
+								map[loc[0]][loc[1]][loc[2]] = {
+									ownersID:null,
+									item:"empty",
+									type:"empty",
+									soonOwner:null,
+								};
+								for(let i = 0;i<playerData.stations.length;i++){
+									if(matchArray(playerData.location,playerData.stations.location)){
+										playerData.stations.splice(i,1);
+										break;
+									}
+								}
+								sendBasicEmbed({
+									content:"Your colony has been removed.",
+									color:embedColors.red,
+									channel:message.channel
+								})
+							}
+							else{
+								sendBasicEmbed({
+									content:"The colony here is yours.\nDo you want to remove it? You will not be refunded!\nif you do please send `"+prefix+"attackColony removeMine`",
+									color:embedColors.red,
+									channel:message.channel
+								})
+							}
+						}else{
+							sendBasicEmbed({
+								content:"The colony here is yours.\nDo you want to remove it? You will not be refunded!\nif you do please send `"+prefix+"attackColony removeMine`",
+								color:embedColors.red,
+								channel:message.channel
+							})
+						}
+					}
 				}
 				else {
 					sendBasicEmbed({
@@ -2064,6 +2172,88 @@ const commands = [
 	},
 
 	"STATIONS",
+	{
+		names      : ["attackStation", "sAttack", "attackS"],
+		description: "attack the station",
+		usage      : "attackStation",
+		values     : [],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
+		effect     : function (message, args, playerData, prefix) {
+			let loc = playerData.location;
+			let mapSpot = map[loc[0]][loc[1]][loc[2]];
+			if (mapSpot.item === "station") {
+				playerData.didntMove = true;
+				if (mapSpot.ownersID !== playerData.userID) {
+					playerData.didntMove = true;
+					listOfWaitTimes.push({
+						player : playerData.userID,
+						expires: Date.now() + timesTake.attackStation,
+						type   : "attackStation",
+						at     : playerData.location
+					});
+					let loc = playerData.location;
+					if (!waitTimesInterval) {
+						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
+					}
+					sendBasicEmbed({
+						content: "You are attacking `" + accountData[mapSpot.ownersID].username + "`'s station.\nThis will take "+getTimeRemaining(timesTake.attackStation)+" to complete.",
+						color  : embedColors.blue,
+						channel: message.channel
+					});
+					client.fetchUser(mapSpot.ownersID).then(function (user) {
+						sendBasicEmbed({
+							content: "Your station at\nGalaxy `" + loc[0] + "` Area: `" + loc[1] + "x" + loc[2] + "`\nIs under attack by `" + playerData.username + "`\nYou have "+getTimeRemaining(timesTake.attackStation)+" to save it",
+							color  : embedColors.red,
+							channel: user
+						});
+					})
+				}
+				else {
+					if(args.length){
+						if(args[0] === "removemine"){
+							map[loc[0]][loc[1]][loc[2]] = {
+								ownersID:null,
+								item:"empty",
+								type:"empty",
+								soonOwner:null,
+							};
+							for(let i = 0;i<playerData.stations.length;i++){
+								if(matchArray(playerData.location,playerData.stations.location)){
+									playerData.stations.splice(i,1);
+									break;
+								}
+							}
+							sendBasicEmbed({
+								content:"You "+mapSpot.type+" has been removed.",
+								color:embedColors.red,
+								channel:message.channel
+							})
+						}
+						else{
+							sendBasicEmbed({
+								content:"The station here is yours.\nDo you want to remove it? You will not be refunded!\nif you do please send `"+prefix+"attackStation removeMine`",
+								color:embedColors.red,
+								channel:message.channel
+							})
+						}
+					}else{
+						sendBasicEmbed({
+							content:"The station here is yours.\nDo you want to remove it? You will not be refunded!\nif you do please send `"+prefix+"attackStation removeMine`",
+							color:embedColors.red,
+							channel:message.channel
+						})
+					}
+				}
+			}
+			else {
+				sendBasicEmbed({
+					content: "There is no station here.",
+					color  : embedColors.red,
+					channel: message.channel
+				});
+			}
+		}
+	},
 	{
 		names      : ["stations", "station", "s"],
 		description: "get info on stations",
@@ -2216,13 +2406,14 @@ const commands = [
 						}
 
 						if (hasEnough || freeStation) {
-							playerData.stations.push({
-								location: playerData.location,
-								type    : stations.names[selectedStation],
-								level   : 0
+							playerData.didntMove = true;
+							listOfWaitTimes.push({
+								player : playerData.userID,
+								expires: Date.now() + timesTake.buildStation,
+								which  : selectedStation,
+								type   : "buildStation",
+								at     : playerData.location
 							});
-							map[playerData.location[0]][playerData.location[1]][playerData.location[2]].ownersID = playerData.userID;
-							map[playerData.location[0]][playerData.location[1]][playerData.location[2]].type = stations.names[selectedStation];
 							let lostResources = "";
 							for (let i = 0; i < station.costs[0].length; i++) {
 								if (freeStation) {
@@ -2233,7 +2424,7 @@ const commands = [
 								lostResources += costStuff[0] + " " + resources[costStuff[0]] + " " + costStuff[1] + "\n";
 							}
 							let embed = new Discord.RichEmbed()
-								.setDescription("Successfully bought " + stations.names[selectedStation] + "\n")
+								.setDescription("Successfully bought " + stations.names[selectedStation] + "\nThis will take "+getTimeRemaining(timesTake.buildStation)+" to complete.\nDon't move from your spot.")
 								.setColor(embedColors.pink);
 							if (!freeStation) {
 								embed.addField("Lost Resources", lostResources);
