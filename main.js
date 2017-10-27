@@ -3792,6 +3792,9 @@ const commands = [
 				other.map = createMap(nums[0], nums[1], nums[2]);
 				for (let i = 0; i < accountData.names.length; i++) {
 					let acc = accountData[accountData.names[i]];
+					if(acc.location[0]>other.map.length||acc.location[0][0]>other.map[0].length||acc.location[0][0][0]>other.map.length[0][0]){
+						accountData.location = [0,0,0];
+					}
 					for (let j = 0; j < acc.stations.length; j++) {
 						let statsLoc = acc.stations[j].location;
 						if (statsLoc[0] >= other.map.length || statsLoc[1] >= other.map[0].length || statsLoc[2] >= other.map[0][0].length) {
