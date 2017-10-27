@@ -1430,12 +1430,12 @@ const commands = [
 						timeUntilFinishedWarping += (playerData.location[2] - (goToPos[2] + 1)) * timesTake.warpPerPosition;
 					}
 					if (warpType !== "positionBase") {
-						timeUntilFinishedWarping += 60 * 5;//5 mins if its a galaxy warp
+						timeUntilFinishedWarping += 60000 * 5;//5 mins if its a galaxy warp
 					}
 
 					listOfWaitTimes.push({
 						player : playerData.userID,
-						expires: Date.now() + (timeUntilFinishedWarping * 1000),
+						expires: Date.now() + timeUntilFinishedWarping
 						headTo : goToPos,
 						type   : "warp"
 					});
@@ -1444,7 +1444,7 @@ const commands = [
 					}
 					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + goToPos[2] + "x" + goToPos[1] + "`";
 					sendBasicEmbed({
-						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping * 1000),
+						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
 						color  : embedColors.blue,
 						channel: message.channel
 					})
