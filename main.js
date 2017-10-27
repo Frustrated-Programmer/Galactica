@@ -1367,7 +1367,7 @@ const commands = [
 				let warpType, goToPos = [];
 				goToPos[0] = playerData.location[0];
 				goToPos[1] = playerData.location[1];
-				goToPos[1] = playerData.location[2];
+				goToPos[2] = playerData.location[2];
 
 				switch (numbers.length) {
 					default:

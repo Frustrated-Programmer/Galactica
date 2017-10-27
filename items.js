@@ -193,7 +193,7 @@ const timeTakes = {
 	attackColony   : (60000 * 10),
 	buildStation   : (60000 * 5),
 	attackStation  : (60000 * 10),
-	warpPerPosition: (1000 * 5)
+	warpPerPosition: (1000*5)
 
 };
 module.exports = {
