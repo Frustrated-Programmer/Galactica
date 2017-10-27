@@ -1375,15 +1375,15 @@ const commands = [
 						break;
 					case 1:
 						warpType = "galaxy";
-						goToPos[0] = parseInt(numbers[0], 10);
+						goToPos[0] = parseInt(numbers[0], 10)-1;
 						if (goToPos[0] >= map.length) {
 							warpType = "Invalid";
 						}
 						break;
 					case 2:
 						warpType = "positionBase";
-						goToPos[2] = parseInt(numbers[0], 10);
-						goToPos[1] = parseInt(numbers[1], 10);
+						goToPos[2] = parseInt(numbers[0], 10)-1;
+						goToPos[1] = parseInt(numbers[1], 10)-1;
 						if (goToPos[1] >= map[goToPos[0]].length) {
 							warpType = "Invalid";
 						}
@@ -1393,9 +1393,9 @@ const commands = [
 						break;
 					case 3:
 						warpType = "galaxyAndPosition";
-						goToPos[0] = parseInt(numbers[0], 10);
-						goToPos[2] = parseInt(numbers[1], 10);
-						goToPos[1] = parseInt(numbers[2], 10);
+						goToPos[0] = parseInt(numbers[0], 10)-1;
+						goToPos[2] = parseInt(numbers[1], 10)-1;
+						goToPos[1] = parseInt(numbers[2], 10)-1;
 						if (goToPos[0] >= map.length) {
 							warpType = "Invalid";
 						}
