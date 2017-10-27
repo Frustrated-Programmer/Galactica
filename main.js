@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "t";
+const universalPrefix = "-";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -3794,7 +3794,7 @@ const commands = [
 					let acc = accountData[accountData.names[i]];
 					for (let j = 0; j < acc.stations.length; j++) {
 						let statsLoc = acc.stations[j].location;
-						if (statsLoc[0] >= map.length || statsLoc[1] >= map[0].length || statsLoc[2] >= map[0][0].length) {
+						if (statsLoc[0] >= other.map.length || statsLoc[1] >= other.map[0].length || statsLoc[2] >= other.map[0][0].length) {
 							acc.stations.splice(j,1);
 						}
 						else {
