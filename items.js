@@ -114,7 +114,7 @@ const Station = {
 const colors = {
 	purple  : 0x993499,//Moderation
 	yellow  : 0xadb60c,//Research
-	pink    : 0xFF21F8,//Stations
+	pink    : 0xFF21F8,//stations
 	red     : 0xce001f,//Invalid, Something Bad
 	blue    : 0x00C8C8,//Game Notifications
 	darkblue: 0x252FF3,//Factions
@@ -189,12 +189,13 @@ const timeTakes = {
 	 *  600000 = 10 minutes
 	 * 3600000 =  1 hour
 	 */
-	colonize       : 60000 * 5,
-	attackColony   : 60000 * 10,
-	buildStation   : 60000 * 5,
-	attackStation  : 60000 * 10,
-	warpPerPosition: 1000*5,
-	factionAdvertise: ((60000*60)*24)*3,
+	colonize        : 60000,
+	attackColony    : 60000 * 10,
+	buildStation    : 60000 * 5,
+	attackStation   : 60000 * 10,
+	warpPerPosition : 1000 * 5,
+	factionAdvertise: ((60000 * 60) * 24) * 3,
+	collectionRate  : 60000 * 5
 
 };
 module.exports = {

@@ -327,26 +327,32 @@ function getBorders(location) {
 }
 function checkWaitTimes() {
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
-		if (listOfWaitTimes[i].expires < Date.now()) {
+
+		if (listOfWaitTimes[i].expires <= Date.now()) {
 			let playerData = accountData[listOfWaitTimes[i].player];
+
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
 					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
 					sendBasicEmbed({
-						content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + listOfWaitTimes[i].headTo[2] + "x" + listOfWaitTimes[i].headTo[1] + "`\nhas finished.",
+						content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + (listOfWaitTimes[i].headTo[2]+1) + "x" + (listOfWaitTimes[i].headTo[1]+1) + "`\nhas finished.",
 						channel: client.users.get(listOfWaitTimes[i].player),
 						color  : embedColors.blue
 					});
+					listOfWaitTimes.splice(i, 1);
 					break;
 				case "colonization":
 					if (accountData[listOfWaitTimes[i].player].didntMove) {
+						let mapSpot = map[listOfWaitTimes[i].at[0]][listOfWaitTimes[i].at[1]][listOfWaitTimes[i].at[2]];
 						accountData[listOfWaitTimes[i].player].colonies.push({
-							location: accountData[listOfWaitTimes[i].player].location,
-							type    : map[listOfWaitTimes[i].at[0]][listOfWaitTimes[i].at[1]][listOfWaitTimes[i].at[2]].type
+							location : accountData[listOfWaitTimes[i].player].location,
+							type     : mapSpot.type,
+							people   : 0,
+							maxPeople: planets[mapSpot.type].inhabitedMax
 						});
 						client.fetchUser(listOfWaitTimes[i].player).then(function (user) {
 							sendBasicEmbed({
-								content: "Your colonization at\nGalaxy: `" + (listOfWaitTimes[i].at[0] + 1) + "` Area: `" + listOfWaitTimes[i].at[2] + "x" + listOfWaitTimes[i].at[1] + "\nhas finished!",
+								content: "Your colonization at\nGalaxy: `" + (listOfWaitTimes[i].at[0] + 1) + "` Area: `" + listOfWaitTimes[i].at[2] + "x" + listOfWaitTimes[i].at[1] + "`\nhas finished!",
 								channel: user,
 								color  : embedColors.blue
 							});
@@ -354,15 +360,18 @@ function checkWaitTimes() {
 							map[loc[0]][loc[1]][loc[2]].item = "colony";
 							map[loc[0]][loc[1]][loc[2]].ownersID = listOfWaitTimes[i].player;
 							map[loc[0]][loc[1]][loc[2]].soonOwner = null;
+							listOfWaitTimes.splice(i, 1);
 						});
 					}
 					else {
 						client.fetchUser(listOfWaitTimes[i].player).then(function (user) {
 							sendBasicEmbed({
-								content: "Your colonization at\nGalaxy: `" + (listOfWaitTimes[i].at[0] + 1) + "` Area: `" + listOfWaitTimes[i].at[2] + "x" + listOfWaitTimes[i].at[1] + "\nhas failed.\n**Reason:** You moved away.",
+								content: "Your colonization at\nGalaxy: `" + (listOfWaitTimes[i].at[0] + 1) + "` Area: `" + (listOfWaitTimes[i].at[2] + 1) + "x" + (listOfWaitTimes[i].at[1] + 1) + "\nhas failed.\n**Reason:** You moved away.",
 								channel: user,
 								color  : embedColors.red
 							});
+							map[listOfWaitTimes.at[0]][listOfWaitTimes.at[1]][listOfWaitTimes.at[2]].item = "planet";
+							listOfWaitTimes.splice(i, 1);
 						});
 					}
 					break;
@@ -376,19 +385,21 @@ function checkWaitTimes() {
 								color  : embedColors.red,
 								channel: user
 							})
-						});
-						for (let i = 0; i < accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.length; i++) {
-							if (matchArray(accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations[i].location, playerData.location, false)) {
-								accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.splice(i, 1);
+
+							for (let j = 0; j < accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.length; j++) {
+								if (matchArray(accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations[j].location, playerData.location, false)) {
+									accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.splice(j, 1);
+								}
 							}
-						}
-						map[loc[0]][loc[1]][loc[2]].ownersID = null;
-						map[loc[0]][loc[1]][loc[2]].item = "planet";
-						sendBasicEmbed({
-							content: "You have destroyed the station at\nGalaxy: `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`",
-							color  : embedColors.blue,
-							channel: client.users.get(playerData.userID)
-						})
+							map[loc[0]][loc[1]][loc[2]].ownersID = null;
+							map[loc[0]][loc[1]][loc[2]].item = "planet";
+							sendBasicEmbed({
+								content: "You have destroyed the station at\nGalaxy: `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`",
+								color  : embedColors.blue,
+								channel: client.users.get(playerData.userID)
+							})
+							listOfWaitTimes.splice(i, 1);
+						});
 					}
 					else {
 						sendBasicEmbed({
@@ -396,6 +407,7 @@ function checkWaitTimes() {
 							color  : embedColors.red,
 							channel: client.users.get(player.userID)
 						})
+						listOfWaitTimes.splice(i, 1);
 					}
 					break;
 				case "research":
@@ -405,6 +417,7 @@ function checkWaitTimes() {
 						color  : embedColors.yellow,
 						channel: client.users.get(listOfWaitTimes[i].player)
 					});
+					listOfWaitTimes.splice(i, 1);
 					break;
 				case "buildStation":
 					let playerData = accountData[listOfWaitTimes[i].player];
@@ -421,6 +434,7 @@ function checkWaitTimes() {
 							.setDescription("Your " + stations.names[listOfWaitTimes[i].which] + " has finished building.")
 							.setColor(embedColors.pink);
 						client.users.get(listOfWaitTimes[i].player).send({embed});
+						listOfWaitTimes.splice(i, 1);
 					}
 					break;
 				case "attackStation":
@@ -433,23 +447,24 @@ function checkWaitTimes() {
 								color  : embedColors.red,
 								channel: message.channel
 							})
-						});
-						for (let i = 0; i < accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.length; i++) {
-							if (matchArray(accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations[i].location, playerData.location, false)) {
-								accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.splice(i, 1);
+							for (let i = 0; i < accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.length; i++) {
+								if (matchArray(accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations[i].location, playerData.location, false)) {
+									accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.splice(i, 1);
+								}
 							}
-						}
-						map[loc[0]][loc[1]][loc[2]] = {
-							ownersID : null,
-							item     : "empty",
-							type     : "empty",
-							soonOwner: null
-						};
-						sendBasicEmbed({
-							content: "You have destroyed the station at\nGalaxy: `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`",
-							color  : embedColors.blue,
-							channel: client.users.get(playerData.userID)
-						})
+							map[loc[0]][loc[1]][loc[2]] = {
+								ownersID : null,
+								item     : "empty",
+								type     : "empty",
+								soonOwner: null
+							};
+							sendBasicEmbed({
+								content: "You have destroyed the station at\nGalaxy: `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`",
+								color  : embedColors.blue,
+								channel: client.users.get(playerData.userID)
+							})
+							listOfWaitTimes.splice(i, 1);
+						});
 					}
 					else {
 						sendBasicEmbed({
@@ -457,10 +472,11 @@ function checkWaitTimes() {
 							color  : embedColors.red,
 							channel: client.users.get(player.userID)
 						})
+						listOfWaitTimes.splice(i, 1);
 					}
 					break;
 			}
-			listOfWaitTimes.splice(i, 1)
+
 		}
 	}
 	saveJsonFile("./accounts.json");
@@ -1009,7 +1025,7 @@ const commands = [
 
 			let txt = "```css\n";
 			for (let i = 0; i < commands.length; i++) {
-				if (typeof commands[i] === "object") {
+				if (!(commands[i] instanceof Array)) {
 					let sendIt = true;
 					for (let q = 0; q < commands[i].reqs.length; q++) {
 						let typeReq = commands[i].reqs[q].split(" ")[0];
@@ -1052,7 +1068,7 @@ const commands = [
 				case "list":
 					let commandsList = "```markdown\n";
 					for (let i = 0; i < commands.length; i++) {
-						if (typeof commands[i] === "object") {
+						if (!(commands[i] instanceof Array)) {
 							commandsList += commands[i].names[0] + "\n"
 						}
 						else {
@@ -1070,19 +1086,18 @@ const commands = [
 						content: "Commands sent to your DMs",
 						channel: message.channel,
 						color  : embedColors.blue
-					})
+					});
 					break;
 				default:
 					let commandIs = null;
 					for (let i = 0; i < commands.length; i++) {
-						if (typeof commands[i] === "object") {
+						if (!(commands[i] instanceof Array)) {
 							for (let j = 0; j < commands[i].names.length; j++) {
 								if (args[0] === commands[i].names[j].toLowerCase()) {
 									commandIs = i;
 									break;
 								}
 							}
-
 						}
 						if (commandIs != null) {
 							break;
@@ -1136,32 +1151,32 @@ const commands = [
 			}
 			switch (args[0]) {
 				case "list":
-					let tagsList = "```markdown\n";
+					let tagsList = "";
 					for (let i = 0; i < commands.length; i++) {
-						if (typeof commands[i] !== "object") {
+						if (commands[i] instanceof Array) {
 							for (let j = 0; j < commands[i].length; j++) {
-								tagsList += commands[i][j] + "  ";
+								tagsList += "`" + commands[i][j] + "` ";
 							}
-							tagsList += "\n";
 						}
 					}
-					tagsList += "```";
 					let embed = new Discord.RichEmbed()
 						.setColor(embedColors.blue)
 						.setTitle("TAGS'S LIST")
 						.setDescription(tagsList)
 						.setFooter(prefix + "tag [TAG_NAME]");
 					message.author.send({embed});
-					sendBasicEmbed({
-						content: "tags sent to your DMs",
-						channel: message.channel,
-						color  : embedColors.blue
-					});
+					if (message.channel.type === "text") {
+						sendBasicEmbed({
+							content: "tags sent to your DMs",
+							channel: message.channel,
+							color  : embedColors.blue
+						});
+					}
 					break;
 				default:
 					let tagIs = null;
 					for (let i = 0; i < commands.length; i++) {
-						if (typeof commands[i] !== "object") {
+						if (commands[i] instanceof Array) {
 							for (let j = 0; j < commands[i].length; j++) {
 								if (args[0] === commands[i][j].toLowerCase()) {
 									tagIs = i;
@@ -1183,24 +1198,26 @@ const commands = [
 						})
 					}
 					else {
-						let aliases = "";
-						let tags = commands[tagIs];
-						for (let i = 0; i < tags.names.length; i++) {
-							aliases += "`" + tags.names[i] + "` ";
-						}
+
 						let commandsInTag = "```css";
+						for (let i = tagIs + 1; i < commands.length; i++) {
+							if (commands[i] instanceof Array) {
+								break;
+							}
+							commandsInTag += commands[i].names[0] + "\n"
+						}
 						for (let i = tagIs; i < commands.length; i++) {
-							if (typeof commands[i] !== "object") {
+							if (commands[i] instanceof Array) {
 								break;
 							}
 							else if (inTag) {
-								commandsInTag += prefix+commands[i].names[0]+"\n"
+								commandsInTag += prefix + commands[i].names[0] + "\n"
 							}
 						}
 						let embed = new Discord.RichEmbed()
 							.setColor(embedColors.blue)
 							.setTitle("COMMANDS IN \"**`" + commands[tagIs][0] + "`**\"")
-							.setDescription(commandsInTag+"```");
+							.setDescription(commandsInTag + "```");
 						message.channel.send({embed});
 					}
 					break;
@@ -1433,8 +1450,8 @@ const commands = [
 				embed.setTitle(message.author.username + "'s stats");
 			}
 			let location = "";
-			if (typeof playerData.location === "object") {
-				location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + playerData.location[2] + "x" + playerData.location[1] + "`"
+			if (playerData.location instanceof Array) {
+				location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + (playerData.location[2]+1) + "x" + (playerData.location[1]+1) + "`"
 			}
 			else {
 				location = playerData.location;
@@ -1475,107 +1492,99 @@ const commands = [
 		values     : ["{GALAXY}", "{X} {Y}", "{GALAXY} {X} {Y}"],
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
-			if (typeof playerData.location === "object") {
-				let numbers = getNumbers(message.content);
-				let warpType, goToPos = [];
-				goToPos[0] = playerData.location[0];
-				goToPos[1] = playerData.location[1];
-				goToPos[2] = playerData.location[2];
 
-				switch (numbers.length) {
-					default:
+			let numbers = getNumbers(message.content);
+			let warpType, goToPos = [];
+			goToPos[0] = playerData.location[0];
+			goToPos[1] = playerData.location[1];
+			goToPos[2] = playerData.location[2];
+
+			switch (numbers.length) {
+				default:
+					warpType = "Invalid";
+					break;
+				case 1:
+					warpType = "galaxy";
+					goToPos[0] = parseInt(numbers[0], 10) - 1;
+					if (goToPos[0] >= map.length) {
 						warpType = "Invalid";
-						break;
-					case 1:
-						warpType = "galaxy";
-						goToPos[0] = parseInt(numbers[0], 10) - 1;
-						if (goToPos[0] >= map.length) {
-							warpType = "Invalid";
-						}
-						break;
-					case 2:
-						warpType = "positionBase";
-						goToPos[2] = parseInt(numbers[0], 10) - 1;
-						goToPos[1] = parseInt(numbers[1], 10) - 1;
-						if (goToPos[1] >= map[goToPos[0]].length) {
-							warpType = "Invalid";
-						}
-						if (goToPos[2] >= map[goToPos[0]][goToPos[1]].length) {
-							warpType = "Invalid";
-						}
-						break;
-					case 3:
-						warpType = "galaxyAndPosition";
-						goToPos[0] = parseInt(numbers[0], 10) - 1;
-						goToPos[2] = parseInt(numbers[1], 10) - 1;
-						goToPos[1] = parseInt(numbers[2], 10) - 1;
-						if (goToPos[0] >= map.length) {
-							warpType = "Invalid";
-						}
-						if (goToPos[1] >= map[goToPos[0]].length) {
-							warpType = "Invalid";
-						}
-						if (goToPos[2] >= map[goToPos[0]][goToPos[1]].length) {
-							warpType = "Invalid";
-						}
-						break;
-				}
-				if (warpType === "Invalid") {
-					sendBasicEmbed({
-						content: "Invalid usage!\nEither\n```fix\nYou didn't put in the position to warp to\nThe position doesnt exist on the map.```",
-						color  : embedColors.red,
-						channel: message.channel
-					})
-				}
-				else {
-					playerData.didntMove = false;
-					let timeUntilFinishedWarping = 0;
-					if (goToPos[1] + 1 > playerData.location[1]) {
-						timeUntilFinishedWarping += ((goToPos[1] + 1) - playerData.location[1]) * timesTake.warpPerPosition;
 					}
-					else {
-						timeUntilFinishedWarping += (playerData.location[1] - (goToPos[1] + 1)) * timesTake.warpPerPosition;
-					}
-					if (goToPos[2] + 1 > playerData.location[2]) {
-						timeUntilFinishedWarping += ((goToPos[2] + 1) - playerData.location[2]) * timesTake.warpPerPosition;
-					}
-					else {
-						timeUntilFinishedWarping += (playerData.location[2] - (goToPos[2] + 1)) * timesTake.warpPerPosition;
-					}
-					if (warpType !== "positionBase") {
-						timeUntilFinishedWarping += 60000 * 5;//5 mins if its a galaxy warp
-					}
+					break;
+				case 2:
+					warpType = "positionBase";
+					goToPos[2] = parseInt(numbers[0], 10) - 1;
+					goToPos[1] = parseInt(numbers[1], 10) - 1;
+					let valid = false;
 
-					listOfWaitTimes.push({
-						player : playerData.userID,
-						expires: Date.now() + timeUntilFinishedWarping,
-						headTo : goToPos,
-						type   : "warp"
-					});
-					if (!waitTimesInterval) {
-						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
+					if(goToPos[1]>=0) {
+						if (goToPos[1] <= map[goToPos[0]].length) {
+							if(goToPos[2]>=0){
+								if (goToPos[2] <= map[goToPos[0]][goToPos[1]].length) {
+									valid = true;
+								}
+							}
+						}
 					}
-					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + goToPos[2] + "x" + goToPos[1] + "`";
-					sendBasicEmbed({
-						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
-						color  : embedColors.blue,
-						channel: message.channel
-					})
-
-				}
+					if(!valid){
+						warpType = "Invalid";
+					}
+					break;
+				case 3:
+					warpType = "galaxyAndPosition";
+					goToPos[0] = parseInt(numbers[0], 10) - 1;
+					goToPos[2] = parseInt(numbers[1], 10) - 1;
+					goToPos[1] = parseInt(numbers[2], 10) - 1;
+					if (goToPos[0] >= map.length) {
+						warpType = "Invalid";
+					}
+					if (goToPos[1] >= map[goToPos[0]].length) {
+						warpType = "Invalid";
+					}
+					if (goToPos[2] >= map[goToPos[0]][goToPos[1]].length) {
+						warpType = "Invalid";
+					}
+					break;
+			}
+			if (warpType === "Invalid") {
+				sendBasicEmbed({
+					content: "Invalid usage!\nEither\n```fix\nYou didn't put in the position to warp to\nThe position doesnt exist on the map.```",
+					color  : embedColors.red,
+					channel: message.channel
+				})
 			}
 			else {
-				let timeLeft = null;
-				for (let i = 0; i < listOfWaitTimes.length; i++) {
-					if (playerData.id === listOfWaitTimes[i].player.id) {
-						timeLeft = listOfWaitTimes[i].expires - Date.now();
-						break;
-					}
+				playerData.didntMove = false;
+				let timeUntilFinishedWarping = 0;
+				if (goToPos[1] + 1 > playerData.location[1]) {
+					timeUntilFinishedWarping += ((goToPos[1] + 1) - playerData.location[1]) * timesTake.warpPerPosition;
 				}
+				else {
+					timeUntilFinishedWarping += (playerData.location[1] - (goToPos[1] + 1)) * timesTake.warpPerPosition;
+				}
+				if (goToPos[2] + 1 > playerData.location[2]) {
+					timeUntilFinishedWarping += ((goToPos[2] + 1) - playerData.location[2]) * timesTake.warpPerPosition;
+				}
+				else {
+					timeUntilFinishedWarping += (playerData.location[2] - (goToPos[2] + 1)) * timesTake.warpPerPosition;
+				}
+				if (warpType !== "positionBase") {
+					timeUntilFinishedWarping += 60000 * 5;//5 mins if its a galaxy warp
+				}
+
+				listOfWaitTimes.push({
+					player : playerData.userID,
+					expires: Date.now() + timeUntilFinishedWarping,
+					headTo : goToPos,
+					type   : "warp"
+				});
+				if (!waitTimesInterval) {
+					waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
+				}
+				playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + goToPos[2] + "x" + goToPos[1] + "`";
 				sendBasicEmbed({
-					content: "You are currently warping.\nYour warp will finish in approximately " + getTimeRemaining(timeLeft),
-					channel: message.channel,
-					color  : embedColors.yellow
+					content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
+					color  : embedColors.blue,
+					channel: message.channel
 				})
 
 			}
@@ -1614,7 +1623,7 @@ const commands = [
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.blue)
 				.setTitle("Location:")
-				.setDescription("Galaxy: `" + pos[0] + "` Area: `" + pos[2] + "x" + pos[1] + "`")
+				.setDescription("Galaxy: `" + (pos[0]+1) + "` Area: `" + (pos[2]+1) + "x" + (pos[1]+1) + "`")
 				.addField("**Current Area is:** " + loc.type, "*__" + station + "__*\n" + items);
 			let otherPlayers = [];
 			for (let i = 0; i < accountData.names.length; i++) {
@@ -1787,8 +1796,6 @@ const commands = [
 				});
 			};
 			let image = new Jimp(mainSize, mainSize, function (err, newimage) {
-
-
 				for (let i = 0; i < m.length; i++) {
 					done.push([]);
 					for (let j = 0; j < m[i].length; j++) {
@@ -1802,8 +1809,14 @@ const commands = [
 								}
 								if (m[i][j].ownersID !== null) {
 									if (m[i][j].ownersID === playerData.userID) {
-										let r = m[i][j].type;
-										setImage(i, j, "images/Stations/You/" + r + ".png", newimage);
+										let theType = m[i][j].type;
+										let folder = m[i][j].item+"s";
+										if(folder === "colonys"){
+											folder = "planets";
+											theType+="Planet";
+										}
+										let image = folder+"/You/"+theType;
+										setImage(i, j, "images/"+ image + ".png", newimage);
 										setSomething = true;
 									}
 									else if (playerData.faction !== null && canShow) {
@@ -1817,11 +1830,24 @@ const commands = [
 												}
 											}
 											let r = m[i][j].type;
-											if (found) {
-												setImage(i, j, "images/Stations/Faction/" + r + ".png", newimage);
+											if (found) {let theType = m[i][j].type;
+												let folder = m[i][j].item+"s";
+												if(folder === "colony"){
+													folder = "planets";
+												}
+												let image = folder+"/Faction/"+theType;
+												setImage(i, j, "images/"+ image + ".png", newimage);
+
 											}
 											else {
-												setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
+												let theType = m[i][j].type;
+												let folder = m[i][j].item+"s";
+												if(folder === "colony"){
+													folder = "planets";
+												}
+												let image = folder+"/Enemy/"+theType;
+												setImage(i, j, "images/"+ image + ".png", newimage);
+												setSomething = true;
 											}
 
 											setSomething = true;
@@ -1829,12 +1855,12 @@ const commands = [
 									}
 									else if (canShow) {
 										let r = m[i][j].type;
-										setImage(i, j, "images/Stations/Enemy/" + r + ".png", newimage);
+										setImage(i, j, "images/stations/Enemy/" + r + ".png", newimage);
 										setSomething = true;
 									}
 								}
 								else {
-									setImage(i, j, "images/Planets/" + m[i][j].type + "Planet" + ".png", newimage);
+									setImage(i, j, "images/planets/Neutral/" + m[i][j].type + "Planet" + ".png", newimage);
 									setSomething = true;
 								}
 							}
@@ -2129,7 +2155,7 @@ const commands = [
 		}
 	},
 
-	["PLANETS", "PLANET", "P"],
+	["PLANETS", "PLANET"],
 	{
 		names      : ["colonize", "colo"],
 		description: "colonize a planet",
@@ -2143,10 +2169,10 @@ const commands = [
 			let isValid = mapSpot.item.toLowerCase() === "planet";
 			if (isValid) {
 				if (mapSpot.ownersID === null) {
+					playerData.didntMove = true;
 					listOfWaitTimes.push({
 						player : playerData.userID,
 						expires: Date.now() + timesTake.colonize,
-						headTo : null,
 						type   : "colonization",
 						at     : playerData.location
 					});
@@ -2171,11 +2197,20 @@ const commands = [
 				}
 			}
 			else {
-				sendBasicEmbed({
-					content: "You are not on a planet.",
-					color  : embedColors.red,
-					channel: message.channel
-				});
+				if (mapSpot.item === "colonizing") {
+					sendBasicEmbed({
+						content: "Someone's already colonizing this.",
+						color  : embedColors.red,
+						channel: message.channel
+					});
+				}
+				else {
+					sendBasicEmbed({
+						content: "You are not on a planet.",
+						color  : embedColors.red,
+						channel: message.channel
+					});
+				}
 			}
 		}
 	},
@@ -2296,7 +2331,7 @@ const commands = [
 		}
 	},
 
-	["STATIONS", "STATION", "S"],
+	["STATIONS", "STATION"],
 	{
 		names      : ["attackStation", "sAttack", "attackS"],
 		description: "attack the station",
@@ -2710,7 +2745,7 @@ const commands = [
 		}
 	},
 
-	["FACTION", "FACTIONS", "F"],
+	["FACTION", "FACTIONS"],
 	{
 		names      : ["factionCreate", "fCreate", "createFaction"],
 		description: "create your faction",
@@ -2909,7 +2944,7 @@ const commands = [
 		effect     : function (message, args, playerData, prefix) {
 			let fac = factions[playerData.faction];
 
-			if(fac.lastAd+timesTake.factionAdvertise <= Date.now()) {
+			if (fac.lastAd + timesTake.factionAdvertise <= Date.now()) {
 				fac.lastAd = Date.now();
 				let channel = client.channels.get('371068393941368844');
 				let own = null;
@@ -2952,9 +2987,9 @@ const commands = [
 					})
 				});
 			}
-			else{
+			else {
 				sendBasicEmbed({
-					content: "You can only advertise once every "+getTimeRemaining(timesTake.factionAdvertise)+"\nYou need to wait "+getTimeRemaining(fac.lastAd+timesTake.factionAdvertise-Date.now())+" before you can advertise again.",
+					content: "You can only advertise once every " + getTimeRemaining(timesTake.factionAdvertise) + "\nYou need to wait " + getTimeRemaining(fac.lastAd + timesTake.factionAdvertise - Date.now()) + " before you can advertise again.",
 					color  : embedColors.red,
 					channel: message.channel
 				})
@@ -4041,7 +4076,8 @@ const commands = [
 				other.map = createMap(nums[0], nums[1], nums[2]);
 				for (let i = 0; i < accountData.names.length; i++) {
 					let acc = accountData[accountData.names[i]];
-					if (acc.location[0] > other.map.length || acc.location[0][0] > other.map[0].length || acc.location[0][0][0] > other.map.length[0][0]) {
+					console.log(acc.location);
+					if (acc.location[0] > other.map.length || acc.location[1] > other.map[0].length || acc.location[2] > other.map[0][0].length) {
 						accountData.location = [0, 0, 0];
 					}
 					for (let j = 0; j < acc.stations.length; j++) {
@@ -4360,7 +4396,7 @@ client.on("message", function (message) {
 		}
 		args.shift();
 		for (let i = 0; i < commands.length; i++) {
-			if (typeof commands[i] === "object") {
+			if (!(commands[i] instanceof Array)) {
 				for (let j = 0; j < commands[i].names.length; j++) {
 					if (commands[i].names[j].toLowerCase() === command) {
 						if (message.channel.type !== "dm") {
