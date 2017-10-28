@@ -10,11 +10,12 @@ var Faction = function (data) {
     this.canUseImage = data.canUseImage || false;
     this.color = data.color || 0x252FF3;
     this.canUseColor = data.canUseColor || false;
-    this.emoji = data.emoji || "";
+    this.emoji = data.emoji || "🛡";
     this.level = data.level || 0;
+    this.lastAd = data.lastAd || 0;
 
     this.members = data.members || [];
-    this.maxMembers = data.maxMembers || 0;
+    this.maxMembers = data.maxMembers || 5;
     this.maxMods = data.maxMods || 0;
     this.aboutToBecomeOwner = data.aboutToBecomeOwner || "";
 

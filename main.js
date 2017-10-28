@@ -2901,6 +2901,68 @@ const commands = [
 		}
 	},
 	{
+		names      : ["fAdvertise", "fAds", "fAd"],
+		description: "advertise your faction",
+		usage      : "factionAdvertise",
+		values     : [],
+		reqs       : ["normCommand", "profile true", "faction true", "factionMod"],
+		effect     : function (message, args, playerData, prefix) {
+			let fac = factions[playerData.faction];
+
+			if(fac.lastAd+timesTake.factionAdvertise <= Date.now()) {
+				fac.lastAd = Date.now();
+				let channel = client.channels.get('371068393941368844');
+				let own = null;
+				let mods = 0;
+				for (let i = 0; i < fac.members.length; i++) {
+					if (fac.members[i].rank.toLowerCase() === "owner") {
+						own = fac.members[i].id;
+					}
+					if (fac.members[i].rank.toLowerCase() === "mod") {
+						mods++;
+					}
+				}
+				let isFull = "The faction is open to joining!";
+				if (fac.members.length >= fac.maxMembers) {
+					isFull = "This faction is full";
+				}
+				console.log(own);
+				client.fetchUser(own).then(function (owner) {
+					if (fac.level >= 2) {
+						let embed = new Discord.RichEmbed()
+							.setColor(fac.color)
+							.setDescription("```fix\nOwner: " + owner.username + "\nMembers: " + fac.members.length + "/" + fac.maxMembers + "\nMods   : " + mods + "/" + fac.maxMods + "```")
+							.setTitle(fac.emoji + " || " + fac.name)
+							.setFooter(isFull);
+						if (fac.image.length) {
+							embed.setThumbnail(fac.image);
+						}
+						if (fac.description.length) {
+							embed.addField("Description:", fac.description);
+						}
+						channel.send({embed});
+					}
+					else {
+						channel.send(fac.emoji + " || " + fac.name + "\n```fix\nOwner: " + owner.username + "\nMembers: " + fac.members.length + "/" + fac.maxMembers + "\nMods   : " + mods + "/" + fac.maxMods + "```\n" + fac.description);
+					}
+					sendBasicEmbed({
+						content: "We have advertised your faction.",
+						color  : embedColors.blue,
+						channel: message.channel
+					})
+				});
+			}
+			else{
+				sendBasicEmbed({
+					content: "You can only advertise once every "+getTimeRemaining(timesTake.factionAdvertise)+"\nYou need to wait "+getTimeRemaining(fac.lastAd+timesTake.factionAdvertise-Date.now())+" before you can advertise again.",
+					color  : embedColors.red,
+					channel: message.channel
+				})
+			}
+
+		}
+	},
+	{
 		names      : ["factionUpgrade", "fUpgrade", "upgradeFaction", "uFaction", "upgradeF"],
 		description: "Upgrade your faction",
 		usage      : "factionUpgrade",
