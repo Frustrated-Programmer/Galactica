@@ -4107,20 +4107,11 @@ const commands = [
 		}
 	},
 	{
-		names      : ["test"],
-		description: "test",
-		usage      : "test",
-		values     : [],
-		reqs       : ["owner"],
-		effect     : function (message, args, playerData, prefix) {
-		}
-	},
-	{
 		names      : ["eval"],
 		description: "does some code",
 		usage      : "eval [VALUE]",
 		values     : ["{CODE}"],
-		reqs       : ["normCommand", "owner"],
+		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
 			let words = message.content.split(";");
 			words[0] = words[0].slice((universalPrefix + "eval ").length, words[0].length);
@@ -4155,7 +4146,7 @@ const commands = [
 		description: "Turns off the bot",
 		usage      : "exit",
 		values     : [],
-		reqs       : ["normCommand", "owner"],
+		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
 			client.destroy().then(function () {
 				console.log("Successfully logged out");
@@ -4168,7 +4159,7 @@ const commands = [
 		description: "change the version",
 		usage      : "version {VALUE}",
 		values     : ["{VERSION}"],
-		reqs       : ["normCommand", "owner"],
+		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
 			if (args[0]) {
 				let other = require("./other.json");
@@ -4194,7 +4185,7 @@ const commands = [
 		description: "recreate the map",
 		usage      : "resetMap",
 		values     : [],
-		reqs       : ["normCommand", "owner"],
+		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(message.content, true);
 			if (nums.length === 3) {
@@ -4250,7 +4241,7 @@ const commands = [
 		description: "gives items to the player or yourself",
 		usage      : "give [VALUE]",
 		values     : ["{ITEM} {AMOUNT}", "{PLAYER} {ITEM} {AMOUNT}"],
-		reqs       : ["normCommand", "profile true", "owner"],
+		reqs       : ["profile true", "owner"],
 		effect     : function (message, args, playerData, prefix) {
 			if (args.length === 2) {
 				playerData[args[0]] += parseInt(args[1], 10);
@@ -4281,7 +4272,7 @@ const commands = [
 		description: "delete a players account",
 		usage      : "delete [VALUE]",
 		values     : ["{ID}", "{@PLAYER}"],
-		reqs       : ["normCommand", "owner"],
+		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(message.content);
 			let player = accountData[nums[0]];
