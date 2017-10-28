@@ -1022,10 +1022,52 @@ const commands = [
 		values     : [],
 		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
+			if (args.length) {
+				let commandIs = null;
+				for (let i = 0; i < commands.length; i++) {
+					if (typeof commands[i] === "object") {
+						for (let j = 0; j < commands[i].names.length; j++) {
+							if (args[0] === commands[i].names[j].toLowerCase()) {
+								commandIs = i;
+								break;
+							}
+						}
 
+					}
+					if (commandIs != null) {
+						break;
+					}
+				}
+
+				if (commandIs != null) {
+					let aliases = "";
+					let command = commands[commandIs];
+					for (let i = 0; i < command.names.length; i++) {
+						aliases += "`" + command.names[i] + "` ";
+					}
+					let embed = new Discord.RichEmbed()
+						.setColor(embedColors.blue)
+						.setTitle("INFO ABOUT \"**`" + prefix + command.names[0] + "`**\"")
+						.setDescription(command.description)
+						.addField("Aliases", aliases)
+						.addField("Usage", "`" + prefix + command.usage + "`", true);
+					if (command.values.length) {
+						let vals = "";
+						for (let i = 0; i < command.values.length; i++) {
+							vals += "`" + command.values[i] + "` ";
+							if (i + 1 !== command.values.length) {
+								vals += "|| "
+							}
+						}
+						embed.addField("`[VALUE]` can be used as:", vals, true);
+					}
+					message.channel.send({embed});
+				}
+				return;
+			}
 			let txt = "```css\n";
 			for (let i = 0; i < commands.length; i++) {
-				if (!(commands[i] instanceof Array)) {
+				if (typeof commands[i] === "object") {
 					let sendIt = true;
 					for (let q = 0; q < commands[i].reqs.length; q++) {
 						let typeReq = commands[i].reqs[q].split(" ")[0];
@@ -1042,7 +1084,7 @@ const commands = [
 					}
 				}
 				else {
-					txt += "#" + commands[i][0] + "#\n";
+					txt += "#" + commands[i] + "#\n";
 				}
 			}
 			let embed = new Discord.RichEmbed()
@@ -1052,6 +1094,7 @@ const commands = [
 				.addField("COMMANDS", txt + "```")
 				.addField("JOIN US", "[INVITE-BOT](https://discordapp.com/oauth2/authorize?client_id=354670433154498560&scope=bot&permissions=67234830)\n[JOIN-OUR-DISCORD](https://discord.gg/J7NkgPZ)");
 			message.channel.send({embed});
+
 		}
 	},
 	{
@@ -1280,9 +1323,10 @@ const commands = [
 	},
 
 	["GAMEPLAY", "MAIN"],
+
 	{
 		names      : ["collect"],
-		description: "collect resources from your stations",
+		description: "collect resources from your stations and colonies",
 		usage      : "collect",
 		values     : [],
 		reqs       : ["normCommand", "profile true", "attacking false"],
@@ -1296,9 +1340,9 @@ const commands = [
 				});
 				canContinue = false;
 			}
-			if (playerData.lastCollection + (60000 * 5) > Date.now()) {
+			if (playerData.lastCollection + timesTake.collectionRate > Date.now()) {
 				sendBasicEmbed({
-					content: "You can only collect once every 5 minutes\nYou currently need to wait:\n" + getTimeRemaining((playerData.lastCollection + (60000 * 5)) - Date.now()),
+					content: "You can only collect once every "+getTimeRemaining(timesTake.collectionRate)+"\nYou currently need to wait:\n" + getTimeRemaining((playerData.lastCollection + (60000 * 5)) - Date.now()),
 					channel: message.channel,
 					color  : embedColors.red
 				});
@@ -1306,7 +1350,7 @@ const commands = [
 			}
 			if (canContinue) {
 				let max = false;
-				let amount = Math.round((Date.now() - playerData.lastCollection) / (60000 * 5));//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
+				let amount = Math.round((Date.now() - playerData.lastCollection) / timesTake.collectionRate);//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
 				let oldAmount = null;
 				if (amount > 12) {
 					max = true;
@@ -1317,10 +1361,12 @@ const commands = [
 				let gainedResources = {};//amount of resources gained
 				let bonusResourcesPlanet = {};//amount of bonus resources gained from planets
 				let bonusResourcesResearch = {};//amount of bonus resources gained from research
+				let colonyResources = {};
 				for (let i = 0; i < resources.names.length; i++) {
 					gainedResources[resources.names[i]] = 0;
 					bonusResourcesPlanet[resources.names[i]] = 0;
 					bonusResourcesResearch[resources.names[i]] = 0;
+					colonyResources[resources.names[i]] = 0;
 				}
 				for (let i = 0; i < playerData.stations.length; i++) {
 					let station = stations[playerData.stations[i].type];
@@ -1328,7 +1374,6 @@ const commands = [
 					let planetBonus = 0;
 					let borders = getBorders(playerData.stations[i].location);
 					for (let bor = 0; bor < borders.length; bor++) {
-						0
 						let planet = planets[borders[bor]];
 						if (planet != null) {
 							for (let bons = 0; bons < planet.bonuses.length; bons++) {
@@ -1355,8 +1400,57 @@ const commands = [
 						}
 					}
 				}
+				for (let i = 0; i < playerData.colonies.length; i++) {
+					let colony = playerData.colonies[i];
+					let planet = planets[playerData.colonies[i].type];
+					let amoPpl = 1+Math.round(amount/2-0.1);
+					if (colony.people + amoPpl < colony.maxPeople) {
+						playerData.colonies[i].people += amoPpl;
+						colonyResources["people"] += amoPpl;
+					}
+					else {
+						colonyResources["people"] += colony.maxPeople - colony.people;
+						playerData.colonies[i].people = colony.maxPeople;
+					}
+					for (let j = 0; j < planet.generatesRates.length; j++) {
+						let stuff = planet.generatesRates[j].split(" ");
+						if (stuff[0] === "people") {
+							let extra = Math.round(parseInt(stuff[1],10) * (amoPpl/100)) * amount
+							if (extra != 0) {
+								if (colony.people + extra < colony.maxPeople) {
+									playerData.colonies[i].people += extra;
+									colonyResources["people"] += extra;
+								}
+								else {
+									colonyResources["people"] += colony.maxPeople - colony.people;
+									playerData.colonies[i].people = colony.maxPeople;
+								}
+							}
+						}
+						else {
+							if (stuff[2] === "perPerson") {
+								let amoItems = Math.round(colony.people / parseInt(stuff[3], 10));
+								playerData[stuff[0]] += amoItems;
+								colonyResources += amoItems;
+							}
+						}
+					}
+
+					if (colony.people < colony.inhabitedMax) {
+						if (colony.people + amount < colony.inhabitedMax) {
+							colonyResources["people"] += amount;
+							playerData.colonies[i].people += amount;
+						}
+						else {
+							colonyResources["people"] += colony.inhabitedMax - colony.people;
+							playerData.colonies[i].people = colony.inhabitedMax;
+						}
+
+					}
+
+				}
 				/**LongestSpace makes sure all the resources TEXT is evenly spaced even with double digits**/
-				let longestSpace = [0, 0, 0];
+				let longestSpace = [0, 0, 0, 0];
 				for (let i = 0; i < resources.names.length; i++) {
 					if (gainedResources[resources.names[i]] != null) {
 						if (("" + gainedResources[resources.names[i]]).length > longestSpace[0]) {
@@ -1374,39 +1468,55 @@ const commands = [
 							longestSpace[2] = ("" + bonusResourcesResearch[resources.names[i]]).length;
 						}
 					}
+					if (colonyResources[resources.names[i]] != null) {
+						if (("" + colonyResources[resources.names[i]]).length > longestSpace[3]) {
+							longestSpace[3] = ("" + colonyResources[resources.names[i]]).length;
+						}
+					}
 				}
 
 				/**Create the gained resources text**/
 				let normalResourcesText = "";
 				let bonusResourceTextFromResearch = "";
 				let bonusResourceTextFromPlanets = "";
+				let resourcesFromColonyText = "";
 				for (let i = 0; i < resources.names.length; i++) {
 					if (gainedResources[resources.names[i]] != null) {
 						let space = "";
-						for (let j = 0; j < longestSpace[0] - ("" + gainedResources[resources.names[i]]).length; j++) {
-							space += " "
-						}
 						if (gainedResources[resources.names[i]] > 0) {
+							for (let j = 0; j < longestSpace[0] - ("" + gainedResources[resources.names[i]]).length; j++) {
+								space += " "
+							}
 							normalResourcesText += gainedResources[resources.names[i]] + space + " | " + resources[resources.names[i]] + " " + resources.names[i] + "\n";
 						}
 					}
 					if (bonusResourcesPlanet[resources.names[i]] != null) {
 						let space = "";
-						for (let j = 0; j < longestSpace[1] - ("" + bonusResourcesPlanet[resources.names[i]]).length; j++) {
-							space += " "
-						}
 						if (bonusResourcesPlanet[resources.names[i]] > 0) {
+							for (let j = 0; j < longestSpace[1] - ("" + bonusResourcesPlanet[resources.names[i]]).length; j++) {
+								space += " "
+							}
+
 							bonusResourceTextFromPlanets += bonusResourcesPlanet[resources.names[i].toLowerCase()] + space + " | " + resources[resources.names[i]] + " " + resources.names[i] + "\n";
 						}
 					}
-
 					if (bonusResourcesResearch[resources.names[i]] != null) {
 						let space = "";
-						for (let j = 0; j < longestSpace[2] - ("" + bonusResourcesResearch[resources.names[i]]).length; j++) {
-							space += " "
-						}
 						if (bonusResourcesResearch[resources.names[i]] > 0) {
+							for (let j = 0; j < longestSpace[2] - ("" + bonusResourcesResearch[resources.names[i]]).length; j++) {
+								space += " "
+							}
 							bonusResourceTextFromResearch += bonusResourcesResearch[resources.names[i]] + space + " | " + resources[resources.names[i]] + " " + resources.names[i] + "\n";
+						}
+					}
+					if (colonyResources[resources.names[i]] != null) {
+						console.log(colonyResources[resources.names[i]]+" "+resources.names[i]);
+						let space = "";
+						if (colonyResources[resources.names[i]] > 0) {
+							for (let j = 0; j < longestSpace[3] - ("" + colonyResources[resources.names[i]]).length; j++) {
+								space += " "
+							}
+							resourcesFromColonyText += colonyResources[resources.names[i]] + space + " | " + resources[resources.names[i]] + " " + resources.names[i] + "\n";
 						}
 					}
 				}
@@ -1421,14 +1531,19 @@ const commands = [
 				else {
 					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to `60` minutes worth of resources");
 				}
-				embed.addField("Normal Resources", normalResourcesText);
+				embed.addField("Normal Resources", normalResourcesText, true);
 
 				if (bonusResourceTextFromPlanets.length) {
-					embed.addField("Bonus Resources from planets", bonusResourceTextFromPlanets);
+					embed.addField("Bonus Resources from planets", bonusResourceTextFromPlanets, true);
 				}
 				if (bonusResourceTextFromResearch.length) {
-					embed.addField("Bonus Resources from researches", bonusResourceTextFromResearch);
+					embed.addField("Bonus Resources from researches", bonusResourceTextFromResearch, true);
 				}
+				if (resourcesFromColonyText.length) {
+					console.log("ranThis2");
+					embed.addField("Total colonies populations gains:", resourcesFromColonyText, true);
+				}
+
 				message.channel.send({embed});
 			}
 		}
@@ -2224,7 +2339,14 @@ const commands = [
 			let colonies = playerData.colonies;
 			let txt = "```css\n";
 			for (let i = 0; i < colonies.length; i++) {
-				txt += spacing(colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + colonies[i].location[2] + "x" + colonies[i].location[1], 50);
+				let space = "";
+				if(colonies[i].people<100){
+					space+=" ";
+					if(colonies.people<10){
+						space+=" "
+					}
+				}
+				txt += spacing(colonies[i].people+space+" | "+colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + colonies[i].location[2] + " x " + colonies[i].location[1], 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -2233,7 +2355,7 @@ const commands = [
 			}
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.pink)
-				.setTitle("NAME-----------------------LOCATION")
+				.setTitle("PEOPLE--NAME-------------------LOCATION")
 				.setDescription(txt);
 			message.channel.send({embed});
 		}
@@ -2640,7 +2762,7 @@ const commands = [
 			let stations = playerData.stations;
 			let txt = "```css\n";
 			for (let i = 0; i < stations.length; i++) {
-				txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  X: " + stations[i].location[1] + " Y: " + stations[i].location[2], 50);
+				txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  Area: " + stations[i].location[2] + " x " + stations[i].location[1], 50);
 				txt += "\n";
 			}
 			txt += "```";
