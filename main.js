@@ -2,22 +2,24 @@
 
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "-";
+const universalPrefix = "test";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
-setInterval(function(){
-	fs.readFile("./galactica.log", function(err, data) {
-        if (err){console.log(err)}
+setInterval(function () {
+	fs.readFile("./galactica.log", function (err, data) {
+		if (err) {
+			console.log(err)
+		}
 		let words = [];
-        console.log(typeof data);
-		for(let i =0;i<words.length;i++){
-			if(words[i].toLowerCase() === "enotfound"||words[i].toLowerCase() === "etimedout"){
+		console.log(typeof data);
+		for (let i = 0; i < words.length; i++) {
+			if (words[i].toLowerCase() === "enotfound" || words[i].toLowerCase() === "etimedout") {
 				console.log("rebooted");
 				process.exit();
 			}
 		}
-		if(words.length >= 5000){
+		if (words.length >= 5000) {
 			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
 				if (err) {
 					console.log(err);
@@ -25,8 +27,8 @@ setInterval(function(){
 				console.log("Refreshed due to amount of logs.");
 			});
 		}
-    });
-},60000*10);
+	});
+}, 60000 * 10);
 
 
 /**VARIABLES**/
@@ -38,6 +40,7 @@ let factions = require("./factions.json").factions;
 let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
+
 
 /**FUNCTIONS**/
 function attackPlayerFunction() {
@@ -922,7 +925,7 @@ const reqChecks = {
 				for (let i = 0; i < fac.members.length; i++) {
 					if (fac.members[i].id === message.author.id) {
 						let mod = false;
-						if (fac.members[i].rank === "creator" || fac.members[i].rank === "mod") {
+						if (fac.members[i].rank === "owner" || fac.members[i].rank === "mod") {
 							mod = true;
 						}
 						return {val: mod, msg: "You need to be a mod or owner of your faction"};
@@ -938,7 +941,7 @@ const reqChecks = {
 			if (fac) {
 				for (let i = 0; i < fac.members.length; i++) {
 					if (fac.members[i].id === message.author.id) {
-						return {val: fac.members[i].rank === "creator", msg: "You need to be a owner of your faction"};
+						return {val: fac.members[i].rank === "owner", msg: "You need to be a owner of your faction"};
 					}
 				}
 			}
@@ -959,7 +962,7 @@ const reqChecks = {
 		if (playerData !== null) {
 			let faction = factions[playerData.faction];
 			if (faction) {
-				if (faction.level + 1 !== factions.costs.length) {
+				if (faction.level + 1 < factions.costs.length) {
 					let missing = "";
 					let stuff = factions.costs[faction.level].split(" ");
 					if (faction[stuff[0]] < parseInt(stuff[1], 10)) {
@@ -995,14 +998,15 @@ const reqChecks = {
 const serverStuff = require("./other.json").serverStuff;
 const updateAccount = require("./account.js");
 const commands = [
-	"HELP",
+	["HELP"],
 	{
 		names      : ["help"],
-		description: "get a list of all the commands you can do",
+		description: "Basic help for all your command needs.",
 		usage      : "help",
 		values     : [],
 		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
+
 			let txt = "```css\n";
 			for (let i = 0; i < commands.length; i++) {
 				if (typeof commands[i] === "object") {
@@ -1021,6 +1025,9 @@ const commands = [
 						txt += commands[i].names[0] + "\n";
 					}
 				}
+				else {
+					txt += "#" + commands[i][0] + "#\n";
+				}
 			}
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.blue)
@@ -1033,12 +1040,12 @@ const commands = [
 	},
 	{
 		names      : ["commands", "command", "coms", "com"],
-		description: "get a list of all the commands",
+		description: "Infomation about commands.",
 		usage      : "commands [VALUE]",
 		values     : ["List", "{COMMAND_NAME}"],
 		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
-			if (args[0] == "" || args[0] == null) {
+			if (!args.length) {
 				args[0] = "list";
 			}
 			switch (args[0]) {
@@ -1049,7 +1056,7 @@ const commands = [
 							commandsList += commands[i].names[0] + "\n"
 						}
 						else {
-							commandsList += "#" + commands[i] + "\n";
+							commandsList += "#" + commands[i][0] + "\n";
 						}
 					}
 					commandsList += "```";
@@ -1060,7 +1067,7 @@ const commands = [
 						.setFooter(prefix + "command [NAME]");
 					message.author.send({embed});
 					sendBasicEmbed({
-						content: "Command sent to your DMs",
+						content: "Commands sent to your DMs",
 						channel: message.channel,
 						color  : embedColors.blue
 					})
@@ -1111,6 +1118,89 @@ const commands = [
 							}
 							embed.addField("`[VALUE]` can be used as:", vals, true);
 						}
+						message.channel.send({embed});
+					}
+					break;
+			}
+		}
+	},
+	{
+		names      : ["tags", "tag"],
+		description: "get a list of all the tags and their info",
+		usage      : "commands [VALUE]",
+		values     : ["List", "{COMMAND_NAME}"],
+		reqs       : ["normCommand"],
+		effect     : function (message, args, playerData, prefix) {
+			if (!args.length) {
+				args[0] = "list";
+			}
+			switch (args[0]) {
+				case "list":
+					let tagsList = "```markdown\n";
+					for (let i = 0; i < commands.length; i++) {
+						if (typeof commands[i] !== "object") {
+							for (let j = 0; j < commands[i].length; j++) {
+								tagsList += commands[i][j] + "  ";
+							}
+							tagsList += "\n";
+						}
+					}
+					tagsList += "```";
+					let embed = new Discord.RichEmbed()
+						.setColor(embedColors.blue)
+						.setTitle("TAGS'S LIST")
+						.setDescription(tagsList)
+						.setFooter(prefix + "tag [TAG_NAME]");
+					message.author.send({embed});
+					sendBasicEmbed({
+						content: "tags sent to your DMs",
+						channel: message.channel,
+						color  : embedColors.blue
+					});
+					break;
+				default:
+					let tagIs = null;
+					for (let i = 0; i < commands.length; i++) {
+						if (typeof commands[i] !== "object") {
+							for (let j = 0; j < commands[i].length; j++) {
+								if (args[0] === commands[i][j].toLowerCase()) {
+									tagIs = i;
+									break;
+								}
+							}
+
+						}
+						if (tagIs != null) {
+							break;
+						}
+					}
+
+					if (tagIs == null) {
+						sendBasicEmbed({
+							content: "Invalid Usage\nTry using `" + prefix + "tags list`",
+							color  : embedColors.red,
+							channel: message.channel
+						})
+					}
+					else {
+						let aliases = "";
+						let tags = commands[tagIs];
+						for (let i = 0; i < tags.names.length; i++) {
+							aliases += "`" + tags.names[i] + "` ";
+						}
+						let commandsInTag = "```css";
+						for (let i = tagIs; i < commands.length; i++) {
+							if (typeof commands[i] !== "object") {
+								break;
+							}
+							else if (inTag) {
+								commandsInTag += prefix+commands[i].names[0]+"\n"
+							}
+						}
+						let embed = new Discord.RichEmbed()
+							.setColor(embedColors.blue)
+							.setTitle("COMMANDS IN \"**`" + commands[tagIs][0] + "`**\"")
+							.setDescription(commandsInTag+"```");
 						message.channel.send({embed});
 					}
 					break;
@@ -1172,7 +1262,7 @@ const commands = [
 		}
 	},
 
-	"GAMEPLAY",
+	["GAMEPLAY", "MAIN"],
 	{
 		names      : ["collect"],
 		description: "collect resources from your stations",
@@ -1398,15 +1488,15 @@ const commands = [
 						break;
 					case 1:
 						warpType = "galaxy";
-						goToPos[0] = parseInt(numbers[0], 10)-1;
+						goToPos[0] = parseInt(numbers[0], 10) - 1;
 						if (goToPos[0] >= map.length) {
 							warpType = "Invalid";
 						}
 						break;
 					case 2:
 						warpType = "positionBase";
-						goToPos[2] = parseInt(numbers[0], 10)-1;
-						goToPos[1] = parseInt(numbers[1], 10)-1;
+						goToPos[2] = parseInt(numbers[0], 10) - 1;
+						goToPos[1] = parseInt(numbers[1], 10) - 1;
 						if (goToPos[1] >= map[goToPos[0]].length) {
 							warpType = "Invalid";
 						}
@@ -1416,9 +1506,9 @@ const commands = [
 						break;
 					case 3:
 						warpType = "galaxyAndPosition";
-						goToPos[0] = parseInt(numbers[0], 10)-1;
-						goToPos[2] = parseInt(numbers[1], 10)-1;
-						goToPos[1] = parseInt(numbers[2], 10)-1;
+						goToPos[0] = parseInt(numbers[0], 10) - 1;
+						goToPos[2] = parseInt(numbers[1], 10) - 1;
+						goToPos[1] = parseInt(numbers[2], 10) - 1;
 						if (goToPos[0] >= map.length) {
 							warpType = "Invalid";
 						}
@@ -1590,7 +1680,10 @@ const commands = [
 			let mainSize = require("./other.json").imageSize;
 			let go = null;
 			let mess = null;
-			message.channel.send("```fix\nLoading...\nPlease give the bot some time```").then(function (m) {
+			let embed = new Discord.RichEmbed()
+				.setDescription("```fix\nLoading...\nPlease give the bot some time```")
+				.setColor(embedColors.blue);
+			message.channel.send({embed}).then(function (m) {
 				mess = m;
 			});
 			function doFun(num) {
@@ -1625,7 +1718,7 @@ const commands = [
 			message.channel.startTyping();
 			let loc = playerData.location;
 			let m = map[loc[0]];
-			let size = mainSize / (m.length+1);
+			let size = mainSize / (m.length + 1);
 
 			let done = [];
 			let canShowFunc = function (y, x) {
@@ -1686,8 +1779,10 @@ const commands = [
 			let setImage = function (y, x, which, newimage) {
 				Jimp.read(which, function (err, image) {
 					if (err) throw err;
-					image.resize(size, size);
-					newimage.composite(image, (x+1) * size, (y+1) * size);
+					if (image !== "images/Other/You.png") {
+						image.resize(size, size);
+					}
+					newimage.composite(image, (x + 1) * size, (y + 1) * size);
 					done[y][x] = true;
 				});
 			};
@@ -1765,8 +1860,7 @@ const commands = [
 						}
 					}
 				}
-				done[loc[1]][loc[2]] = false;
-				setImage(loc[1], loc[2], "images/Other/You.png", newimage);
+
 
 				function doFun() {
 					let finished = true;
@@ -1788,14 +1882,17 @@ const commands = [
 					}
 				}
 
+				done[loc[1]][loc[2]] = false;
 				setTimeout(function () {
 					doFun();
 				}, 1000);
 				Jimp.read("images/Other/GridLines.png", function (err, image) {
 					if (err) throw err;
-					image.resize(mainSize,mainSize);
-					newimage.composite(image,0,0);
+					image.resize(mainSize, mainSize);
+					newimage.composite(image, 0, 0);
 					done[m.length][0] = true;
+					done[loc[1]][loc[2]] = false;
+					setImage(loc[1], loc[2], "images/Other/You.png", newimage);
 				});
 			});
 		}
@@ -2032,7 +2129,7 @@ const commands = [
 		}
 	},
 
-	"PLANETS",
+	["PLANETS", "PLANET", "P"],
 	{
 		names      : ["colonize", "colo"],
 		description: "colonize a planet",
@@ -2043,7 +2140,7 @@ const commands = [
 
 			let loc = playerData.location;
 			let mapSpot = map[loc[0]][loc[1]][loc[2]];
-			let isValid = mapSpot.item === "planet";
+			let isValid = mapSpot.item.toLowerCase() === "planet";
 			if (isValid) {
 				if (mapSpot.ownersID === null) {
 					listOfWaitTimes.push({
@@ -2199,7 +2296,7 @@ const commands = [
 		}
 	},
 
-	"STATIONS",
+	["STATIONS", "STATION", "S"],
 	{
 		names      : ["attackStation", "sAttack", "attackS"],
 		description: "attack the station",
@@ -2613,7 +2710,7 @@ const commands = [
 		}
 	},
 
-	"FACTIONS",
+	["FACTION", "FACTIONS", "F"],
 	{
 		names      : ["factionCreate", "fCreate", "createFaction"],
 		description: "create your faction",
@@ -2647,7 +2744,7 @@ const commands = [
 							playerData.faction = txt.toLowerCase();
 							factions.names.push({lowerCaseName: txt.toLowerCase(), regularName: txt});
 							let newFactionData = new createFaction();
-							newFactionData.members.push({id: message.author.id, rank: "creator"});
+							newFactionData.members.push({id: message.author.id, rank: "owner"});
 							newFactionData.name = txt;
 							factions[txt.toLowerCase()] = newFactionData;
 							playerData["credits"] -= 500;
@@ -2952,7 +3049,7 @@ const commands = [
 						});
 						for (let i = 0; i < faction.members.length; i++) {
 							if (faction.members[i].id === ID) {
-								faction.members[i].rank = "creator";
+								faction.members[i].rank = "owner";
 							}
 							if (faction.members[i].id === message.author.id) {
 								faction.members[i].rank = "mod";
@@ -3041,7 +3138,7 @@ const commands = [
 				if (ID === faction.members[i].id) {
 					member = i;
 				}
-				if (faction.members[i].rank === "creator") {
+				if (faction.members[i].rank === "owner") {
 					creator = i;
 				}
 
@@ -3054,7 +3151,7 @@ const commands = [
 				})
 			}
 			else {
-				if (faction.members[member].rank === "creator") {
+				if (faction.members[member].rank === "owner") {
 					sendBasicEmbed({
 						content: "You can't kick the owner of the faction.",
 						channel: message.channel,
@@ -3156,7 +3253,7 @@ const commands = [
 				});
 				for (let i = 0; i < faction.members.length; i++) {
 					if (faction.members[i].id === message.author.id) {
-						if (faction.members[i].rank !== "creator") {
+						if (faction.members[i].rank !== "owner") {
 							faction.members.splice(i, 1);
 							break;
 						}
@@ -3181,7 +3278,7 @@ const commands = [
 		}
 	},
 
-	"MOD",
+	["MODERATION", "MODS"],
 	{
 		names      : ["changePrefix", "prefixChange"],
 		description: "change your server's prefix",
@@ -3327,7 +3424,7 @@ const commands = [
 		names      : ["setWelcomeChannel", "setWC"],
 		description: "set your server's welcome channel and its message",
 		usage      : "setWelcomeChannel [VALUE]",
-		values     : ["{CHANNEL_ID} {MESSAGE}", "{#CHANNEL} {MESSAGE}","\"NONE\""],
+		values     : ["{CHANNEL_ID} {MESSAGE}", "{#CHANNEL} {MESSAGE}", "\"NONE\""],
 		reqs       : ["channel text", "userPerms ADMINISTRATOR"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(message.content);
@@ -3336,7 +3433,7 @@ const commands = [
 				if (client.channels.get(nums[0]) != null) {
 					if (args.length >= 2) {
 						welcomeTxt = "";
-						for (let i = 1;i < args.length; i++) {
+						for (let i = 1; i < args.length; i++) {
 							welcomeTxt += args[i] + " ";
 						}
 					}
@@ -3394,7 +3491,7 @@ const commands = [
 		names      : ["setGoodbyeChannel", "setGC"],
 		description: "set your server's goodbye channel and its message",
 		usage      : "setGoodbyeChannel [VALUE]",
-		values     : ["{CHANNEL_ID} {MESSAGE}", "{#CHANNEL} {MESSAGE}","\"NONE\""],
+		values     : ["{CHANNEL_ID} {MESSAGE}", "{#CHANNEL} {MESSAGE}", "\"NONE\""],
 		reqs       : ["channel text", "userPerms ADMINISTRATOR"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(message.content);
@@ -3403,7 +3500,7 @@ const commands = [
 				if (client.channels.get(nums[0]) != null) {
 					if (args.length >= 2) {
 						goodbyeTxt = "";
-						for (let i = 1;i < args.length; i++) {
+						for (let i = 1; i < args.length; i++) {
 							goodbyeTxt += args[i] + " ";
 						}
 					}
@@ -3766,7 +3863,7 @@ const commands = [
 		}
 	},
 
-	"OWNER",
+	["OWNER"],
 	{
 		names      : ["clearLogs"],
 		description: "clearLogs",
@@ -3876,19 +3973,19 @@ const commands = [
 		values     : [],
 		reqs       : ["normCommand", "owner"],
 		effect     : function (message, args, playerData, prefix) {
-			let nums = getNumbers(message.content,true);
-			if(nums.length===3) {
+			let nums = getNumbers(message.content, true);
+			if (nums.length === 3) {
 				let other = require("./other.json");
 				other.map = createMap(nums[0], nums[1], nums[2]);
 				for (let i = 0; i < accountData.names.length; i++) {
 					let acc = accountData[accountData.names[i]];
-					if(acc.location[0]>other.map.length||acc.location[0][0]>other.map[0].length||acc.location[0][0][0]>other.map.length[0][0]){
-						accountData.location = [0,0,0];
+					if (acc.location[0] > other.map.length || acc.location[0][0] > other.map[0].length || acc.location[0][0][0] > other.map.length[0][0]) {
+						accountData.location = [0, 0, 0];
 					}
 					for (let j = 0; j < acc.stations.length; j++) {
 						let statsLoc = acc.stations[j].location;
 						if (statsLoc[0] >= other.map.length || statsLoc[1] >= other.map[0].length || statsLoc[2] >= other.map[0][0].length) {
-							acc.stations.splice(j,1);
+							acc.stations.splice(j, 1);
 						}
 						else {
 							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
@@ -3915,7 +4012,7 @@ const commands = [
 					channel: message.channel
 				})
 			}
-			else{
+			else {
 				sendBasicEmbed({
 					content: `3 numbers required instead of ${nums.length}`,
 					color  : embedColors.red,
@@ -3970,7 +4067,7 @@ const commands = [
 					if (fac) {
 						for (let i = 0; i < fac.members.length; i++) {
 							if (fac.members[i].id === player.id) {
-								if (fac.members[i].rank !== "creator") {
+								if (fac.members[i].rank !== "owner") {
 									fac.members.splice(i, 1);
 								}
 								else {
@@ -4031,7 +4128,7 @@ const commands = [
 setInterval(function () {
 	client.sweepMessages((60000 * 60) * 24);
 }, 60000 * 60);
-client.on("guildMemberRemove",function(member){
+client.on("guildMemberRemove", function (member) {
 	if (serverStuff[member.guild.id].goodbyeChannel.id != null) {
 		let txt = "";
 		let msg = serverStuff[member.guild.id].goodbyeChannel.message.split(" ");
