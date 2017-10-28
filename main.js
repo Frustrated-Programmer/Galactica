@@ -2,8 +2,8 @@
 
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "test";
-const fs = require("-");
+const universalPrefix = "-";
+const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 setInterval(function () {
