@@ -2,8 +2,8 @@
 
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "-";
-const fs = require("fs");
+const universalPrefix = "test";
+const fs = require("-");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 setInterval(function () {
@@ -326,6 +326,7 @@ function getBorders(location) {
 	return bordering;
 }
 function checkWaitTimes() {
+	listOfWaitTimes = require("./other.json").listOfWaitTimes;
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 
 		if (listOfWaitTimes[i].expires <= Date.now()) {
@@ -351,15 +352,18 @@ function checkWaitTimes() {
 							maxPeople: planets[mapSpot.type].inhabitedMax
 						});
 						client.fetchUser(listOfWaitTimes[i].player).then(function (user) {
+
 							sendBasicEmbed({
 								content: "Your colonization at\nGalaxy: `" + (listOfWaitTimes[i].at[0] + 1) + "` Area: `" + listOfWaitTimes[i].at[2] + "x" + listOfWaitTimes[i].at[1] + "`\nhas finished!",
 								channel: user,
 								color  : embedColors.blue
 							});
 							let loc = accountData[listOfWaitTimes[i].player].location;
+
 							map[loc[0]][loc[1]][loc[2]].item = "colony";
 							map[loc[0]][loc[1]][loc[2]].ownersID = listOfWaitTimes[i].player;
 							map[loc[0]][loc[1]][loc[2]].soonOwner = null;
+
 							listOfWaitTimes.splice(i, 1);
 						});
 					}
@@ -370,7 +374,7 @@ function checkWaitTimes() {
 								channel: user,
 								color  : embedColors.red
 							});
-							map[listOfWaitTimes.at[0]][listOfWaitTimes.at[1]][listOfWaitTimes.at[2]].item = "planet";
+							map[listOfWaitTimes[i].at[0]][listOfWaitTimes[i].at[1]][listOfWaitTimes[i].at[2]].item = "planet";
 							listOfWaitTimes.splice(i, 1);
 						});
 					}
