@@ -1,0 +1,98 @@
+__**TUTORIAL FOR GALACTICA**__
+
+Now some of you may/have been confused with the gameplay of Galactica.
+Or some of you are joining us for the first time and i welcome you :D
+
+Now to start playing just send `-join` to create an account.
+
+To get yourself started we're going to need people to *run* our stations later.
+So lets find us some planets!
+
+**Finding a planet**
+
+use `-scan` to look around you. Don't see an available planet?
+use `-warp 10 10` to warp to the middle of the map.
+wait for the warp to finish and run `-scan` again.
+If you STILL cant find a planet use `-warp NUMBER NUMBER` to warp around until you find one.
+__*MAKE SURE THE PLANET DOESN'T HAVE A RED FLAG ON IT, IF IT DOES THAT MEANS SOMEONE ELSE OWNS IT*__
+
+**Colonizing**
+Now that you've found a planet double check if its habitable by running `-Look`
+if its uninhabitable use `-warp NUMBER NUMBER` to go find another
+otherwise run `-colonize` to colonize that planet.
+Wait for the planet to finish colonizing.
+__*DO NOT WARP UNTIL ITS FINISHED*__
+
+Now you have a colony! Most colonies Give you people unless its Uninhabitable.
+And *some* even give you credits and food depending on the amount of people living on it.
+
+Now run `-collect`. If you get an error. Wait the time remaining the error says.
+Otherwise... Hurray! You've collected!
+
+Now we'll make an `Mining Station`
+
+???///breakpoint\\\???
+**Finding a empty spot**
+
+Use `-scan` and `-warp NUMBER NUMBER` to find a empty spot.
+Now use `-stations list` to view all the stations.
+and use `-station info Mining Station` to get information about that station.
+
+**Building a station**
+Now that we know what it does. lets build one!
+Run `-build Mining Station` and wait for it to finish.
+__*DO NOT WARP UNTIL ITS FINISHED*__
+
+Now that you have a station.
+run `-collect`. If you get an error. Wait the time remaining the error says.
+Otherwise... Congratulations!!!
+
+Now every so often run `-collect` until you get `20` :people: people.
+check how much you have via `-stats`
+
+**Getting Food**
+When you have 20 people.
+find a empty spot and build a `Agriculture Station`
+This station gives you food. Food is what you need to build more colonies.
+
+Come back to read the rest after you've accomplished
+```css
+1 more colony
+100 more people
+1 refining station
+1 research station```
+
+???///breakpoint\\\???
+
+Now that you have a `Research Station` you should be getting :bulb: Research via `collect`
+
+**Research Info**
+You can now research items!
+lets figure out what all the research items are so run `-research list`
+
+:thinking: so lets figure out what each does, so run `-research info Gravatic Purification`
+
+now check to see if you have enough :bulb: research.
+if you don't then keep `-collect`ing
+
+if you do then continue :D
+
+**Researching**
+Lets research `Gravatic Purification`
+so run `-research Gravatic Purification`
+and now we need to wait for the research to be complete.
+
+Once its complete you have now unlocked new items :D
+
+???///breakpoint\\\???
+
+**Attacking**
+If you use `-scan` and `-warp NUMBER NUMBER`
+try to find a Enemy planet or station.
+you can attack it via `-attackStation` or `-attackColony`
+__*Warning the owner will be notified so keep your guard up*__
+
+You can do the same to your **OWN** stations and colonies if you want to get rid of it.
+
+If you warp to a player you can attack him/her via `-attackPlayer PLAYER_ID`
+You can get a list of all players where you're at via `-lookAround`

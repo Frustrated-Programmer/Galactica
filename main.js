@@ -1895,7 +1895,7 @@ const commands = [
 				mess = m;
 			});
 			function doFun(num) {
-				fs.exists("images/mapImage" + playerData.userID + ".png", function (exists) {
+				fs.exists("TheImages/mapImage" + playerData.userID + ".png", function (exists) {
 					go = exists;
 				});
 				if (go) {
@@ -1903,10 +1903,10 @@ const commands = [
 					let emb = new Discord.RichEmbed()
 						.setColor(embedColors.blue)
 						.setDescription("Scanned")
-						.attachFile("./images/mapImage" + playerData.userID + ".png")
+						.attachFile("./TheImages/mapImage" + playerData.userID + ".png")
 						.setImage("attachment://mapImage" + playerData.userID + ".png");
 					message.channel.send({embed: emb}).then(function () {
-						fs.unlink("images/mapImage" + playerData.userID + ".png");
+						fs.unlink("TheImages/mapImage" + playerData.userID + ".png");
 						if (mess != null) {
 							mess.delete();
 						}
@@ -1987,7 +1987,7 @@ const commands = [
 			let setImage = function (y, x, which, newimage) {
 				Jimp.read(which, function (err, image) {
 					if (err) throw err;
-					if (image !== "images/Other/You.png") {
+					if (image !== "TheImages/Other/You.png") {
 						if (x === playerData.location[2] && y === playerData.location[1]) {
 							image.resize(size / 2, size / 2);
 							newimage.composite(image, (x + 1) * (size * 2), (y + 1) * (size * 2));
@@ -2026,7 +2026,7 @@ const commands = [
 											theType += "Planet";
 										}
 										let image = folder + "/You/" + theType;
-										setImage(i, j, "images/" + image + ".png", newimage);
+										setImage(i, j, "TheImages/" + image + ".png", newimage);
 										setSomething = true;
 									}
 									else if (playerData.faction !== null && canShow) {
@@ -2047,7 +2047,7 @@ const commands = [
 													folder = "planets";
 												}
 												let image = folder + "/Faction/" + theType;
-												setImage(i, j, "images/" + image + ".png", newimage);
+												setImage(i, j, "TheImages/" + image + ".png", newimage);
 
 											}
 											else {
@@ -2057,7 +2057,7 @@ const commands = [
 													folder = "planets";
 												}
 												let image = folder + "/Enemy/" + theType;
-												setImage(i, j, "images/" + image + ".png", newimage);
+												setImage(i, j, "TheImages/" + image + ".png", newimage);
 												setSomething = true;
 											}
 
@@ -2066,21 +2066,21 @@ const commands = [
 									}
 									else if (canShow) {
 										let r = m[i][j].type;
-										setImage(i, j, "images/stations/Enemy/" + r + ".png", newimage);
+										setImage(i, j, "TheImages/stations/Enemy/" + r + ".png", newimage);
 										setSomething = true;
 									}
 								}
 								else {
-									setImage(i, j, "images/planets/Neutral/" + m[i][j].type + "Planet" + ".png", newimage);
+									setImage(i, j, "TheImages/planets/Neutral/" + m[i][j].type + "Planet" + ".png", newimage);
 									setSomething = true;
 								}
 							}
 							if (!setSomething) {
-								setImage(i, j, "images/Other/EmptySpace.png", newimage);
+								setImage(i, j, "TheImages/Other/EmptySpace.png", newimage);
 							}
 						}
 						else {
-							setImage(i, j, "images/Other/Unknown.png", newimage);
+							setImage(i, j, "TheImages/Other/Unknown.png", newimage);
 						}
 					}
 				}
@@ -2093,7 +2093,7 @@ const commands = [
 							if (loc[1] === playerData.location[1] && loc[2] === playerData.location[2]) {
 								somethingUnder = true;
 							}
-							setImage(loc2[1], loc2[2], "images/Other/Player.png", newimage);
+							setImage(loc2[1], loc2[2], "TheImages/Other/Player.png", newimage);
 						}
 					}
 				}
@@ -2110,7 +2110,7 @@ const commands = [
 						}
 					}
 					if (finished) {
-						newimage.write("images/mapImage" + playerData.userID + ".png");
+						newimage.write("TheImages/mapImage" + playerData.userID + ".png");
 					}
 					else {
 						setTimeout(function () {
@@ -2123,13 +2123,13 @@ const commands = [
 				setTimeout(function () {
 					doFun();
 				}, 1000);
-				Jimp.read("images/Other/GridLines.png", function (err, image) {
+				Jimp.read("TheImages/Other/GridLines.png", function (err, image) {
 					if (err) throw err;
 					image.resize(mainSize, mainSize);
 					newimage.composite(image, 0, 0);
 					done[m.length][0] = true;
 					done[loc[1]][loc[2]] = false;
-					setImage(loc[1], loc[2], "images/Other/You.png", newimage);
+					setImage(loc[1], loc[2], "TheImages/Other/You.png", newimage);
 				});
 			});
 		}
