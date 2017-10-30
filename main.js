@@ -10,8 +10,7 @@ setInterval(function () {
 		if (err) {
 			console.log(err)
 		}
-		let words = [];
-		console.log(typeof data);
+		let words = data.split(" ");
 		for (let i = 0; i < words.length; i++) {
 			if (words[i].toLowerCase() === "enotfound" || words[i].toLowerCase() === "etimedout") {
 				console.log("rebooted");
@@ -21,7 +20,7 @@ setInterval(function () {
 		if (words.length >= 5000) {
 			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
 				if (err) {
-					console.log(err);
+					throw err
 				}
 				console.log("Refreshed due to amount of logs.");
 			});
@@ -72,7 +71,6 @@ function attackPlayerFunction() {
 		}
 
 		if (attack.timeSinceLastAttack + 20000 <= Date.now() || x === 3) {
-			console.log(attack.timeSinceLastAttack + 20000 + "<=" + Date.now() + "||" + x);
 			attack.timeSinceLastAttack = Date.now();
 			/****
 			 * 1 = shield
@@ -570,7 +568,7 @@ function sendBasicEmbed(args) {
 		args.channel.send({embed});
 	}
 	else {
-		console.log("EMBED MUST HAVE `CONTENT` `COLOR` and `CHANNEL` AND ALL ARGS WAS:\n" + args);
+		throw "EMBED MUST HAVE `CONTENT` `COLOR` and `CHANNEL` AND ALL ARGS WAS:\n" + args;
 	}
 }
 function channelClear(channel, msgnum) {
@@ -660,7 +658,7 @@ function checkPerms(args) {
 		user = args.message.member;
 	}
 	else {
-		console.log("args.user should be \"user\" or \"bot\"");
+		throw "args.user should be \"user\" or \"bot\"";
 		return false;
 	}
 
@@ -1326,6 +1324,7 @@ const commands = [
 		}
 	},
 
+
 	["GAMEPLAY", "MAIN"],
 	{
 		names      : ["collect"],
@@ -1392,8 +1391,14 @@ const commands = [
 					}
 					for (let j = 0; j < station.gives[playerData.stations[i].level].length; j++) {
 						let stuff = station.gives[playerData.stations[i].level][j].split(" ");
+						if (parseInt(stuff[1], 10) < 0) {
+							if (playerData[stuff[0]] - parseInt(stuff[1], 10)<0) {
+								break;
+							}
+						}
 						gainedResources[stuff[0]] += parseInt(stuff[1], 10) * amount;
 						playerData[stuff[0]] += parseInt(stuff[1], 10) * amount;
+
 						bonusResourcesPlanet[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (planetBonus / 100) * amount);
 						playerData[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (planetBonus / 100) * amount);
 
@@ -1513,7 +1518,6 @@ const commands = [
 						}
 					}
 					if (colonyResources[resources.names[i]] != null) {
-						console.log(colonyResources[resources.names[i]] + " " + resources.names[i]);
 						let space = "";
 						if (colonyResources[resources.names[i]] > 0) {
 							for (let j = 0; j < longestSpace[3] - ("" + colonyResources[resources.names[i]]).length; j++) {
@@ -1543,7 +1547,6 @@ const commands = [
 					embed.addField("Bonus Resources from researches", bonusResourceTextFromResearch, true);
 				}
 				if (resourcesFromColonyText.length) {
-					console.log("ranThis2");
 					embed.addField("Total colonies populations gains:", resourcesFromColonyText, true);
 				}
 
@@ -2358,7 +2361,7 @@ const commands = [
 						embed.addField("FREE COLONY", "As this is your first station. Your colony is free of charge");
 					}
 					else {
-						embed.addField("LOST RESOURCES", Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax/10)+" "+resources["food"]+" food");
+						embed.addField("LOST RESOURCES", Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax / 10) + " " + resources["food"] + " food");
 					}
 					message.channel.send({embed});
 				}
@@ -2405,7 +2408,7 @@ const commands = [
 						space += " "
 					}
 				}
-				txt += spacing(colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + (colonies[i].location[2]+1) + " x " + (colonies[i].location[1]+1), 50);
+				txt += spacing(colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + (colonies[i].location[2] + 1) + " x " + (colonies[i].location[1] + 1), 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -2821,7 +2824,7 @@ const commands = [
 			let stations = playerData.stations;
 			let txt = "```css\n";
 			for (let i = 0; i < stations.length; i++) {
-				txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  Area: " + (stations[i].location[2]+1) + " x " + (stations[i].location[1]+1_, 50);
+				txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  Area: " + (stations[i].location[2] + 1) + " x " + (stations[i].location[1] + 1), 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -3142,7 +3145,6 @@ const commands = [
 				if (fac.members.length >= fac.maxMembers) {
 					isFull = "This faction is full";
 				}
-				console.log(own);
 				client.fetchUser(own).then(function (owner) {
 					if (fac.level >= 2) {
 						let embed = new Discord.RichEmbed()
@@ -4155,7 +4157,7 @@ const commands = [
 		effect     : function (message, args, playerData, prefix) {
 			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
 				if (err) {
-					console.log(err);
+					throw err;
 				}
 			});
 			sendBasicEmbed({
@@ -4252,7 +4254,6 @@ const commands = [
 				other.map = createMap(nums[0], nums[1], nums[2]);
 				for (let i = 0; i < accountData.names.length; i++) {
 					let acc = accountData[accountData.names[i]];
-					console.log(acc.location);
 					if (acc.location[0] > other.map.length || acc.location[1] > other.map[0].length || acc.location[2] > other.map[0][0].length) {
 						accountData.location = [0, 0, 0];
 					}
