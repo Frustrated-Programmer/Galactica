@@ -1757,12 +1757,11 @@ const commands = [
 		values     : [],
 		reqs       : ["normCommand", "profile true", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
-
+			let pos = playerData.location;
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.blue)
 				.setTitle("Location:")
 				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`");
-			let pos = playerData.location;
 			let loc = map[pos[0]][pos[1]][pos[2]];
 
 			let item = "Empty Space";
