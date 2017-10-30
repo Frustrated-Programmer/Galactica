@@ -1793,7 +1793,7 @@ const commands = [
 						}
 					}
 					if (station !== null) {
-						embed.addField("Information", info+"\n```css\nLevel: " + station.level + "\nDoes: " + station[loc.type].description + "```" + attack);
+						embed.addField("Information", info+"\n```css\nLevel: " + station.level + "\nDoes: " + stations[loc.type].description + "```" + attack);
 					}
 				}
 				else{
