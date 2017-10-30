@@ -439,7 +439,6 @@ function checkWaitTimes() {
 					}
 					break;
 				case "attackStation":
-					let station = listOfWaitTimes[i].at;
 					if (playerData.didntMove) {
 						let loc = playerData.location;
 						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(function (user) {
@@ -447,11 +446,18 @@ function checkWaitTimes() {
 								content: "Your station at\nGalaxy: `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`\nHas been destroyed by `" + playerData.username + "`",
 								color  : embedColors.red,
 								channel: message.channel
-							})
+							});
 							for (let i = 0; i < accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.length; i++) {
 								if (matchArray(accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations[i].location, playerData.location, false)) {
 									accountData[map[loc[0]][loc[1]][loc[2]].ownersID].stations.splice(i, 1);
 								}
+							}
+							let gained = stations[map[loc[0]][loc[1]][loc[2]].type].destroyBonus;
+							let gainedtxt = "";
+							for (let i = 0; i < gained.length; i++) {
+								let stuff = gained[i].split(" ");
+								playerData[stuff[0]] += parseInt(stuff[1], 10);
+								gainedtxt += stuff[1] + " " + resources[stuff[0]] + " " + stuff[0] + "\n";
 							}
 							map[loc[0]][loc[1]][loc[2]] = {
 								ownersID : null,
@@ -460,10 +466,10 @@ function checkWaitTimes() {
 								soonOwner: null
 							};
 							sendBasicEmbed({
-								content: "You have destroyed the station at\nGalaxy: `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`",
+								content: "You have destroyed the station at\nGalaxy: `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`\nGained Resources",
 								color  : embedColors.blue,
 								channel: client.users.get(playerData.userID)
-							})
+							});
 							listOfWaitTimes.splice(i, 1);
 						});
 					}
@@ -1392,7 +1398,7 @@ const commands = [
 					for (let j = 0; j < station.gives[playerData.stations[i].level].length; j++) {
 						let stuff = station.gives[playerData.stations[i].level][j].split(" ");
 						if (parseInt(stuff[1], 10) < 0) {
-							if (playerData[stuff[0]] - parseInt(stuff[1], 10)<0) {
+							if (playerData[stuff[0]] - parseInt(stuff[1], 10) < 0) {
 								break;
 							}
 						}
