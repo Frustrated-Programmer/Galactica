@@ -189,13 +189,14 @@ const timeTakes = {
 	 *  600000 = 10 minutes
 	 * 3600000 =  1 hour
 	 */
-	colonize        : 60000*5,
+	colonize        : 60000 * 5,
 	attackColony    : 60000 * 10,
 	buildStation    : 60000 * 5,
 	attackStation   : 60000 * 10,
 	warpPerPosition : 1000 * 5,
 	factionAdvertise: ((60000 * 60) * 24) * 3,
-	collectionRate  : 60000 * 5
+	collectionRate  : 60000 * 10,
+	collectionMax   : 60000 * 120
 
 };
 module.exports = {

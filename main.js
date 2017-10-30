@@ -633,7 +633,7 @@ function getTimeRemaining(time) {
 			if (i === times.length) {
 				timeLeftText += " and "
 			}
-			else {
+			else if(i+1 !== times.length){
 				timeLeftText += ", "
 			}
 		}
@@ -1356,10 +1356,10 @@ const commands = [
 				let max = false;
 				let amount = Math.round((Date.now() - playerData.lastCollection) / timesTake.collectionRate);//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
 				let oldAmount = null;
-				if (amount > 12) {
+				if (amount > timesTake.collectionMax/60000) {
 					max = true;
 					oldAmount = amount;
-					amount = 12;
+					amount = timesTake.collectionMax/60000;
 				}
 				playerData.lastCollection = Date.now();
 				let gainedResources = {};//amount of resources gained
@@ -1533,7 +1533,7 @@ const commands = [
 					embed.setDescription("You have waited " + (amount * 5) + " minutes so your collection is multiplied by `" + amount + "`")
 				}
 				else {
-					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to `60` minutes worth of resources");
+					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to "+getTimeRemaining(timesTake.collectionMax)+"  worth of resources");
 				}
 				embed.addField("Normal Resources", normalResourcesText, true);
 
