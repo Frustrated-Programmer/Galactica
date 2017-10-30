@@ -2115,9 +2115,9 @@ const commands = [
 				}
 			}
 			else {
+				let newArgs = [];
 				for (let i = 0; i < researches.names.length; i++) {
 					let name = researches.names[i].split(" ");
-					let newArgs = [];
 					let found = matchArray(newArgs, name);
 					for (let q = 0; q < args.length; q++) {
 						newArgs.push(args[q]);
