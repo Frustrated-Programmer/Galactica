@@ -1987,21 +1987,8 @@ const commands = [
 			let setImage = function (y, x, which, newimage) {
 				Jimp.read(which, function (err, image) {
 					if (err) throw err;
-					if (image !== "TheImages/Other/You.png") {
-						if (x === playerData.location[2] && y === playerData.location[1]) {
-							image.resize(size / 2, size / 2);
-							newimage.composite(image, (x + 1) * (size * 2), (y + 1) * (size * 2));
-
-						}
-						else {
-							image.resize(size, size);
-							newimage.composite(image, (x + 1) * size, (y + 1) * size);
-						}
-					}
-					else {
-						image.resize(size / 2, size / 2);
-						newimage.composite(image, (x + 1) * size, (y + 1) * size);
-					}
+					image.resize(size, size);
+					newimage.composite(image, (x + 1) * size, (y + 1) * size);
 					done[y][x] = true;
 				});
 			};
