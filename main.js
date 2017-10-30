@@ -3711,8 +3711,10 @@ const commands = [
 				if (client.channels.get(nums[0]) != null) {
 					if (args.length >= 2) {
 						welcomeTxt = "";
-						for (let i = 1; i < args.length; i++) {
-							welcomeTxt += args[i] + " ";
+						let words = message.content.split(" ");
+						words.shift();
+						for (let i = 1; i < words.length; i++) {
+							welcomeTxt += words[i] + " ";
 						}
 					}
 					serverStuff[message.guild.id].welcomeChannel.id = nums[0];
@@ -3774,12 +3776,14 @@ const commands = [
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(message.content);
 			if (nums.length) {
-				let goodbyeTxt = "Goodbye {username} everyone here at {server} misses you";
+				let goodbyeTxt = "Goodbye {username}. {server} now has {members} members";
 				if (client.channels.get(nums[0]) != null) {
 					if (args.length >= 2) {
 						goodbyeTxt = "";
-						for (let i = 1; i < args.length; i++) {
-							goodbyeTxt += args[i] + " ";
+						let words = message.content.split(" ");
+						words.shift();
+						for (let i = 1; i < words.length; i++) {
+							goodbyeTxt += words[i] + " ";
 						}
 					}
 					serverStuff[message.guild.id].goodbyeChannel.id = nums[0];
