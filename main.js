@@ -2019,7 +2019,14 @@ const commands = [
 								}
 								if (m[i][j].ownersID !== null) {
 									if (m[i][j].ownersID === playerData.userID) {
-										let theType = m[i][j].type;
+										let theType = "";
+										let splited =m[i][j].type.split(" ");
+										if(splited[0] === "Station") {
+											theType += m[i][j].type.split(" ")[0];
+											theType += m[i][j].type.split(" ")[1];
+										}else{
+											theType = m[i][j].type;
+										}
 										let folder = m[i][j].item + "s";
 										if (folder === "colonys") {
 											folder = "planets";
