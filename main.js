@@ -1491,11 +1491,13 @@ const commands = [
 					}
 					for (let j = 0; j < station.gives[playerData.stations[i].level].length; j++) {
 						let stuff = station.gives[playerData.stations[i].level][j].split(" ");
+
 						if (parseInt(stuff[1], 10) < 0) {
-							if (playerData[stuff[0]] - parseInt(stuff[1], 10) < 0) {
+							if (playerData[stuff[0]] + parseInt(stuff[1], 10) < 0) {
 								break;
 							}
 						}
+
 						gainedResources[stuff[0]] += parseInt(stuff[1], 10) * amount;
 						playerData[stuff[0]] += parseInt(stuff[1], 10) * amount;
 
@@ -1524,7 +1526,7 @@ const commands = [
 						let stuff = planet.generatesRates[j].split(" ");
 						if (stuff[0] === "people") {
 							let extra = Math.round(parseInt(stuff[1], 10) * (amoPpl / 100)) * amount
-							if (extra != 0) {
+							if (extra > 0) {
 								if (colony.people + extra < colony.maxPeople) {
 									playerData.colonies[i].people += extra;
 									colonyResources["people"] += extra;
@@ -1584,7 +1586,7 @@ const commands = [
 				}
 
 				/**Create the gained resources text**/
-				let normalResourcesText = "";
+				let normalResourcesText = "Nothing...";
 				let bonusResourceTextFromResearch = "";
 				let bonusResourceTextFromPlanets = "";
 				let resourcesFromColonyText = "";
@@ -1592,6 +1594,9 @@ const commands = [
 					if (gainedResources[resources.names[i]] != null) {
 						let space = "";
 						if (gainedResources[resources.names[i]] > 0) {
+							if(normalResourcesText === "Nothing..."){
+								normalResourcesText = "";
+							}
 							for (let j = 0; j < longestSpace[0] - ("" + gainedResources[resources.names[i]]).length; j++) {
 								space += " "
 							}
