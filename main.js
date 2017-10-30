@@ -1758,22 +1758,32 @@ const commands = [
 		reqs       : ["normCommand", "profile true", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
 			let pos = playerData.location;
+			let loc = map[pos[0]][pos[1]][pos[2]];
+			let theitem = "";
+			if (loc.item === "planet") {
+				theitem = "Planet"
+			}
+			else if (loc.item === "empty") {
+				theitem = "Space";
+			}
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.blue)
 				.setTitle("Location:")
-				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`");
-			let loc = map[pos[0]][pos[1]][pos[2]];
+				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`\nYou're at a " + loc.type + " " + theitem);
+
 
 			let item = "Empty Space";
 			let info = "Unoccupied";
 			let attack = "Attack this " + loc.item + " via `" + prefix + "attack" + loc.item + "`";
 			let moreInfo = "";
-			if (loc.item !== "empty") {
+			if (loc.type.toLowerCase() !== "empty"&&loc.item.toLowerCase() !=="empty") {
 				item = loc.type;
-				info = "Owned by " + accountData[loc.ownersID].username;
-				if (loc.ownersID === playerData.userID) {
-					info = "Owned by You";
-					attack = "";
+				if(loc.ownersID!==null) {
+					info = "Owned by " + accountData[loc.ownersID].username;
+					if (loc.ownersID === playerData.userID) {
+						info = "Owned by You";
+						attack = "";
+					}
 				}
 				if (loc.item === "station") {
 					let station = null;
@@ -1783,17 +1793,18 @@ const commands = [
 						}
 					}
 					if (station !== null) {
-						embed.addField("Information", "```css\nLevel: " + station.level + "\nDoes: " + station.description + "```" + attack);
+						embed.addField("Information", info+"\n```css\nLevel: " + station.level + "\nDoes: " + station.description + "```" + attack);
 					}
 				}
-				else {
+				else{
 					let Bonuses = "";
 					let Rates = "";
+
 					for (let i = 0; i < planets[loc.type].bonuses.length; i++) {
 						Bonuses += planets[loc.type].bonuses[i][0] + "\n";
 					}
 					for (let i = 0; i < planets[loc.type].generatesRates.length; i++) {
-						let stuff = planets[loc.type].generatesRates.split(" ");
+						let stuff = planets[loc.type].generatesRates[i].split(" ");
 						if (stuff.length > 2) {
 							Rates += " + " + stuff[1] + resources[stuff[0]] + " " + stuff[0] + " Per " + stuff[3] + " people\n";
 						}
@@ -2006,11 +2017,12 @@ const commands = [
 								if (m[i][j].ownersID !== null) {
 									if (m[i][j].ownersID === playerData.userID) {
 										let theType = "";
-										let splited =m[i][j].type.split(" ");
-										if(splited[0] === "Station") {
+										let splited = m[i][j].type.split(" ");
+										if (splited[0] === "Station") {
 											theType += m[i][j].type.split(" ")[0];
 											theType += m[i][j].type.split(" ")[1];
-										}else{
+										}
+										else {
 											theType = m[i][j].type;
 										}
 										let folder = m[i][j].item + "s";
@@ -4207,13 +4219,13 @@ const commands = [
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
 			accountData = {
-				names:[]
+				names: []
 			};
-			createMap(map.length,map[0].length,map[0][0].length);
+			createMap(map.length, map[0].length, map[0][0].length);
 			sendBasicEmbed({
-				content:"All game's data has been reset",
-				color:embedColors.red,
-				channel:message.channel
+				content: "All game's data has been reset",
+				color  : embedColors.red,
+				channel: message.channel
 			})
 		}
 	},
