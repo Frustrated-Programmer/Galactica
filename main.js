@@ -2405,7 +2405,7 @@ const commands = [
 						space += " "
 					}
 				}
-				txt += spacing(colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + colonies[i].location[2] + " x " + colonies[i].location[1], 50);
+				txt += spacing(colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + (colonies[i].location[2]+1) + " x " + (colonies[i].location[1]+1), 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -2821,7 +2821,7 @@ const commands = [
 			let stations = playerData.stations;
 			let txt = "```css\n";
 			for (let i = 0; i < stations.length; i++) {
-				txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  Area: " + stations[i].location[2] + " x " + stations[i].location[1], 50);
+				txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  Area: " + (stations[i].location[2]+1) + " x " + (stations[i].location[1]+1_, 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -4622,3 +4622,5 @@ client.on("message", function (message) {
 
 });
 client.login(require("./config.json").token);//Secure Login
+
+
