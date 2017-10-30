@@ -1,5 +1,4 @@
 /**Set Up **/
-
 let version = require("./other.json").version;
 let Jimp = require("jimp");
 const universalPrefix = "-";
@@ -336,7 +335,7 @@ function checkWaitTimes() {
 				case "warp":
 					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
 					sendBasicEmbed({
-						content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + (listOfWaitTimes[i].headTo[2]+1) + "x" + (listOfWaitTimes[i].headTo[1]+1) + "`\nhas finished.",
+						content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + (listOfWaitTimes[i].headTo[2] + 1) + "x" + (listOfWaitTimes[i].headTo[1] + 1) + "`\nhas finished.",
 						channel: client.users.get(listOfWaitTimes[i].player),
 						color  : embedColors.blue
 					});
@@ -1316,6 +1315,7 @@ const commands = [
 			let newPlayerData = new updateAccount();
 			newPlayerData.userID = message.author.id;
 			newPlayerData.username = message.author.username;
+			newPlayerData.lastCollection = Date.now();
 			accountData.names.push(newPlayerData.userID);
 			accountData[message.author.id] = newPlayerData;
 			sendBasicEmbed({
@@ -1346,7 +1346,7 @@ const commands = [
 			}
 			if (playerData.lastCollection + timesTake.collectionRate > Date.now()) {
 				sendBasicEmbed({
-					content: "You can only collect once every "+getTimeRemaining(timesTake.collectionRate)+"\nYou currently need to wait:\n" + getTimeRemaining((playerData.lastCollection + (60000 * 5)) - Date.now()),
+					content: "You can only collect once every " + getTimeRemaining(timesTake.collectionRate) + "\nYou currently need to wait:\n" + getTimeRemaining((playerData.lastCollection + (60000 * 5)) - Date.now()),
 					channel: message.channel,
 					color  : embedColors.red
 				});
@@ -1407,7 +1407,7 @@ const commands = [
 				for (let i = 0; i < playerData.colonies.length; i++) {
 					let colony = playerData.colonies[i];
 					let planet = planets[playerData.colonies[i].type];
-					let amoPpl = 1+Math.round(amount/2-0.1);
+					let amoPpl = 1 + Math.round(amount / 2 - 0.1);
 					if (colony.people + amoPpl < colony.maxPeople) {
 						playerData.colonies[i].people += amoPpl;
 						colonyResources["people"] += amoPpl;
@@ -1419,7 +1419,7 @@ const commands = [
 					for (let j = 0; j < planet.generatesRates.length; j++) {
 						let stuff = planet.generatesRates[j].split(" ");
 						if (stuff[0] === "people") {
-							let extra = Math.round(parseInt(stuff[1],10) * (amoPpl/100)) * amount
+							let extra = Math.round(parseInt(stuff[1], 10) * (amoPpl / 100)) * amount
 							if (extra != 0) {
 								if (colony.people + extra < colony.maxPeople) {
 									playerData.colonies[i].people += extra;
@@ -1514,7 +1514,7 @@ const commands = [
 						}
 					}
 					if (colonyResources[resources.names[i]] != null) {
-						console.log(colonyResources[resources.names[i]]+" "+resources.names[i]);
+						console.log(colonyResources[resources.names[i]] + " " + resources.names[i]);
 						let space = "";
 						if (colonyResources[resources.names[i]] > 0) {
 							for (let j = 0; j < longestSpace[3] - ("" + colonyResources[resources.names[i]]).length; j++) {
@@ -1570,7 +1570,7 @@ const commands = [
 			}
 			let location = "";
 			if (playerData.location instanceof Array) {
-				location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + (playerData.location[2]+1) + "x" + (playerData.location[1]+1) + "`"
+				location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + (playerData.location[2] + 1) + "x" + (playerData.location[1] + 1) + "`"
 			}
 			else {
 				location = playerData.location;
@@ -1635,16 +1635,16 @@ const commands = [
 					goToPos[1] = parseInt(numbers[1], 10) - 1;
 					let valid = false;
 
-					if(goToPos[1]>=0) {
+					if (goToPos[1] >= 0) {
 						if (goToPos[1] <= map[goToPos[0]].length) {
-							if(goToPos[2]>=0){
+							if (goToPos[2] >= 0) {
 								if (goToPos[2] <= map[goToPos[0]][goToPos[1]].length) {
 									valid = true;
 								}
 							}
 						}
 					}
-					if(!valid){
+					if (!valid) {
 						warpType = "Invalid";
 					}
 					break;
@@ -1742,7 +1742,7 @@ const commands = [
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.blue)
 				.setTitle("Location:")
-				.setDescription("Galaxy: `" + (pos[0]+1) + "` Area: `" + (pos[2]+1) + "x" + (pos[1]+1) + "`")
+				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`")
 				.addField("**Current Area is:** " + loc.type, "*__" + station + "__*\n" + items);
 			let otherPlayers = [];
 			for (let i = 0; i < accountData.names.length; i++) {
@@ -1908,9 +1908,20 @@ const commands = [
 				Jimp.read(which, function (err, image) {
 					if (err) throw err;
 					if (image !== "images/Other/You.png") {
-						image.resize(size, size);
+						if (x === playerData.location[2] && y === playerData.location[1]) {
+							image.resize(size / 2, size / 2);
+							newimage.composite(image, (x + 1) * (size * 2), (y + 1) * (size * 2));
+
+						}
+						else {
+							image.resize(size, size);
+							newimage.composite(image, (x + 1) * size, (y + 1) * size);
+						}
 					}
-					newimage.composite(image, (x + 1) * size, (y + 1) * size);
+					else {
+						image.resize(size / 2, size / 2);
+						newimage.composite(image, (x + 1) * size, (y + 1) * size);
+					}
 					done[y][x] = true;
 				});
 			};
@@ -1929,13 +1940,13 @@ const commands = [
 								if (m[i][j].ownersID !== null) {
 									if (m[i][j].ownersID === playerData.userID) {
 										let theType = m[i][j].type;
-										let folder = m[i][j].item+"s";
-										if(folder === "colonys"){
+										let folder = m[i][j].item + "s";
+										if (folder === "colonys") {
 											folder = "planets";
-											theType+="Planet";
+											theType += "Planet";
 										}
-										let image = folder+"/You/"+theType;
-										setImage(i, j, "images/"+ image + ".png", newimage);
+										let image = folder + "/You/" + theType;
+										setImage(i, j, "images/" + image + ".png", newimage);
 										setSomething = true;
 									}
 									else if (playerData.faction !== null && canShow) {
@@ -1949,23 +1960,24 @@ const commands = [
 												}
 											}
 											let r = m[i][j].type;
-											if (found) {let theType = m[i][j].type;
-												let folder = m[i][j].item+"s";
-												if(folder === "colony"){
+											if (found) {
+												let theType = m[i][j].type;
+												let folder = m[i][j].item + "s";
+												if (folder === "colony") {
 													folder = "planets";
 												}
-												let image = folder+"/Faction/"+theType;
-												setImage(i, j, "images/"+ image + ".png", newimage);
+												let image = folder + "/Faction/" + theType;
+												setImage(i, j, "images/" + image + ".png", newimage);
 
 											}
 											else {
 												let theType = m[i][j].type;
-												let folder = m[i][j].item+"s";
-												if(folder === "colony"){
+												let folder = m[i][j].item + "s";
+												if (folder === "colony") {
 													folder = "planets";
 												}
-												let image = folder+"/Enemy/"+theType;
-												setImage(i, j, "images/"+ image + ".png", newimage);
+												let image = folder + "/Enemy/" + theType;
+												setImage(i, j, "images/" + image + ".png", newimage);
 												setSomething = true;
 											}
 
@@ -2344,13 +2356,13 @@ const commands = [
 			let txt = "```css\n";
 			for (let i = 0; i < colonies.length; i++) {
 				let space = "";
-				if(colonies[i].people<100){
-					space+=" ";
-					if(colonies.people<10){
-						space+=" "
+				if (colonies[i].people < 100) {
+					space += " ";
+					if (colonies.people < 10) {
+						space += " "
 					}
 				}
-				txt += spacing(colonies[i].people+space+" | "+colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + colonies[i].location[2] + " x " + colonies[i].location[1], 50);
+				txt += spacing(colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + colonies[i].location[2] + " x " + colonies[i].location[1], 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -4087,6 +4099,22 @@ const commands = [
 	},
 
 	["OWNER"],
+	{
+		names      : ["test"],
+		description: "clearLogs",
+		usage      : "clearLogs",
+		values     : [],
+		reqs       : ["owner"],
+		effect     : function (message, args, playerData, prefix) {
+			message.guild.channels.get("355095166199005185").fetchMessage("373959529215426571").then(function (mess) {
+				mess.react("🤖");
+				mess.react(client.emojis.get("373959406318125076"));
+				console.log('ran');
+
+			});
+		}
+	},
+
 	{
 		names      : ["clearLogs"],
 		description: "clearLogs",
