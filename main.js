@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "-";
+const universalPrefix = "test";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -2573,8 +2573,8 @@ const commands = [
 									type     : "empty",
 									soonOwner: null
 								};
-								for (let i = 0; i < playerData.stations.length; i++) {
-									if (matchArray(playerData.location, playerData.stations.location)) {
+								for (let i = 0; i < playerData.colonies.length; i++) {
+									if (matchArray(playerData.location, playerData.colonies[i].location)) {
 										playerData.stations.splice(i, 1);
 										break;
 									}
@@ -2667,7 +2667,7 @@ const commands = [
 								soonOwner: null
 							};
 							for (let i = 0; i < playerData.stations.length; i++) {
-								if (matchArray(playerData.location, playerData.stations.location)) {
+								if (matchArray(playerData.location, playerData.stations[i].location)) {
 									playerData.stations.splice(i, 1);
 									break;
 								}
