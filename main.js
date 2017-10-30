@@ -1032,7 +1032,7 @@ const commands = [
 			if (args.length) {
 				let commandIs = null;
 				for (let i = 0; i < commands.length; i++) {
-					if (typeof commands[i] === "object") {
+					if (!(commands[i] instanceof Array) ) {
 						for (let j = 0; j < commands[i].names.length; j++) {
 							if (args[0] === commands[i].names[j].toLowerCase()) {
 								commandIs = i;
@@ -1074,7 +1074,7 @@ const commands = [
 			}
 			let txt = "```css\n";
 			for (let i = 0; i < commands.length; i++) {
-				if (typeof commands[i] === "object") {
+				if (!(commands[i] instanceof Array)) {
 					let sendIt = true;
 					for (let q = 0; q < commands[i].reqs.length; q++) {
 						let typeReq = commands[i].reqs[q].split(" ")[0];
@@ -1327,6 +1327,67 @@ const commands = [
 				content: "Account Created",
 				channel: message.channel
 			});
+		}
+	},
+	{
+		names      : ["iWantDeleteMyAccountForever"],
+		description: "delete Your account",
+		usage      : "delete",
+		values     : [],
+		reqs       : ["normCommand","profile"],
+		effect     : function (message, args, playerData, prefix) {
+			let nums = playerData.userID;
+			let player = accountData[nums[0]];
+				if (player.faction != null) {
+					let fac = factions[player.faction];
+					if (fac) {
+						for (let i = 0; i < fac.members.length; i++) {
+							if (fac.members[i].id === player.id) {
+								if (fac.members[i].rank !== "owner") {
+									fac.members.splice(i, 1);
+								}
+								else {
+									let found = false;
+									for (let j = 0; j < fac.members.length; i++) {
+										if (fac.members[j].rank === "mod") {
+											fac.members[j].rank = "owner";
+											found = true;
+											break;
+										}
+									}
+									if (!found) {
+										for (let j = 0; j < fac.members.length; i++) {
+											if (fac.members[j].rank === "mod") {
+												accountData[fac.members[j].id].faction = null;
+											}
+										}
+										delete factions[player.faction];
+									}
+								}
+							}
+						}
+					}
+				}
+				if (player.stations.length) {
+					for (let i = 0; i < player.stations.length; i++) {
+						let loc = player.stations[i].location;
+						map[loc[0]][loc[1]][loc[2]].type = "empty";
+						map[loc[0]][loc[1]][loc[2]].ownersID = null;
+					}
+				}
+				for (let i = 0; i < accountData.names.length; i++) {
+					if (accountData.names[i] === nums[0]) {
+						accountData.splice(i, 1);
+					}
+				}
+				delete accountData[nums[0]];
+				sendBasicEmbed({
+					content: "Deleted your account ;( please comeback another time",
+					color  : embedColors.purple,
+					channel: message.channel
+				})
+
+
 		}
 	},
 	{
