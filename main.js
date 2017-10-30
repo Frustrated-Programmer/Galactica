@@ -1716,34 +1716,75 @@ const commands = [
 		values     : [],
 		reqs       : ["normCommand", "profile true", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
-			let pos = playerData.location;
-			let loc = map[pos[0]][pos[1]][pos[2]];
-			let station = "Unoccupied";
-			let items = "**Boost to stations:**\n```\n";
-			if (loc.type === "empty") {
-				items = "";
-			}
-			else {
-				if (loc.ownersID !== null) {
-					station = "Occupied by " + accountData[loc.ownersID].username + ".";
-					items = "";
-				}
-				else {
-					for (let i = 0; i < planets["" + loc.type].bonuses.length; i++) {
-						items += planets[loc.type].bonuses[i][0] + "\n";
-					}
-				}
-				items += "```";
-			}
-			if (loc.ownersID !== null) {
-				items = "attack `" + accountData[loc.ownersID].username + "`'s station via `" + prefix + "UnImplemented`";
-				station = "occupied by `" + accountData[loc.ownersID].username + "`";
-			}
+
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.blue)
 				.setTitle("Location:")
-				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`")
-				.addField("**Current Area is:** " + loc.type, "*__" + station + "__*\n" + items);
+				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`");
+			let pos = playerData.location;
+			let loc = map[pos[0]][pos[1]][pos[2]];
+
+			let item = "Empty Space";
+			let info = "Unoccupied";
+			let attack = "Attack this "+loc.item+" via `"+prefix+"attack"+loc.item+"`";
+			let moreInfo = "";
+			if (loc.item !== "empty") {
+				item = loc.type;
+				info = "Owned by " + accountData[loc.ownersID].username;
+				if (loc.ownersID === playerData.userID) {
+					info = "Owned by You";
+					attack = "";
+				}
+				if (loc.item === "station") {
+					let station = null;
+					for (let i = 0; i < accountData[loc.ownersID].stations.length; i++) {
+						if (matchArray(playerData.location, accountData[loc.ownersID].stations[i].location, false)) {
+							station = accountData[loc.ownersID].stations[i];
+						}
+					}
+					if (station !== null) {
+						embed.addField("Information", "```css\nLevel: " + station.level+"\nDoes: "+station.description+"```"+attack);
+					}
+				}
+				else {
+					let Bonuses = "";
+					let Rates = "";
+					for (let i = 0; i < planets[loc.type].bonuses.length; i++) {
+						Bonuses += planets[loc.type].bonuses[i][0] + "\n";
+					}
+					for (let i = 0; i < planets[loc.type].generatesRates.length; i++) {
+						let stuff = planets[loc.type].generatesRates.split(" ");
+						if (stuff.length > 2) {
+							Rates += " + " + stuff[1] + resources[stuff[0]] + " " + stuff[0] + " Per " + stuff[3] + " people\n";
+						}
+						else {
+							Rates += " + " + stuff[1] + "% more " + resources[stuff[0]] + stuff[0] + " Generation.";
+						}
+					}
+					for (let i = 0; i < planets[loc.type].loseRates.length; i++) {
+						let stuff = planets[loc.type].loseRates.split(" ");
+						if (stuff.length > 2) {
+							Rates += " - " + stuff[1] + resources[stuff[0]] + " " + stuff[0] + " Per " + stuff[3] + " people\n";
+						}
+						else {
+							Rates += " - " + stuff[1] + "% more " + resources[stuff[0]] + stuff[0] + " Consumption.";
+						}
+					}
+
+					if (Rates.length) {
+						embed.addField("Generation Rates", "```diff\n" + Rates + "```");
+					}
+					if (Bonuses.length) {
+						embed.addField("Bonuses", "```fix\n" + Bonuses + "```"+attack);
+					}
+					if (planets[loc.type].inhabitedMax === 0) {
+						embed.setFooter("Uninhabitable");
+					}
+					else {
+						embed.setFooter("Habitable");
+					}
+				}
+			}
 			let otherPlayers = [];
 			for (let i = 0; i < accountData.names.length; i++) {
 				let player = accountData[accountData.names[i]];
@@ -1791,9 +1832,7 @@ const commands = [
 
 					txt += name + spaceName + "|" + spaceFaction + otherPlayers[i].health + "|" + otherPlayers[i].userID + "|\n";
 				}
-				txt += "```";
-				embed.setFooter("-attack [PLAYER_ID]");
-				embed.addField("Players", txt);
+				embed.addField("Players", txt+"```\nAttack a player via `attackPlayer [PLAYER_ID]`");
 			}
 			message.channel.send({embed});
 		}
