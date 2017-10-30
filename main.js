@@ -1329,6 +1329,39 @@ const commands = [
 			});
 		}
 	},
+	{
+		names      : ["tutorial", "tut"],
+		description: "get a tutorial for the game",
+		usage      : "tutorial",
+		values     : [],
+		reqs       : ["normCommand", "profile false"],
+		effect     : function (message, args, playerData, prefix) {
+			let inServer = false;
+			if (message.channel.type === "text") {
+				if (message.guild.id === "354670066480054272") {
+					inServer = true;
+				}
+			}
+			if (inServer) {
+				sendBasicEmbed({
+					content: "<#374618558153621535>",
+					color  : embedColors.blue,
+					channel: message.channel
+				})
+			}
+			else {
+				fs.readFile("./tut.txt", "utf8", function (err, data) {
+					let msg = data.split("???///breakpoint\\\\\\???");
+
+				});
+				if (message.channel.type === "text") {
+					sendBasicEmbed({
+						content: "Sent to DM's"
+					})
+				}
+			}
+		}
+	},
 
 
 	["GAMEPLAY", "MAIN"],
