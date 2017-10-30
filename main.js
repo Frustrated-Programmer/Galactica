@@ -6,7 +6,7 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 setInterval(function () {
-	fs.readFile("./galactica.log", function (err, data) {
+	fs.readFile("./galactica.log", "utf8", function (err, data) {
 		if (err) {
 			console.log(err)
 		}
@@ -1656,29 +1656,32 @@ const commands = [
 	},
 	{
 		names      : ["stats", "me", "info"],
-		description: "Get your stats",
-		usage      : "stats",
-		values     : [],
+		description: "Get your stats or someone else's stats",
+		usage      : "stats (VALUE)",
+		values     : ["{@USER}","PLAYER_ID"],
 		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
+			let nums = getNumbers(message.content);
+			let player = playerData;
+			if(nums.length){
+				if(accountData[nums[0]]!=null){
+					player = accountData[nums[0]];
+				}
+			}
 			let embed = new Discord.RichEmbed()
-				.setFooter(playerData.userID)
-				.setColor(embedColors.blue);
-			if (message.channel.type === "text") {
-				embed.setTitle(message.member.displayName + "'s stats");
-			}
-			else {
-				embed.setTitle(message.author.username + "'s stats");
-			}
+				.setFooter(player.userID)
+				.setColor(embedColors.blue)
+			.setTitle(player.username + "'s stats");
+
 			let location = "";
-			if (playerData.location instanceof Array) {
-				location = "Galaxy `" + (playerData.location[0] + 1) + "` Area: `" + (playerData.location[2] + 1) + "x" + (playerData.location[1] + 1) + "`"
+			if (player.location instanceof Array) {
+				location = "Galaxy `" + (player.location[0] + 1) + "` Area: `" + (player.location[2] + 1) + "x" + (player.location[1] + 1) + "`"
 			}
 			else {
-				location = playerData.location;
+				location = player.location;
 			}
-			if (playerData.faction !== null) {
-				embed.addField("INFO:", "Faction:" + factions[playerData.faction].name + "\nPower: 000\nHealth:" + playerData.health + "\n**Location:**\n" + location);
+			if (player.faction !== null) {
+				embed.addField("INFO:", "Faction:" + factions[player.faction].name + "\nPower: 000\nHealth:" + player.health + "\n**Location:**\n" + location);
 			}
 			else {
 				embed.addField("INFO:", "Power: 000\nLocation:\n" + location);
@@ -1687,22 +1690,21 @@ const commands = [
 			let playerResources = "```css\n";
 			let spaceLength = 1;
 			for (let i = 0; i < resources.names.length; i++) {
-				let len = "" + playerData[resources.names[i]];
+				let len = "" + player[resources.names[i]];
 				if (len.length > spaceLength) {
 					spaceLength = len.length;
 				}
 			}
 			for (let i = 0; i < resources.names.length; i++) {
 				let space = "";
-				let len = "" + playerData[resources.names[i]];
+				let len = "" + player[resources.names[i]];
 				for (let j = 0; j < spaceLength - len.length; j++) {
 					space += " ";
 				}
-				playerResources += playerData[resources.names[i]] + space + "| " + resources[resources.names[i]] + " " + resources.names[i];
+				playerResources += player[resources.names[i]] + space + "| " + resources[resources.names[i]] + " " + resources.names[i];
 				playerResources += "\n";
 			}
-			playerResources += "```";
-			embed.addField("Resources", playerResources);
+			embed.addField("Resources", playerResources+"```");
 			message.channel.send({embed});
 		}
 	},
