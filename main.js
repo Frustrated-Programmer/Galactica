@@ -1887,6 +1887,9 @@ const commands = [
 						embed.addField("Generation Rates", "```diff\n" + Rates + "```");
 					}
 					if (Bonuses.length) {
+						if(loc.item === "planet"){
+							attack = "";
+						}
 						embed.addField("Bonuses", "```fix\n" + Bonuses + "```" + attack);
 					}
 					if (planets[loc.type].inhabitedMax === 0) {
@@ -4435,10 +4438,7 @@ const commands = [
 				})
 			}
 			else {
-				let id = "";
-				for (let i = 3; i < args[0].length - 1; i++) {
-					id += args[0][i];
-				}
+				let id = getNumbers(message.content)[0];
 				let data = accountData[id];
 				data[args[1]] += parseInt(args[2], 10);
 				sendBasicEmbed({
