@@ -633,7 +633,7 @@ function getTimeRemaining(time) {
 			if (i === times.length) {
 				timeLeftText += " and "
 			}
-			else if(i+1 !== times.length){
+			else if (i + 1 !== times.length) {
 				timeLeftText += ", "
 			}
 		}
@@ -1355,10 +1355,10 @@ const commands = [
 				let max = false;
 				let amount = Math.round((Date.now() - playerData.lastCollection) / timesTake.collectionRate);//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
 				let oldAmount = null;
-				if (amount > timesTake.collectionMax/60000) {
+				if (amount > timesTake.collectionMax / 60000) {
 					max = true;
 					oldAmount = amount;
-					amount = timesTake.collectionMax/60000;
+					amount = timesTake.collectionMax / 60000;
 				}
 				playerData.lastCollection = Date.now();
 				let gainedResources = {};//amount of resources gained
@@ -1532,7 +1532,7 @@ const commands = [
 					embed.setDescription("You have waited " + (amount * 5) + " minutes so your collection is multiplied by `" + amount + "`")
 				}
 				else {
-					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to "+getTimeRemaining(timesTake.collectionMax)+"  worth of resources");
+					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to " + getTimeRemaining(timesTake.collectionMax) + "  worth of resources");
 				}
 				embed.addField("Normal Resources", normalResourcesText, true);
 
@@ -1725,7 +1725,7 @@ const commands = [
 
 			let item = "Empty Space";
 			let info = "Unoccupied";
-			let attack = "Attack this "+loc.item+" via `"+prefix+"attack"+loc.item+"`";
+			let attack = "Attack this " + loc.item + " via `" + prefix + "attack" + loc.item + "`";
 			let moreInfo = "";
 			if (loc.item !== "empty") {
 				item = loc.type;
@@ -1742,7 +1742,7 @@ const commands = [
 						}
 					}
 					if (station !== null) {
-						embed.addField("Information", "```css\nLevel: " + station.level+"\nDoes: "+station.description+"```"+attack);
+						embed.addField("Information", "```css\nLevel: " + station.level + "\nDoes: " + station.description + "```" + attack);
 					}
 				}
 				else {
@@ -1774,7 +1774,7 @@ const commands = [
 						embed.addField("Generation Rates", "```diff\n" + Rates + "```");
 					}
 					if (Bonuses.length) {
-						embed.addField("Bonuses", "```fix\n" + Bonuses + "```"+attack);
+						embed.addField("Bonuses", "```fix\n" + Bonuses + "```" + attack);
 					}
 					if (planets[loc.type].inhabitedMax === 0) {
 						embed.setFooter("Uninhabitable");
@@ -1831,7 +1831,7 @@ const commands = [
 
 					txt += name + spaceName + "|" + spaceFaction + otherPlayers[i].health + "|" + otherPlayers[i].userID + "|\n";
 				}
-				embed.addField("Players", txt+"```\nAttack a player via `attackPlayer [PLAYER_ID]`");
+				embed.addField("Players", txt + "```\nAttack a player via `attackPlayer [PLAYER_ID]`");
 			}
 			message.channel.send({embed});
 		}
@@ -2332,7 +2332,7 @@ const commands = [
 		values     : [],
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
-
+			const freeColony = playerData.colonies.length === 0;
 			let loc = playerData.location;
 			let mapSpot = map[loc[0]][loc[1]][loc[2]];
 			let isValid = mapSpot.item.toLowerCase() === "planet";
@@ -2351,11 +2351,16 @@ const commands = [
 					if (!waitTimesInterval) {
 						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
 					}
-					sendBasicEmbed({
-						content: "You are colonizing a `" + mapSpot.type + "` planet.\nThis will take " + getTimeRemaining(timesTake.colonize) + " to complete.",
-						color  : embedColors.blue,
-						channel: message.channel
-					});
+					let embed = new Discord.RichEmbed()
+						.setDescription("You are colonizing a `" + mapSpot.type + "` planet.\nThis will take " + getTimeRemaining(timesTake.colonize) + " to complete.")
+						.setColor(embedColors.blue);
+					if (freeColony) {
+						embed.addField("FREE COLONY", "As this is your first station. Your colony is free of charge");
+					}
+					else {
+						embed.addField("LOST RESOURCES", Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax/10)+" "+resources["food"]+" food");
+					}
+					message.channel.send({embed});
 				}
 				else {
 					sendBasicEmbed({
