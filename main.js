@@ -1327,7 +1327,6 @@ const commands = [
 	},
 
 	["GAMEPLAY", "MAIN"],
-
 	{
 		names      : ["collect"],
 		description: "collect resources from your stations and colonies",
@@ -4138,22 +4137,6 @@ const commands = [
 	},
 
 	["OWNER"],
-	{
-		names      : ["test"],
-		description: "clearLogs",
-		usage      : "clearLogs",
-		values     : [],
-		reqs       : ["owner"],
-		effect     : function (message, args, playerData, prefix) {
-			message.guild.channels.get("355095166199005185").fetchMessage("373959529215426571").then(function (mess) {
-				mess.react("🤖");
-				mess.react(client.emojis.get("373959406318125076"));
-				console.log('ran');
-
-			});
-		}
-	},
-
 	{
 		names      : ["clearLogs"],
 		description: "clearLogs",
