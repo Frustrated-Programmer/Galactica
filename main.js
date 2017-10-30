@@ -4207,6 +4207,24 @@ const commands = [
 		}
 	},
 	{
+		names      : ["ResetAllData"],
+		description: "resets all the data",
+		usage      : "ResetAllData",
+		values     : [],
+		reqs       : ["owner"],
+		effect     : function (message, args, playerData, prefix) {
+			accountData = {
+				names:[]
+			};
+			createMap(map.length,map[0].length,map[0][0].length);
+			sendBasicEmbed({
+				content:"All game's data has been reset",
+				color:embedColors.red,
+				channel:message.channel
+			})
+		}
+	},
+	{
 		names      : ["eval"],
 		description: "does some code",
 		usage      : "eval [VALUE]",
