@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = "test";
+const universalPrefix = require("other.json").uniPre;
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
