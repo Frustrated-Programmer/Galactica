@@ -1493,7 +1493,7 @@ const commands = [
 						let stuff = station.gives[playerData.stations[i].level][j].split(" ");
 
 						if (parseInt(stuff[1], 10) < 0) {
-							if (playerData[stuff[0]] + parseInt(stuff[1], 10) < 0) {
+							if (playerData[stuff[0]] + parseInt(stuff[1], 10) < 0||playerData[stuff[0]] - parseInt(stuff[1], 10) < 0) {
 								break;
 							}
 						}
@@ -2280,7 +2280,7 @@ const commands = [
 					break;
 				default:
 					if (number !== null) {
-						x
+
 						let item = researches[researches.names[number]];
 						let level = playerData[researches.names[number]];
 						if (playerData["research"] >= item.costs[level]) {
