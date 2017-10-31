@@ -1032,7 +1032,7 @@ const commands = [
 			if (args.length) {
 				let commandIs = null;
 				for (let i = 0; i < commands.length; i++) {
-					if (!(commands[i] instanceof Array) ) {
+					if (!(commands[i] instanceof Array)) {
 						for (let j = 0; j < commands[i].names.length; j++) {
 							if (args[0] === commands[i].names[j].toLowerCase()) {
 								commandIs = i;
@@ -1334,58 +1334,58 @@ const commands = [
 		description: "delete Your account",
 		usage      : "delete",
 		values     : [],
-		reqs       : ["normCommand","profile"],
+		reqs       : ["normCommand", "profile"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = playerData.userID;
 			let player = accountData[nums[0]];
-				if (player.faction != null) {
-					let fac = factions[player.faction];
-					if (fac) {
-						for (let i = 0; i < fac.members.length; i++) {
-							if (fac.members[i].id === player.id) {
-								if (fac.members[i].rank !== "owner") {
-									fac.members.splice(i, 1);
+			if (player.faction != null) {
+				let fac = factions[player.faction];
+				if (fac) {
+					for (let i = 0; i < fac.members.length; i++) {
+						if (fac.members[i].id === player.id) {
+							if (fac.members[i].rank !== "owner") {
+								fac.members.splice(i, 1);
+							}
+							else {
+								let found = false;
+								for (let j = 0; j < fac.members.length; i++) {
+									if (fac.members[j].rank === "mod") {
+										fac.members[j].rank = "owner";
+										found = true;
+										break;
+									}
 								}
-								else {
-									let found = false;
+								if (!found) {
 									for (let j = 0; j < fac.members.length; i++) {
 										if (fac.members[j].rank === "mod") {
-											fac.members[j].rank = "owner";
-											found = true;
-											break;
+											accountData[fac.members[j].id].faction = null;
 										}
 									}
-									if (!found) {
-										for (let j = 0; j < fac.members.length; i++) {
-											if (fac.members[j].rank === "mod") {
-												accountData[fac.members[j].id].faction = null;
-											}
-										}
-										delete factions[player.faction];
-									}
+									delete factions[player.faction];
 								}
 							}
 						}
 					}
 				}
-				if (player.stations.length) {
-					for (let i = 0; i < player.stations.length; i++) {
-						let loc = player.stations[i].location;
-						map[loc[0]][loc[1]][loc[2]].type = "empty";
-						map[loc[0]][loc[1]][loc[2]].ownersID = null;
-					}
+			}
+			if (player.stations.length) {
+				for (let i = 0; i < player.stations.length; i++) {
+					let loc = player.stations[i].location;
+					map[loc[0]][loc[1]][loc[2]].type = "empty";
+					map[loc[0]][loc[1]][loc[2]].ownersID = null;
 				}
-				for (let i = 0; i < accountData.names.length; i++) {
-					if (accountData.names[i] === nums[0]) {
-						accountData.splice(i, 1);
-					}
+			}
+			for (let i = 0; i < accountData.names.length; i++) {
+				if (accountData.names[i] === nums[0]) {
+					accountData.splice(i, 1);
 				}
-				delete accountData[nums[0]];
-				sendBasicEmbed({
-					content: "Deleted your account ;( please comeback another time",
-					color  : embedColors.purple,
-					channel: message.channel
-				})
+			}
+			delete accountData[nums[0]];
+			sendBasicEmbed({
+				content: "Deleted your account ;( please comeback another time",
+				color  : embedColors.purple,
+				channel: message.channel
+			})
 
 
 		}
@@ -1594,7 +1594,7 @@ const commands = [
 					if (gainedResources[resources.names[i]] != null) {
 						let space = "";
 						if (gainedResources[resources.names[i]] > 0) {
-							if(normalResourcesText === "Nothing..."){
+							if (normalResourcesText === "Nothing...") {
 								normalResourcesText = "";
 							}
 							for (let j = 0; j < longestSpace[0] - ("" + gainedResources[resources.names[i]]).length; j++) {
@@ -1663,20 +1663,20 @@ const commands = [
 		names      : ["stats", "me", "info"],
 		description: "Get your stats or someone else's stats",
 		usage      : "stats (VALUE)",
-		values     : ["{@USER}","PLAYER_ID"],
+		values     : ["{@USER}", "PLAYER_ID"],
 		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(message.content);
 			let player = playerData;
-			if(nums.length){
-				if(accountData[nums[0]]!=null){
+			if (nums.length) {
+				if (accountData[nums[0]] != null) {
 					player = accountData[nums[0]];
 				}
 			}
 			let embed = new Discord.RichEmbed()
 				.setFooter(player.userID)
 				.setColor(embedColors.blue)
-			.setTitle(player.username + "'s stats");
+				.setTitle(player.username + "'s stats");
 
 			let location = "";
 			if (player.location instanceof Array) {
@@ -1709,7 +1709,7 @@ const commands = [
 				playerResources += player[resources.names[i]] + space + "| " + resources[resources.names[i]] + " " + resources.names[i];
 				playerResources += "\n";
 			}
-			embed.addField("Resources", playerResources+"```");
+			embed.addField("Resources", playerResources + "```");
 			message.channel.send({embed});
 		}
 	},
@@ -1844,9 +1844,9 @@ const commands = [
 			let info = "Unoccupied";
 			let attack = "Attack this " + loc.item + " via `" + prefix + "attack" + loc.item + "`";
 			let moreInfo = "";
-			if (loc.type.toLowerCase() !== "empty"&&loc.item.toLowerCase() !=="empty") {
+			if (loc.type.toLowerCase() !== "empty" && loc.item.toLowerCase() !== "empty") {
 				item = loc.type;
-				if(loc.ownersID!==null) {
+				if (loc.ownersID !== null) {
 					info = "Owned by " + accountData[loc.ownersID].username;
 					if (loc.ownersID === playerData.userID) {
 						info = "Owned by You";
@@ -1861,10 +1861,10 @@ const commands = [
 						}
 					}
 					if (station !== null) {
-						embed.addField("Information", info+"\n```css\nLevel: " + station.level + "\nDoes: " + stations[loc.type].description + "```" + attack);
+						embed.addField("Information", info + "\n```css\nLevel: " + station.level + "\nDoes: " + stations[loc.type].description + "```" + attack);
 					}
 				}
-				else{
+				else {
 					let Bonuses = "";
 					let Rates = "";
 
@@ -1894,7 +1894,7 @@ const commands = [
 						embed.addField("Generation Rates", "```diff\n" + Rates + "```");
 					}
 					if (Bonuses.length) {
-						if(loc.item === "planet"){
+						if (loc.item === "planet") {
 							attack = "";
 						}
 						embed.addField("Bonuses", "```fix\n" + Bonuses + "```" + attack);
@@ -2861,7 +2861,7 @@ const commands = [
 							let costsStuff = station.costs[0][i].split(" ");
 							if (playerData[costsStuff[0]] < costsStuff[1]) {
 								hasEnough = false;
-								missingItems.push([(costsStuff[1] - playerData[costsStuff[0]]), resources[costsStuff[0]]])
+								missingItems.push([(costsStuff[1] - playerData[costsStuff[0]]), costsStuff[0]])
 							}
 						}
 
@@ -2902,7 +2902,7 @@ const commands = [
 						else {
 							let missingResources = "";
 							for (let i = 0; i < missingItems.length; i++) {
-								missingResources += missingItems[i][0] + " " + missingItems[i][1] + "\n"
+								missingResources += missingItems[i][0] + " " + resources[missingItems[i][1]] + " " + missingItems[i][1] + "\n"
 							}
 							let embed = new Discord.RichEmbed()
 								.setColor(embedColors.red)
