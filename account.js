@@ -2,6 +2,7 @@ var Account = function (data) {
     data = data || {};
 
     this.userID = data.userID || "";
+    this.rank = data.rank || "newbie";
     this.username = data.username || "";
     this.faction = data.faction || null;
     this.location = data.location || [0, 0, 0];
@@ -9,7 +10,7 @@ var Account = function (data) {
     this.stations = data.stations || [];
     this.colonies = data.colonies || [];
     this.didntMove = data.didntMove || false;
-    this.lastCollection = data.lastCollection || "new";
+    this.lastCollection = data.lastCollection || Date.now();
     this.attacking = data.attacking || false;
     this.messagesXp = data.messagesXp || 0;
 
@@ -25,6 +26,7 @@ var Account = function (data) {
     this["electricity"] = data["electricity"] || 0;
     this["research"] = data["research"] || 0;
     this["people"] = data["people"] || 0;
+    this["power"] = data["power"] || 0;
     this.health = data.health||100;
 
     //research

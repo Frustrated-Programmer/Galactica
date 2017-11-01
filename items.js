@@ -124,18 +124,85 @@ const colors = {
 
 };
 const resources = {
-	names        : ["credits", "steel", "electricity", "food", "people", "beryllium", "research", "titanium", "neutronium", "carbon", "silicon"],
-	"credits"    : "💠",
-	"steel"      : "⛓",
-	"electricity": "⚡",
-	"food"       : "🍎",
-	"people"     : "👦",
-	"beryllium"  : "🔗",
-	"research"   : "💡",
-	"titanium"   : "🔩",
-	"neutronium" : "🌀",
-	"carbon"     : "⬛",
-	"silicon"    : "✴"
+	names        : ["credits", "steel", "electricity", "food", "people", "beryllium", "research", "titanium", "neutronium", "carbon", "silicon","power"],
+	"credits"    : {
+		emoji   : "💠",
+		buyRate : 1,
+		sellRate: 1
+	},
+	"steel"      : {
+		emoji   : "⛓",
+		buyRate : 7,
+		sellRate: 5
+	},
+	"electricity": {
+		emoji   : "⚡",
+		buyRate : 4,
+		sellRate: 2
+	},
+	"food"       : {
+		emoji   : "🍎",
+		buyRate : 6,
+		sellRate: 5
+	},
+	"people"     : {
+		emoji   : "👦",
+		buyRate : 5,
+		sellRate: 1
+	},
+	"beryllium"  : {
+		emoji   : "🔗",
+		buyRate : 15,
+		sellRate: 10
+	},
+	"research"   : {
+		emoji   : "💡",
+		buyRate : 7,
+		sellRate: 3
+	},
+	"titanium"   : {
+		emoji   : "🔩",
+		buyRate : 20,
+		sellRate: 10
+	},
+	"neutronium" : {
+		emoji   : "🌀",
+		buyRate : 24,
+		sellRate: 15
+	},
+	"carbon"     : {
+		emoji   : "⬛",
+		buyRate : 18,
+		sellRate: 13
+	},
+	"silicon"    : {
+		emoji   : "✴",
+		buyRate : 30,
+		sellRate: 20
+	},
+	"power"    : {
+		emoji   : "",
+		buyRate : 99999999999,
+		sellRate: 0
+	}
+};
+const ranks = {
+	list : [0, 50, 100, 250, 500, 1000, 1500, 2000, 2750, 3500, 5000],
+	names: ["Newbie", "Learner", "Recruit", "Beginner", "Toughie", "Intermediate", "Advanced", "Megatron", "Expert", "SuperBeing", "Godlike"]
+
+};
+const powerIncreases = {
+	colonize      : 10,
+	buildStation  : 10,
+	buildMiltary  : 30,
+	attackMilitary: 20,
+	attackStation : 30,
+	attackColony  : 25,
+	attackPlayer  : 40,
+
+	stationDestroy : -5,
+	colonyDestroy  : -5,
+	militaryDestroy: -20
 };
 const researches = {
 	names: ["Inductive Isolation Methods", "Gravitic Purification", "Compressed Laser Generators"],
@@ -200,6 +267,8 @@ const timeTakes = {
 
 };
 module.exports = {
+	ranks     : ranks,
+	power     : powerIncreases,
 	times     : timeTakes,
 	stations  : Station,
 	colors    : colors,
