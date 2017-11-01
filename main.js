@@ -1440,7 +1440,7 @@ const commands = [
 					accountData.splice(i, 1);
 				}
 			}
-			delete accountData[nums[0]];
+			delete accountData[player.id];
 			sendBasicEmbed({
 				content: "Deleted your account ;( please comeback another time",
 				color  : embedColors.purple,
