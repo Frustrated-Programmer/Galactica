@@ -1397,7 +1397,7 @@ const commands = [
 		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = playerData.userID;
-			let player = accountData[nums[0]];
+			let player = playerData;
 			if (player.faction != null) {
 				let fac = factions[player.faction];
 				if (fac) {
