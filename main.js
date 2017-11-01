@@ -1394,7 +1394,7 @@ const commands = [
 		description: "delete Your account",
 		usage      : "delete",
 		values     : [],
-		reqs       : ["normCommand", "profile"],
+		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = playerData.userID;
 			let player = accountData[nums[0]];
