@@ -1434,14 +1434,21 @@ const commands = [
 					map[loc[0]][loc[1]][loc[2]].ownersID = null;
 				}
 			}
-			for (let i = 0; i < accountData.names.length; i++) {
-				if (accountData.names[i] === nums[0]) {
+			for (let i = 0; i < accountData.names.length;i++) {
+				if (accountData.names[i] === player.id) {
 					accountData.splice(i, 1);
 				}
 			}
-			delete require("./accounts.json").players[player.id];
+			let newData = {
+				names:accountData.names
+			};
+			for (let i = 0; i < accountData.names.length; i++) {
+				newData[accountData.names[i]] = accountData[accountData.names[i]];
+			}
+			require("./accounts.json").players = newData;
+			saveJsonFile("./accounts.json");
 			sendBasicEmbed({
-				content: "Deleted your account ;( please comeback another time",
+				content: "Deleted your account 😭 please comeback another time",
 				color  : embedColors.purple,
 				channel: message.channel
 			})
