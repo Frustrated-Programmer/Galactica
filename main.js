@@ -11,12 +11,6 @@ setInterval(function () {
 			console.log(err)
 		}
 		let words = data.split(" ");
-		for (let i = 0; i < words.length; i++) {
-			if (words[i].toLowerCase() === "enotfound" || words[i].toLowerCase() === "etimedout") {
-				console.log("rebooted");
-				process.exit();
-			}
-		}
 		if (words.length >= 5000) {
 			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
 				if (err) {
@@ -52,6 +46,11 @@ setInterval(function () {
 				})
 			})
 		}
+	}
+
+	if (client.status >= 4) {
+		console.log("rebooted");
+		process.exit();
 	}
 }, 60000 * 10);
 
@@ -2683,7 +2682,7 @@ const commands = [
 						embed.addField("FREE COLONY", "As this is your first station. Your colony is free of charge");
 					}
 					else {
-						embed.addField("LOST RESOURCES", Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax / 10) + " " + resources["food"] + " food");
+						embed.addField("LOST RESOURCES", Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax / 10) + " " + resources["food"].emoji + " food");
 					}
 					message.channel.send({embed});
 				}
@@ -3209,7 +3208,7 @@ const commands = [
 						let costsStuff = station.costs[level][i].split(" ");
 						if (playerData[costsStuff[0]] < costsStuff[1]) {
 							hasEnough = false;
-							missingItems.push([(costsStuff[1] - playerData[costsStuff[0]]), resources[costsStuff[0]]].emoji);
+							missingItems.push([(parseInt(costsStuff[1], 10) - playerData[costsStuff[0]]), resources[costsStuff[0]]].emoji);
 						}
 					}
 					if (hasEnough) {
