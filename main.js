@@ -1435,8 +1435,8 @@ const commands = [
 				}
 			}
 			for (let i = 0; i < accountData.names.length;i++) {
-				if (accountData.names[i] === player.id) {
-					accountData.splice(i, 1);
+				if (accountData.names[i] === player.userID) {
+					accountData.names.splice(i, 1);
 				}
 			}
 			let newData = {
@@ -1445,8 +1445,11 @@ const commands = [
 			for (let i = 0; i < accountData.names.length; i++) {
 				newData[accountData.names[i]] = accountData[accountData.names[i]];
 			}
+			console.log(newData);
 			require("./accounts.json").players = newData;
+			accountData = newData;
 			saveJsonFile("./accounts.json");
+
 			sendBasicEmbed({
 				content: "Deleted your account 😭 please comeback another time",
 				color  : embedColors.purple,
