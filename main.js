@@ -185,8 +185,10 @@ function attackPlayerFunction() {
 			}
 			else {
 				let damage = Math.round(Math.random() * 8) + 2;
-				let defLaserPer = (accountData[attack.defender]["Compressed Laser Generators"] * 5) / 100;
-				let attLaserPer = (accountData[attack.attacker]["Compressed Laser Generators"] * 5) / 100;
+				let defLaserPer = Math.round(((accountData[attack.defender]["Compressed Laser Generators"] * 5)/damage) * 100);
+				let attLaserPer = Math.round(((accountData[attack.attacker]["Compressed Laser Generators"] * 5)/damage) * 100);
+				let attShields = Math.round(((accountData[attack.attacker]["Super Galactic Shields"]*5)/damage)*100);
+				let defShields = Math.round(((accountData[attack.defender]["Super Galactic Shields"]*5)/damage)*100);
 				let aChoiceTxt = "";
 				let dChoiceTxt = "";
 
@@ -288,7 +290,8 @@ function attackPlayerFunction() {
 						embed2.setColor(embedColors.darkRed);
 						break;
 					case "attacker":
-						damage += Math.round(attLaserPer * damage);
+						damage += attLaserPer;
+						damage -= defLaserPer;
 						accountData[attack.defender].health -= damage;
 						if (accountData[attack.defender].health < 0) {
 							accountData[attack.defender].health = 0;
@@ -299,7 +302,8 @@ function attackPlayerFunction() {
 						embed2.setColor(embedColors.red);
 						break;
 					case "defender":
-						damage += defLaserPer * damage;
+						damage += defLaserPer;
+						damage -= attLaserPer;
 						accountData[attack.attacker].health -= damage;
 						if (accountData[attack.attacker].health < 0) {
 							accountData[attack.attacker].health = 0;
