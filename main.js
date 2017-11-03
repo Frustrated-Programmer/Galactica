@@ -2225,13 +2225,15 @@ const commands = [
 						let level = playerData[researches.names[number]];
 						if (playerData["research"] >= item.costs[level]) {
 							playerData["research"] -= item.costs[level];
+							let researchTime = item.timesToResearch[level];
+							researchTime -= Math.round((playerData["Scientific Labs"]/researchTime)*100);
 							listOfWaitTimes.push({
-								expires: item.timesToResearch[level],
+								expires: researchTime,
 								type   : "research",
 								player : playerData.userID,
 								which  : researches.names[number]
 							});
-							embed.setDescription("Researching `" + researches.names[number] + "`...\nWill take about " + getTimeRemaining(item.timesToResearch) + "\nCosts: " + item.costs[level] + "💡 Research");
+							embed.setDescription("Researching `" + researches.names[number] + "`...\nWill take about " + getTimeRemaining(researchTime) + "\nCosts: " + item.costs[level] + "💡 Research");
 						}
 						else {
 							embed.setDescription("Not enough 💡 research.");
