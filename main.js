@@ -2226,9 +2226,9 @@ const commands = [
 						if (playerData["research"] >= item.costs[level]) {
 							playerData["research"] -= item.costs[level];
 							let researchTime = item.timesToResearch[level];
-							researchTime -= Math.round((playerData["Scientific Labs"]/researchTime)*100);
+							researchTime -= Math.round(((playerData["Scientific Labs"]*5)/researchTime)*100);
 							listOfWaitTimes.push({
-								expires: researchTime,
+								expires: Date.now()+ researchTime,
 								type   : "research",
 								player : playerData.userID,
 								which  : researches.names[number]
@@ -2416,7 +2416,8 @@ const commands = [
 				let max = false;
 				let amount = Math.round((Date.now() - playerData.lastCollection) / timesTake.collectionRate);//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
 				let oldAmount = null;
-				if (amount > timesTake.collectionMax / 60000) {
+				let maxAmount = Math.round(((playerData["Super Resource Containers"]*10)/amount)*100);
+				if (amount +maxAmount> timesTake.collectionMax / 60000) {
 					max = true;
 					oldAmount = amount;
 					amount = timesTake.collectionMax / 60000;
