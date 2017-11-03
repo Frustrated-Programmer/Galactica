@@ -12,6 +12,7 @@ var Account = function (data) {
     this.didntMove = data.didntMove || false;
     this.lastCollection = data.lastCollection || Date.now();
     this.attacking = data.attacking || false;
+    this.healing = data.healing || false;
     this.messagesXp = data.messagesXp || 0;
     this.isDominating = data.isDominating || false;
     this.isInSafeZone = data.isInSafeZone || false;

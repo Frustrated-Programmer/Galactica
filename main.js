@@ -391,7 +391,6 @@ function getBorders(location) {
 function checkWaitTimes() {
 	listOfWaitTimes = require("./other.json").listOfWaitTimes;
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
-
 		if (listOfWaitTimes[i].expires <= Date.now()) {
 			let playerData = accountData[listOfWaitTimes[i].player];
 			let loc = playerData.location;
@@ -573,6 +572,16 @@ function checkWaitTimes() {
 						})
 						listOfWaitTimes.splice(i, 1);
 					}
+					break;
+				case "heal":
+					accountData[listOfWaitTimes[i].player].health = 100;
+					accountData[listOfWaitTimes[i].player].healing = false;
+					sendBasicEmbed({
+						content: "You have finished healing",
+						color  : embedColors.green,
+						channel: client.users.get(listOfWaitTimes[i].player)
+					});
+					listOfWaitTimes.splice(i, 1);
 					break;
 			}
 
@@ -1022,6 +1031,21 @@ const reqChecks = {
 				return {val: false, msg: "You have to be warping to use this command."}
 			}
 			return {val: false, msg: "You can't be warping to use this command."}
+		}
+	},
+	"healing"          : function (reqArgs, message, args, playerData, prefix) {
+		let x = "false";
+		if (playerData.healing === true) {
+			x = "true";
+		}
+		if (reqArgs[0] === x) {
+			return {val: true, msg: ""}
+		}
+		else {
+			if (reqArgs[0] === "true") {
+				return {val: false, msg: "You have to be healing to use this command."}
+			}
+			return {val: false, msg: "You can't be healing to use this command."}
 		}
 	},
 	"profile"          : function (reqArgs, message, args, playerData, prefix) {
@@ -1666,7 +1690,7 @@ const commands = [
 		description: "warp to somewhere",
 		usage      : "warp [VALUE]",
 		values     : ["{GALAXY}", "{X} {Y}", "{GALAXY} {X} {Y}"],
-		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false","healing false"],
 		effect     : function (message, args, playerData, prefix) {
 
 			let numbers = getNumbers(message.content);
@@ -2288,91 +2312,100 @@ const commands = [
 				});
 			}
 			if (defender) {
-				if (matchArray(playerData.location, defender.location, false)) {
-					if (message.channel.type === "text") {
-						sendBasicEmbed({
-							content: "Attacking has started...\nPlease check your DMs",
-							color  : embedColors.darkRed,
-							channel: message.channel
-						});
-					}
-					playerData.attacking = true;
-					defender.attacking = true;
-					let embed = new Discord.RichEmbed()
-						.setTitle("WARNING YOU ARE UNDER ATTACK")
-						.setColor(embedColors.darkRed)
-						.setDescription("You are under attack from `" + playerData.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
-					client.fetchUser(defender.userID).then(function (user) {
-						user.send({embed});
-					});
-					embed = new Discord.RichEmbed()
-						.setTitle("WARNING YOU ARE ATTACKING")
-						.setColor(embedColors.darkRed)
-						.setDescription("You are attacking `" + defender.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
-					client.fetchUser(playerData.userID).then(function (user) {
-						user.send({embed});
-					});
-
-
-					setTimeout(function () {
-						if (attackTimeInterval === false) {
-							attackTimeInterval = setInterval(attackPlayerFunction, 1000);
-						}
-						let m1 = null;
-						let emojis = ["🛡", "📡", "☄", "🏃"];
-						let reactFun = function (message, num) {
-							message.react(emojis[num]).then(function () {
-								if (emojis[num + 1]) {
-									reactFun(message, num + 1);
-								}
+				if(!defender.healing) {
+					if (matchArray(playerData.location, defender.location, false)) {
+						if (message.channel.type === "text") {
+							sendBasicEmbed({
+								content: "Attacking has started...\nPlease check your DMs",
+								color  : embedColors.darkRed,
+								channel: message.channel
 							});
-						};
+						}
+						playerData.attacking = true;
+						defender.attacking = true;
 						let embed = new Discord.RichEmbed()
-							.setTitle("WARNING YOU ARE UNDER ATTACK BY `" + playerData.username + "`")
+							.setTitle("WARNING YOU ARE UNDER ATTACK")
 							.setColor(embedColors.darkRed)
-							.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
-							.setFooter("This an RPS strategy. ");
-						client.users.get(defender.userID).send({embed}).then(function (m) {
-							reactFun(m, 0);
-							m1 = m.id;
+							.setDescription("You are under attack from `" + playerData.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
+						client.fetchUser(defender.userID).then(function (user) {
+							user.send({embed});
 						});
 						embed = new Discord.RichEmbed()
-							.setTitle("WARNING YOU ARE ATTACKING `" + defender.username + "`")
+							.setTitle("WARNING YOU ARE ATTACKING")
 							.setColor(embedColors.darkRed)
-							.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
-							.setFooter("This is an RPS strategy");
-						client.users.get(playerData.userID).send({embed}).then(function (m) {
-							reactFun(m, 0);
-
-							let doFun = function () {
-								if (m1 != null) {
-									require("./other.json").attacks.push({
-										attackersMid       : m.id,
-										defendersMid       : m1,
-										attacker           : playerData.userID,
-										defender           : defender.userID,
-										attackerChoice     : null,
-										defenderChoice     : null,
-										round              : 0,
-										timeStarted        : Date.now(),
-										timeSinceLastAttack: Date.now()
-									});
-									saveJsonFile("./other.json");
-								}
-								else {
-									setTimeout(function () {
-										doFun();
-									}, 500);
-								}
-							};
-							doFun();
-//372082226021793792||372082226021793792
+							.setDescription("You are attacking `" + defender.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
+						client.fetchUser(playerData.userID).then(function (user) {
+							user.send({embed});
 						});
-					}, 10000);
+
+
+						setTimeout(function () {
+							if (attackTimeInterval === false) {
+								attackTimeInterval = setInterval(attackPlayerFunction, 1000);
+							}
+							let m1 = null;
+							let emojis = ["🛡", "📡", "☄", "🏃"];
+							let reactFun = function (message, num) {
+								message.react(emojis[num]).then(function () {
+									if (emojis[num + 1]) {
+										reactFun(message, num + 1);
+									}
+								});
+							};
+							let embed = new Discord.RichEmbed()
+								.setTitle("WARNING YOU ARE UNDER ATTACK BY `" + playerData.username + "`")
+								.setColor(embedColors.darkRed)
+								.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
+								.setFooter("This an RPS strategy. ");
+							client.users.get(defender.userID).send({embed}).then(function (m) {
+								reactFun(m, 0);
+								m1 = m.id;
+							});
+							embed = new Discord.RichEmbed()
+								.setTitle("WARNING YOU ARE ATTACKING `" + defender.username + "`")
+								.setColor(embedColors.darkRed)
+								.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
+								.setFooter("This is an RPS strategy");
+							client.users.get(playerData.userID).send({embed}).then(function (m) {
+								reactFun(m, 0);
+
+								let doFun = function () {
+									if (m1 != null) {
+										require("./other.json").attacks.push({
+											attackersMid       : m.id,
+											defendersMid       : m1,
+											attacker           : playerData.userID,
+											defender           : defender.userID,
+											attackerChoice     : null,
+											defenderChoice     : null,
+											round              : 0,
+											timeStarted        : Date.now(),
+											timeSinceLastAttack: Date.now()
+										});
+										saveJsonFile("./other.json");
+									}
+									else {
+										setTimeout(function () {
+											doFun();
+										}, 500);
+									}
+								};
+								doFun();
+//372082226021793792||372082226021793792
+							});
+						}, 10000);
+					}
+					else {
+						sendBasicEmbed({
+							content: "You arent in the same location as him/her",
+							color  : embedColors.red,
+							channel: message.channel
+						})
+					}
 				}
 				else {
 					sendBasicEmbed({
-						content: "You arent in the same location as him/her",
+						content: "You are un able to attack this player.",
 						color  : embedColors.red,
 						channel: message.channel
 					})
@@ -2395,6 +2428,35 @@ const commands = [
 		reqs       : ["normCommand", "profile", "attacking false", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
 
+		}
+	},
+	{
+		names      : ["heal"],
+		description: "heal yourself",
+		usage      : "heal",
+		values     : [],
+		reqs       : ["normCommand","profile true","attacking false","warping false","healing false"],
+		effect     : function (message, args, playerData, prefix) {
+			if(playerData.health<100){
+				playerData.healing = true;
+				listOfWaitTimes.push({
+					player : playerData.userID,
+					expires: Date.now() + (100-playerData.health)*60000,
+					type   : "heal"
+				});
+				sendBasicEmbed({
+					content:"Healing started. will take\n"+getTimeRemaining((100-playerData.health)*60000),
+					color:embedColors.red,
+					channel:message.channel
+				})
+			}
+			else{
+				sendBasicEmbed({
+					content:"You are at full health already.",
+					color:embedColors.red,
+					channel:message.channel
+				})
+			}
 		}
 	},
 

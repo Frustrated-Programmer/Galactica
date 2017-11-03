@@ -338,13 +338,14 @@ const researches = {
 		costs          : [50,100,150,250,300,350,400,450,500,550]
 	},
 	"Scientific Labs"            : {
-		timesToResearch: [3600000,(3600000*3),(3600000*6)],
+		timesToResearch: [3600000,(3600000*3),(3600000*6),(3600000*9)],
 		does           : [
 			"Decreases research time by 5%",
+			"Decreases research time by 10%",
 			"Decreases research time by 15%",
 			"Decreases research time by 20%"
 		],
-		costs          : [500,1000,1500]
+		costs          : [500,1000,1500,2000]
 	},
 	"Super Resource Containers"  : {
 		timesToResearch: [3600000,3600000*3,3600000*6,3600000*9,3600000*12],
@@ -370,12 +371,12 @@ const researches = {
 	"Super Galactic Shields"     : {
 		timesToResearch: [60000*30,3600000,3600000*2,3600000*3,3600000*4,3600000*5],
 		does           : [
-			"Take 1% less damage",
-			"Take 3% less damage",
 			"Take 5% less damage",
-			"Take 9% less damage",
-			"Take 12% less damage",
-			"Take 15% less damage"
+			"Take 10% less damage",
+			"Take 15% less damage",
+			"Take 20% less damage",
+			"Take 25% less damage",
+			"Take 30% less damage"
 		],
 		costs          : [100,300,500,700,1000,1500]
 	},
