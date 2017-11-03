@@ -124,7 +124,7 @@ const colors = {
 
 };
 const resources = {
-	names        : ["credits", "steel", "electricity", "food", "people", "beryllium", "research", "titanium", "neutronium", "carbon", "silicon","power"],
+	names        : ["credits", "steel", "electricity", "food", "people", "beryllium", "research", "titanium", "neutronium", "carbon", "silicon", "power"],
 	"credits"    : {
 		emoji   : "💠",
 		buyRate : 1,
@@ -180,17 +180,87 @@ const resources = {
 		buyRate : 30,
 		sellRate: 20
 	},
-	"power"    : {
+	"power"      : {
 		emoji   : "",
 		buyRate : 99999999999,
 		sellRate: 0
 	}
 };
-const ranks = {
-	list : [0, 50, 100, 250, 500, 1000, 1500, 2000, 2750, 3500, 5000],
-	names: ["Newbie", "Learner", "Recruit", "Beginner", "Toughie", "Intermediate", "Advanced", "Megatron", "Expert", "SuperBeing", "Godlike"]
+let ranks = {
+	list          : [0, 50, 100, 250, 500, 1000, 1500, 2000, 2750, 3500, 5000],
+	names         : ["Newbie", "Learner", "Recruit", "Beginner", "Toughie", "Intermediate", "Advanced", "Megatron", "Expert", "SuperBeing", "Godlike"],
+	"Newbie"      : {
+		min : 0,
+		max : 3,
+		safe: 0,
+		dom : 1
+	},
+	"Learner"     : {
+		min : 0,
+		max : 5,
+		safe: 0,
+		dom : 2
+	},
+	"Recruit"     : {
+		min : 1,
+		max : 6,
+		safe: 1,
+		dom : 3
+	},
+	"Beginner"    : {
+		min : 2,
+		max : 7,
+		safe: 1,
+		dom : 4
+	},
+	"Toughie"     : {
+		min : 3,
+		max : 8,
+		safe: 2,
+		dom : 5
+	},
+	"Intermediate": {
+		min : 4,
+		max : 9,
+		safe: 4,
+		dom : 8
+	},
+	"Advanced"    : {
+		min : 5,
+		max : 10,
+		safe: 6,
+		dom : 10
+	},
+	"Megatron"    : {
+		min : 6,
+		max : 11,
+		safe: 8,
+		dom : 12
+	},
+	"Expert"      : {
+		min : 7,
+		max : 12,
+		safe: 10,
+		dom : 15
+	},
+	"SuperBeing"  : {
+		min : 8,
+		max : 13,
+		safe: 15,
+		dom : 20
+	},
+	"Godlike"     : {
+		min : 10,
+		max : 15,
+		safe: 20,
+		dom : 25
+	}
 
 };
+for (let i = 0; i < ranks.names.length; i++) {
+	ranks["" + ranks.names[i]] = {min: 0, max: 0};
+}
+console.log(ranks);
 const powerIncreases = {
 	colonize      : 10,
 	buildStation  : 10,

@@ -2,10 +2,10 @@ var Account = function (data) {
     data = data || {};
 
     this.userID = data.userID || "";
-    this.rank = data.rank || "newbie";
+    this.rank = data.rank || "Newbie";
     this.username = data.username || "";
     this.faction = data.faction || null;
-    this.location = data.location || [0, 0, 0];
+    this.location = data.location || [0, 10, 10];
     this.happiness = data.happiness || 0.5;
     this.stations = data.stations || [];
     this.colonies = data.colonies || [];
@@ -13,6 +13,8 @@ var Account = function (data) {
     this.lastCollection = data.lastCollection || Date.now();
     this.attacking = data.attacking || false;
     this.messagesXp = data.messagesXp || 0;
+    this.isDominating = data.isDominating || false;
+    this.isInSafeZone = data.isInSafeZone || false;
 
     //resources
     this["credits"] = data["credits"] || 0;

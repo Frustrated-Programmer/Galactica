@@ -4,7 +4,7 @@ let Jimp = require("jimp");
 const universalPrefix = require("./other.json").uniPre || "-";
 const fs = require("fs");
 const Discord = require("discord.js");
-const client = new Discord.Client()
+const client = new Discord.Client();
 let checked = 0;
 setInterval(function () {
 	fs.readFile("./galactica.log", "utf8", function (err, data) {
@@ -48,12 +48,37 @@ setInterval(function () {
 			})
 		}
 	}
-
-	if (client.status >= 4||checked>=1) {
+	console.log("client's status === " + client.status);
+	if (client.status !== 1 || checked >= 1) {
 		console.log("rebooted");
 		process.exit();
 	}
 	checked++;
+	for(let i =0;i<accountData.names.length;i++){
+		let player = accountData[accountData.names[i]];
+		let rank = null;
+		for(let j =0;j<ranks.names.length;i++){
+			if(ranks.names[i].toLowerCase() === player.rank){
+				rank = ranks[ranks.names[i]]
+			}
+		}
+		if(player.isDominating){
+			accountData[accountData.names[i]]["credits"]+=rank.dom;
+		}
+		else if(player.isInSafeZone) {
+			accountData[accountData.names[i]]["credits"]-=rank.safe;
+		}
+		if(accountData[accountData.names[i]]["credits"]<0){
+			accountData[accountData.names[i]]["credits"] = 0;
+			client.fetchUser(accountData[accountData.names[i]].userID).then(function (user) {
+				sendBasicEmbed({
+					content:"You were removed from the SafeZone due to having Insufficient Funds\nIt costs "+rank.safe+" "+resources["credits"]+" credits every 10 minutes to stay in the safe zone.",
+					color:embedColors.red,
+					channel:user
+				})
+			})
+		}
+	}
 }, 60000 * 10);
 
 
@@ -612,12 +637,30 @@ function createMap(galaxys, xSize, ySize) {
 				if (planets[planet].name === "empty") {
 					item = "empty";
 				}
-				yMap.push({
-					type     : planets[planet].name,
-					item     : item,
-					ownersID : null,
-					soonOwner: null
-				});
+				if (x < 3 && y < 3) {
+					yMap.push({
+						type     : "Safe Zone",
+						item     : "SafeZone",
+						ownersID : null,
+						soonOwner: null
+					})
+				}
+				else if (x > xSize-3 && y > ySize-3) {
+					yMap.push({
+						type     : "Domination Zone",
+						item     : "DominateZone",
+						ownersID : null,
+						soonOwner: null
+					})
+				}
+				else {
+					yMap.push({
+						type     : planets[planet].name,
+						item     : item,
+						ownersID : null,
+						soonOwner: null
+					});
+				}
 			}
 			galaxy.push(yMap);
 		}
@@ -678,14 +721,14 @@ function getNumbers(text, parsed) {
 	return wordsWithNumbers;
 }//insert in text get back an array of all the numbers in that text
 function getTimeRemaining(time) {
-	time = parseInt(time,10);
-	let times = [[31557600000000,0,"millennial"],[3155760000000,0,"century"],[315576000000,0,"decade"],[31557600000,0,"year"],[86400000, 0, "day"], [3600000, 0, "hour"], [60000, 0, "minute"], [1000, 0, "second"], [1, 0, "millisecond"]];
+	time = parseInt(time, 10);
+	let times = [[31557600000000, 0, "millennial"], [3155760000000, 0, "century"], [315576000000, 0, "decade"], [31557600000, 0, "year"], [86400000, 0, "day"], [3600000, 0, "hour"], [60000, 0, "minute"], [1000, 0, "second"], [1, 0, "millisecond"]];
 	let timeLeftText = "";
 	let fakeTime = time;
-	for(let i =0;i<times.length;i++){
-		if(fakeTime>=times[i][0]){
-			while(fakeTime>=times[i][0]) {
-				fakeTime-=times[i][0];
+	for (let i = 0; i < times.length; i++) {
+		if (fakeTime >= times[i][0]) {
+			while (fakeTime >= times[i][0]) {
+				fakeTime -= times[i][0];
 				times[i][1]++;
 			}
 		}
@@ -694,7 +737,7 @@ function getTimeRemaining(time) {
 			if (times[i][1] > 0) {
 				timeLeftText += "s";
 			}
-			if (i+2 === times.length) {
+			if (i + 2 === times.length) {
 				timeLeftText += " and "
 			}
 			else if (i + 2 !== times.length) {
@@ -1359,7 +1402,7 @@ const commands = [
 		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
 			sendBasicEmbed({
-				content: "Galactica has been up for "+getTimeRemaining(Date.now()-upTime),
+				content: "Galactica has been up for " + getTimeRemaining(Date.now() - upTime),
 				color  : embedColors.purple,
 				channel: message.channel
 			})
@@ -1531,7 +1574,12 @@ const commands = [
 
 			let location = "";
 			if (player.location instanceof Array) {
-				location = "Galaxy `" + (player.location[0] + 1) + "` Area: `" + (player.location[2] + 1) + "x" + (player.location[1] + 1) + "`"
+				location = "Galaxy `" + (player.location[0] + 1) + "` Area: `" + (player.location[2] + 1) + "x" + (player.location[1] + 1) + "`";
+				if(player.isInSafeZone[0]){
+					location+="\nCurrently in the Safe Zone"
+				}else if(playerisDominating[0]){
+					location+="\nCurrently in the Domination Zone"
+				}
 			}
 			else {
 				location = player.location;
@@ -1633,13 +1681,13 @@ const commands = [
 			}
 			else {
 				let rank = 0;
-				for(let i =0;i<ranks.names.length;i++){
-					if(ranks.names[i].toLowerCase() === playerData.rank.toLowerCase()){
+				for (let i = 0; i < ranks.names.length; i++) {
+					if (ranks.names[i].toLowerCase() === playerData.rank.toLowerCase()) {
 						rank = i;
 						break;
 					}
 				}
-				if(goToPos[0]>=ranks[ranks.names[rank]].min&&goToPos[0]<ranks[ranks.names[rank]].max) {
+				if (goToPos[0] >= ranks[ranks.names[rank]].min && goToPos[0] < ranks[ranks.names[rank]].max) {
 					playerData.didntMove = false;
 					let timeUntilFinishedWarping = 0;
 					if (goToPos[1] + 1 > playerData.location[1]) {
@@ -1672,11 +1720,13 @@ const commands = [
 						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
 						color  : embedColors.blue,
 						channel: message.channel
-					})
+					});
+					playerData.isDominating=false;
+					playerData.isInSafeZone=false;
 				}
-				else{
+				else {
 					sendBasicEmbed({
-						content: "Your rank: `"+playerData.rank+"` Only allows you to be in the Galaxy's `"+(ranks[ranks.names[rank]].min+1)+"` through `"+ranks[ranks.names[rank]].max+"`\nMake sure your warping to one of those Galaxy's",
+						content: "Your rank: `" + playerData.rank + "` Only allows you to be in the Galaxy's `" + (ranks[ranks.names[rank]].min + 1) + "` through `" + ranks[ranks.names[rank]].max + "`\nMake sure your warping to one of those Galaxy's",
 						color  : embedColors.blue,
 						channel: message.channel
 					})
@@ -1983,9 +2033,16 @@ const commands = [
 									}
 								}
 								else {
-									folder = "planets";
-									who = "Neutral";
-									typeImage = m[i][j].type;
+									if(m[i][j].item === "planet") {
+										folder = "planets";
+										who = "Neutral";
+										typeImage = m[i][j].type;
+									}
+									else{
+										folder = "Other";
+										who = "Items";
+										typeImage = m[i][j].type
+									}
 								}
 							}
 							if (!folder.length) {
@@ -2275,6 +2332,16 @@ const commands = [
 					channel: message.channel
 				});
 			}
+		}
+	},
+	{
+		names      : ["removeMy", "remove"],
+		description: "remove a station or colony",
+		usage      : "removeMy [VALUE]",
+		values     : ["\"station\" [ID]", "\"colony\" [ID]"],
+		reqs       : ["normCommand", "profile", "attacking false", "warping false"],
+		effect     : function (message, args, playerData, prefix) {
+
 		}
 	},
 
@@ -2747,7 +2814,7 @@ const commands = [
 						space += " "
 					}
 				}
-				txt += spacing(colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + (colonies[i].location[2] + 1) + " x " + (colonies[i].location[1] + 1), 50);
+				txt += spacing("[" + (i + 1) + "] " + colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + (colonies[i].location[2] + 1) + " x " + (colonies[i].location[1] + 1), 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -2756,7 +2823,7 @@ const commands = [
 			}
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.pink)
-				.setTitle("PEOPLE--NAME-------------------LOCATION")
+				.setTitle("[ID]-PEOPLE--NAME-------------------LOCATION")
 				.setDescription(txt);
 			message.channel.send({embed});
 		}
@@ -4854,7 +4921,7 @@ client.on("guildCreate", function (Guild) {
 	}
 });
 client.on("ready", function () {
-	upTime=Date.now();
+	upTime = Date.now();
 	console.log("Galactica | Online");
 	powerEmoji = client.guilds.get("354670066480054272").emojis.find("name", "Fist");
 	resources["power"].emoji = powerEmoji.toString();
@@ -4909,7 +4976,7 @@ client.on("message", function (message) {
 	if (message.author.bot) {
 		return;
 	}
-	if(checked>0){
+	if (checked > 0) {
 		checked = 0;
 	}
 	let command = message.content.toLowerCase().split(" ")[0];
