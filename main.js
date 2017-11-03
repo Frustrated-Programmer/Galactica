@@ -1632,40 +1632,55 @@ const commands = [
 				})
 			}
 			else {
-				playerData.didntMove = false;
-				let timeUntilFinishedWarping = 0;
-				if (goToPos[1] + 1 > playerData.location[1]) {
-					timeUntilFinishedWarping += ((goToPos[1] + 1) - playerData.location[1]) * timesTake.warpPerPosition;
+				let rank = 0;
+				for(let i =0;i<ranks.names.length;i++){
+					if(ranks.names[i].toLowerCase() === playerData.rank.toLowerCase()){
+						rank = i;
+						break;
+					}
 				}
-				else {
-					timeUntilFinishedWarping += (playerData.location[1] + (goToPos[1] + 1)) * timesTake.warpPerPosition;
-				}
-				if (goToPos[2] + 1 > playerData.location[2]) {
-					timeUntilFinishedWarping += ((goToPos[2] + 1) - playerData.location[2]) * timesTake.warpPerPosition;
-				}
-				else {
-					timeUntilFinishedWarping += (playerData.location[2] + (goToPos[2] + 1)) * timesTake.warpPerPosition;
-				}
-				if (warpType !== "positionBase") {
-					timeUntilFinishedWarping += 60000 * 5;//5 mins if its a galaxy warp
-				}
+				if(goToPos[0]>=ranks[ranks.names[rank]].min&&goToPos[0]<ranks[ranks.names[rank]].max) {
+					playerData.didntMove = false;
+					let timeUntilFinishedWarping = 0;
+					if (goToPos[1] + 1 > playerData.location[1]) {
+						timeUntilFinishedWarping += ((goToPos[1] + 1) - playerData.location[1]) * timesTake.warpPerPosition;
+					}
+					else {
+						timeUntilFinishedWarping += (playerData.location[1] + (goToPos[1] + 1)) * timesTake.warpPerPosition;
+					}
+					if (goToPos[2] + 1 > playerData.location[2]) {
+						timeUntilFinishedWarping += ((goToPos[2] + 1) - playerData.location[2]) * timesTake.warpPerPosition;
+					}
+					else {
+						timeUntilFinishedWarping += (playerData.location[2] + (goToPos[2] + 1)) * timesTake.warpPerPosition;
+					}
+					if (warpType !== "positionBase") {
+						timeUntilFinishedWarping += 60000 * 5;//5 mins if its a galaxy warp
+					}
 
-				listOfWaitTimes.push({
-					player : playerData.userID,
-					expires: Date.now() + timeUntilFinishedWarping,
-					headTo : goToPos,
-					type   : "warp"
-				});
-				if (!waitTimesInterval) {
-					waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
+					listOfWaitTimes.push({
+						player : playerData.userID,
+						expires: Date.now() + timeUntilFinishedWarping,
+						headTo : goToPos,
+						type   : "warp"
+					});
+					if (!waitTimesInterval) {
+						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
+					}
+					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + goToPos[2] + "x" + goToPos[1] + "`";
+					sendBasicEmbed({
+						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
+						color  : embedColors.blue,
+						channel: message.channel
+					})
 				}
-				playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + goToPos[2] + "x" + goToPos[1] + "`";
-				sendBasicEmbed({
-					content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
-					color  : embedColors.blue,
-					channel: message.channel
-				})
-
+				else{
+					sendBasicEmbed({
+						content: "Your rank: `"+playerData.rank+"` Only allows you to be in the Galaxy's `"+(ranks[ranks.names[rank]].min+1)+"` through `"+ranks[ranks.names[rank]].max+"`\nMake sure your warping to one of those Galaxy's",
+						color  : embedColors.blue,
+						channel: message.channel
+					})
+				}
 			}
 		}
 	},
