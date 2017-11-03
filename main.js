@@ -54,27 +54,27 @@ setInterval(function () {
 		process.exit();
 	}
 	checked++;
-	for(let i =0;i<accountData.names.length;i++){
+	for (let i = 0; i < accountData.names.length; i++) {
 		let player = accountData[accountData.names[i]];
 		let rank = null;
-		for(let j =0;j<ranks.names.length;i++){
-			if(ranks.names[i].toLowerCase() === player.rank){
+		for (let j = 0; j < ranks.names.length; i++) {
+			if (ranks.names[i].toLowerCase() === player.rank) {
 				rank = ranks[ranks.names[i]]
 			}
 		}
-		if(player.isDominating){
-			accountData[accountData.names[i]]["credits"]+=rank.dom;
+		if (player.isDominating) {
+			accountData[accountData.names[i]]["credits"] += rank.dom;
 		}
-		else if(player.isInSafeZone) {
-			accountData[accountData.names[i]]["credits"]-=rank.safe;
+		else if (player.isInSafeZone) {
+			accountData[accountData.names[i]]["credits"] -= rank.safe;
 		}
-		if(accountData[accountData.names[i]]["credits"]<0){
+		if (accountData[accountData.names[i]]["credits"] < 0) {
 			accountData[accountData.names[i]]["credits"] = 0;
 			client.fetchUser(accountData[accountData.names[i]].userID).then(function (user) {
 				sendBasicEmbed({
-					content:"You were removed from the SafeZone due to having Insufficient Funds\nIt costs "+rank.safe+" "+resources["credits"]+" credits every 10 minutes to stay in the safe zone.",
-					color:embedColors.red,
-					channel:user
+					content: "You were removed from the SafeZone due to having Insufficient Funds\nIt costs " + rank.safe + " " + resources["credits"] + " credits every 10 minutes to stay in the safe zone.",
+					color  : embedColors.red,
+					channel: user
 				})
 			})
 		}
@@ -645,7 +645,7 @@ function createMap(galaxys, xSize, ySize) {
 						soonOwner: null
 					})
 				}
-				else if (x > xSize-3 && y > ySize-3) {
+				else if (x > xSize - 3 && y > ySize - 3) {
 					yMap.push({
 						type     : "Domination Zone",
 						item     : "DominateZone",
@@ -1551,6 +1551,43 @@ const commands = [
 			}
 		}
 	},
+	{
+		names      : ["leaderboard", "highscores", "lb"],
+		description: "get a leaderboard of everyone's power",
+		usage      : "leaderboard",
+		values     : [],
+		reqs       : ["normCommand"],
+		effect     : function (message, args, playerData, prefix) {
+			let lb = [];
+			for (let i = 0; i < accountData.names.length; i++) {
+				let player = accountData[accountData.names[i]];
+				if (player["power"] > 0) {
+					if (lb.length) {
+						for (let j = 0; j < lb.length; j++) {
+							if (player["power"] > lb[j]) {
+								lb.splice(j, 0, [player.username, player["power"]]);
+							}
+						}
+					}
+					else {
+						lb.push([player.username, player["power"]]);
+					}
+				}
+				if (lb.length > 10) {
+					lb.pop();
+				}
+			}
+			let lbText = "```css\n";
+			for (let i = 0; i < lb.length; i++) {
+				lbText += spacing("[" + (i + 1) + "]" + lb[i][0], lb[i][1] + " power\n", 30);
+			}
+			sendBasicEmbed({
+				content: "Galactica's leaderboard of power is " + lbText + "```",
+				color  : embedColors.purple,
+				channel: message.channel
+			})
+		}
+	},
 
 	["GAMEPLAY", "MAIN"],
 	{
@@ -1575,10 +1612,11 @@ const commands = [
 			let location = "";
 			if (player.location instanceof Array) {
 				location = "Galaxy `" + (player.location[0] + 1) + "` Area: `" + (player.location[2] + 1) + "x" + (player.location[1] + 1) + "`";
-				if(player.isInSafeZone[0]){
-					location+="\nCurrently in the Safe Zone"
-				}else if(playerisDominating[0]){
-					location+="\nCurrently in the Domination Zone"
+				if (player.isInSafeZone[0]) {
+					location += "\nCurrently in the Safe Zone"
+				}
+				else if (playerisDominating[0]) {
+					location += "\nCurrently in the Domination Zone"
 				}
 			}
 			else {
@@ -1721,8 +1759,8 @@ const commands = [
 						color  : embedColors.blue,
 						channel: message.channel
 					});
-					playerData.isDominating=false;
-					playerData.isInSafeZone=false;
+					playerData.isDominating = false;
+					playerData.isInSafeZone = false;
 				}
 				else {
 					sendBasicEmbed({
@@ -2033,12 +2071,12 @@ const commands = [
 									}
 								}
 								else {
-									if(m[i][j].item === "planet") {
+									if (m[i][j].item === "planet") {
 										folder = "planets";
 										who = "Neutral";
 										typeImage = m[i][j].type;
 									}
-									else{
+									else {
 										folder = "Other";
 										who = "Items";
 										typeImage = m[i][j].type
