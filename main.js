@@ -63,7 +63,14 @@ setInterval(function () {
 			}
 		}
 		if (player.isDominating) {
-			accountData[accountData.names[i]]["credits"] += rank.dom;
+			let amo = 0;
+			switch (playerData["Domination Kingdoms"]){
+				case 1: amo = Math.floor(rank.dom/5);break;
+				case 2: amo = Math.floor(rank.dom/3);break;
+				case 3: amo = Math.floor(rank.dom/3)*2;break;
+				case 4: amo = rank.dom;break;
+			}
+			accountData[accountData.names[i]]["credits"] += rank.dom + amo;
 		}
 		else if (player.isInSafeZone) {
 			accountData[accountData.names[i]]["credits"] -= rank.safe;
