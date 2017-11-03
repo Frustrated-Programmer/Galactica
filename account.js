@@ -35,5 +35,10 @@ var Account = function (data) {
     this["Inductive Isolation Methods"] = data["Inductive Isolation Methods"] || 0;
 	this["Gravitic Purification"] = data["Gravitic Purification"] || 0;
 	this["Compressed Laser Generators"] = data["Compressed Laser Generators"] || 0;
+	this["HyperDrive Generator"] = data["HyperDrive Generator"] || 0;
+	this["Scientific Labs"] = data["Scientific Labs"]||0;
+	this["Super Resource Containers"] = data["Super Resource Containers"] ||0;
+	this["Domination Kingdoms"] = data["Domination Kingdoms"] || 0;
+	this["Super Galactic Shields"] = data["Eagle Eyed"] || 0;
 };
 module.exports = Account;

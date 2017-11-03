@@ -186,7 +186,7 @@ const resources = {
 		sellRate: 0
 	}
 };
-let ranks = {
+const ranks = {
 	list          : [0, 50, 100, 250, 500, 1000, 1500, 2000, 2750, 3500, 5000],
 	names         : ["Newbie", "Learner", "Recruit", "Beginner", "Toughie", "Intermediate", "Advanced", "Megatron", "Expert", "SuperBeing", "Godlike"],
 	"Newbie"      : {
@@ -257,10 +257,6 @@ let ranks = {
 	}
 
 };
-for (let i = 0; i < ranks.names.length; i++) {
-	ranks["" + ranks.names[i]] = {min: 0, max: 0};
-}
-console.log(ranks);
 const powerIncreases = {
 	colonize      : 10,
 	buildStation  : 10,
@@ -274,8 +270,15 @@ const powerIncreases = {
 	colonyDestroy  : -5,
 	militaryDestroy: -20
 };
+/** one that decreases warp time
+ - one that decreases research time
+ - one that increases collect max time
+ - one that increases credit income in dominate zone
+ - one that increases defense in attacking
+ - upgrades scan's vision (EXPENSIVE)
+ **/
 const researches = {
-	names: ["Inductive Isolation Methods", "Gravitic Purification", "Compressed Laser Generators"],
+	names: ["Inductive Isolation Methods", "Gravitic Purification", "Compressed Laser Generators","HyperDrive Generator","Scientific Labs","Super Resource Containers","Domination Kingdoms","Super Galactic Shields","Eagle Eyed"],
 
 
 	/**EVERYTHING is in arrays for each of the levels**/
@@ -317,6 +320,71 @@ const researches = {
 			"30% more damage to ships, stations & planets"
 		],
 		costs          : [50, 130, 200, 450, 700, 1000]
+	},
+	"HyperDrive Generator"       : {
+		timesToResearch: [3600000,(3600000*2),(3600000*3),(3600000*4),(3600000*5),(3600000*6),(3600000*7),(3600000*8),(3600000*9),36000000],
+		does           : [
+			"Decreases Warp time by 1%",
+			"Decreases Warp time by 2%",
+			"Decreases Warp time by 3%",
+			"Decreases Warp time by 4%",
+			"Decreases Warp time by 5%",
+			"Decreases Warp time by 6%",
+			"Decreases Warp time by 7%",
+			"Decreases Warp time by 8%",
+			"Decreases Warp time by 9%",
+			"Decreases Warp time by 10%"
+		],
+		costs          : [50,100,150,250,300,350,400,450,500,550]
+	},
+	"Scientific Labs"            : {
+		timesToResearch: [3600000,(3600000*3),(3600000*6)],
+		does           : [
+			"Decreases research time by 5%",
+			"Decreases research time by 15%",
+			"Decreases research time by 20%"
+		],
+		costs          : [500,1000,1500]
+	},
+	"Super Resource Containers"  : {
+		timesToResearch: [3600000,3600000*3,3600000*6,3600000*9,3600000*12],
+		does           : [
+			"Increases resource's storage by 10%",
+			"Increases resource's storage by 20%",
+			"Increases resource's storage by 30%",
+			"Increases resource's storage by 40%",
+			"Increases resource's storage by 50%"
+		],
+		costs          : [1000,2000,3000,4000,5000]
+	},
+	"Domination Kingdoms"        : {
+		timesToResearch: [3600000*3,3600000*9,3600000*24,3600000*42],
+		does           : [
+			"Gives you 1 more credit for ever 5 credits gained",
+			"Gives you 1 more credit for ever 3 credits gained",
+			"Gives you 2 more credits for ever 3 credits gained",
+			"Gives double credits"
+		],
+		costs          : [1000,4000,6000,10000]
+	},
+	"Super Galactic Shields"     : {
+		timesToResearch: [60000*30,3600000,3600000*2,3600000*3,3600000*4,3600000*5],
+		does           : [
+			"Take 1% less damage",
+			"Take 3% less damage",
+			"Take 5% less damage",
+			"Take 9% less damage",
+			"Take 12% less damage",
+			"Take 15% less damage"
+		],
+		costs          : [100,300,500,700,1000,1500]
+	},
+	"Eagle Eyed"                 : {
+		timesToResearch: [3600000*42],
+		does           : [
+			"increases your vision"
+		],
+		costs          : [10000]
 	}
 };
 const timeTakes = {
