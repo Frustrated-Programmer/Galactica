@@ -679,7 +679,7 @@ function getNumbers(text, parsed) {
 }//insert in text get back an array of all the numbers in that text
 function getTimeRemaining(time) {
 	time = parseInt(time,10);
-	let times = [[86400000, 0, "day"], [3600000, 0, "hour"], [60000, 0, "minute"], [1000, 0, "second"], [1, 0, "millisecond"]];
+	let times = [[31557600000000,0,"millennial"],[3155760000000,0,"century"],[315576000000,0,"decade"],[31557600000,0,"year"],[86400000, 0, "day"], [3600000, 0, "hour"], [60000, 0, "minute"], [1000, 0, "second"], [1, 0, "millisecond"]];
 	let timeLeftText = "";
 	let fakeTime = time;
 	for(let i =0;i<times.length;i++){
@@ -694,17 +694,13 @@ function getTimeRemaining(time) {
 			if (times[i][1] > 0) {
 				timeLeftText += "s";
 			}
-			if (i+1 === times.length) {
+			if (i+2 === times.length) {
 				timeLeftText += " and "
 			}
-			else if (i + 1 !== times.length) {
+			else if (i + 2 !== times.length) {
 				timeLeftText += ", "
 			}
 		}
-	}
-
-	for (let i = 0; i < times.length; i++) {
-
 	}
 	return timeLeftText;
 }
