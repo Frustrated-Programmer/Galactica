@@ -1963,6 +1963,8 @@ const commands = [
 			let size = mainSize / (m.length + 1);
 
 			let done = [];
+			let playersVision = 3;
+			playersVision+=playerData["Eagle Eyed"];
 			let canShowFunc = function (y, x) {
 				let theMap = map[playerData.location[0]];
 
@@ -1972,7 +1974,7 @@ const commands = [
 					if (x < 0 || y < 0 || y + 1 > theMap.length || x + 1 > theMap[y].length) {
 						return;
 					}
-					if (matchArray([playerData.location[0], y, x], playerData.location, false) && dis <= 3) {
+					if (matchArray([playerData.location[0], y, x], playerData.location, false) && dis <= playersVision) {
 						found = true;
 					}
 					if (theMap[y][x].ownersID != null) {
