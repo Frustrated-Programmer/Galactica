@@ -1743,7 +1743,7 @@ const commands = [
 					if (warpType !== "positionBase") {
 						timeUntilFinishedWarping += 60000 * 5;//5 mins if its a galaxy warp
 					}
-
+					timeUntilFinishedWarping -= Math.round((playerData["HyperDrive Generator"]/timeUntilFinishedWarping)*100);
 					listOfWaitTimes.push({
 						player : playerData.userID,
 						expires: Date.now() + timeUntilFinishedWarping,
