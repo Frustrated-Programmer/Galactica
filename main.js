@@ -4,7 +4,8 @@ let Jimp = require("jimp");
 const universalPrefix = require("./other.json").uniPre || "-";
 const fs = require("fs");
 const Discord = require("discord.js");
-const client = new Discord.Client();
+const client = new Discord.Client()
+let checked = 0;
 setInterval(function () {
 	fs.readFile("./galactica.log", "utf8", function (err, data) {
 		if (err) {
@@ -48,15 +49,17 @@ setInterval(function () {
 		}
 	}
 
-	if (client.status >= 4) {
+	if (client.status >= 4||checked>=1) {
 		console.log("rebooted");
 		process.exit();
 	}
+	checked++;
 }, 60000 * 10);
 
 
 /**VARIABLES**/
 let powerEmoji = "";
+let upTime = 0;
 let attacks = require("./other.json").attacks;
 let attackTimeInterval = false;
 let accountData = require("./accounts.json").players;
@@ -675,29 +678,33 @@ function getNumbers(text, parsed) {
 	return wordsWithNumbers;
 }//insert in text get back an array of all the numbers in that text
 function getTimeRemaining(time) {
+	time = parseInt(time,10);
 	let times = [[86400000, 0, "day"], [3600000, 0, "hour"], [60000, 0, "minute"], [1000, 0, "second"], [1, 0, "millisecond"]];
 	let timeLeftText = "";
 	let fakeTime = time;
-	for (let i = 0; i < times.length; i++) {
-		if (fakeTime >= times[i][0]) {
-			while (fakeTime >= times[i][0]) {
-				fakeTime -= times[i][0];
+	for(let i =0;i<times.length;i++){
+		if(fakeTime>=times[i][0]){
+			while(fakeTime>=times[i][0]) {
+				fakeTime-=times[i][0];
 				times[i][1]++;
 			}
 		}
 		if (times[i][1] > 0) {
-			timeLeftText += "`" + times[i][1] + "` ";
-			timeLeftText += times[i][2];
+			timeLeftText += "`" + times[i][1] + "` " + times[i][2];
 			if (times[i][1] > 0) {
 				timeLeftText += "s";
 			}
-			if (i === times.length) {
+			if (i+1 === times.length) {
 				timeLeftText += " and "
 			}
 			else if (i + 1 !== times.length) {
 				timeLeftText += ", "
 			}
 		}
+	}
+
+	for (let i = 0; i < times.length; i++) {
+
 	}
 	return timeLeftText;
 }
@@ -1336,13 +1343,27 @@ const commands = [
 	},
 	{
 		names      : ["version"],
-		description: "get the server' current version",
+		description: "get the game's current version",
 		usage      : "version",
 		values     : [],
 		reqs       : ["normCommand"],
 		effect     : function (message, args, playerData, prefix) {
 			sendBasicEmbed({
 				content: "Galactica's current version is `" + version + "`",
+				color  : embedColors.purple,
+				channel: message.channel
+			})
+		}
+	},
+	{
+		names      : ["upTime"],
+		description: "get the amount of time the bot has been up",
+		usage      : "upTime",
+		values     : [],
+		reqs       : ["normCommand"],
+		effect     : function (message, args, playerData, prefix) {
+			sendBasicEmbed({
+				content: "Galactica has been up for "+getTimeRemaining(Date.now()-upTime),
 				color  : embedColors.purple,
 				channel: message.channel
 			})
@@ -1434,18 +1455,17 @@ const commands = [
 					map[loc[0]][loc[1]][loc[2]].ownersID = null;
 				}
 			}
-			for (let i = 0; i < accountData.names.length;i++) {
+			for (let i = 0; i < accountData.names.length; i++) {
 				if (accountData.names[i] === player.userID) {
 					accountData.names.splice(i, 1);
 				}
 			}
 			let newData = {
-				names:accountData.names
+				names: accountData.names
 			};
 			for (let i = 0; i < accountData.names.length; i++) {
 				newData[accountData.names[i]] = accountData[accountData.names[i]];
 			}
-			console.log(newData);
 			require("./accounts.json").players = newData;
 			accountData = newData;
 			saveJsonFile("./accounts.json");
@@ -1835,7 +1855,6 @@ const commands = [
 				}
 			}
 
-			let somethingUnder = false;
 			setTimeout(function () {
 				doFun(1);
 			}, 1000);
@@ -1912,35 +1931,20 @@ const commands = [
 				for (let i = 0; i < m.length; i++) {
 					done.push([]);
 					for (let j = 0; j < m[i].length; j++) {
+						let folder = "";
+						let who = "";
+						let typeImage = m[i][j].type;
+
 						done[i].push(false);
 						let canShow = canShowFunc(i, j);
-						let setSomething = false;
+
 						if (canShow) {
 							if (m[i][j].type !== "empty") {
-								if (i === playerData.location[1] && j === playerData.location[2]) {
-									somethingUnder = true;
-								}
 								if (m[i][j].ownersID !== null) {
 									if (m[i][j].ownersID === playerData.userID) {
-										let theType = "";
-										let splited = m[i][j].type.split(" ");
-										if (splited[0] === "Station") {
-											theType += m[i][j].type.split(" ")[0];
-											theType += m[i][j].type.split(" ")[1];
-										}
-										else {
-											theType = m[i][j].type;
-										}
-										let folder = m[i][j].item + "s";
-										if (folder === "colonys") {
-											folder = "planets";
-											theType += "Planet";
-										}
-										let image = folder + "/You/" + theType;
-										setImage(i, j, "TheImages/" + image + ".png", newimage);
-										setSomething = true;
+										who = "You";
 									}
-									else if (playerData.faction !== null && canShow) {
+									if (playerData.faction != null) {
 										let fac = factions[playerData.faction];
 										if (fac) {
 											let found = false;
@@ -1950,49 +1954,42 @@ const commands = [
 													break;
 												}
 											}
-											let r = m[i][j].type;
 											if (found) {
-												let theType = m[i][j].type;
-												let folder = m[i][j].item + "s";
-												if (folder === "colony") {
-													folder = "planets";
-												}
-												let image = folder + "/Faction/" + theType;
-												setImage(i, j, "TheImages/" + image + ".png", newimage);
+												who = "Faction";
 
 											}
 											else {
-												let theType = m[i][j].type;
-												let folder = m[i][j].item + "s";
-												if (folder === "colony") {
-													folder = "planets";
-												}
-												let image = folder + "/Enemy/" + theType;
-												setImage(i, j, "TheImages/" + image + ".png", newimage);
-												setSomething = true;
+												who = "Enemy";
 											}
-
-											setSomething = true;
 										}
 									}
-									else if (canShow) {
-										let r = m[i][j].type;
-										setImage(i, j, "TheImages/stations/Enemy/" + r + ".png", newimage);
-										setSomething = true;
+									else {
+										who = "Enemy";
+									}
+									folder = m[i][j].item + "s";
+									if (m[i][j].item === "colony") {
+										folder = "planets"
 									}
 								}
 								else {
-									setImage(i, j, "TheImages/planets/Neutral/" + m[i][j].type + "Planet" + ".png", newimage);
-									setSomething = true;
+									folder = "planets";
+									who = "Neutral";
+									typeImage = m[i][j].type;
 								}
 							}
-							if (!setSomething) {
-								setImage(i, j, "TheImages/Other/EmptySpace.png", newimage);
+							if (!folder.length) {
+								folder = "Other";
+								who = "items";
+								typeImage = "EmptySpace";
 							}
 						}
 						else {
-							setImage(i, j, "TheImages/Other/Unknown.png", newimage);
+							folder = "Other";
+							who = "items";
+							typeImage = "Unknown";
 						}
+
+						setImage(i, j, "TheImages/" + folder + "/" + who + "/" + typeImage + ".png");
 					}
 				}
 				done.push([]);
@@ -2004,7 +2001,7 @@ const commands = [
 							if (loc[1] === playerData.location[1] && loc[2] === playerData.location[2]) {
 								somethingUnder = true;
 							}
-							setImage(loc2[1], loc2[2], "TheImages/Other/Player.png", newimage);
+							setImage(loc2[1], loc2[2], "TheImages/Other/items/Player.png", newimage);
 						}
 					}
 				}
@@ -2034,13 +2031,13 @@ const commands = [
 				setTimeout(function () {
 					doFun();
 				}, 1000);
-				Jimp.read("TheImages/Other/GridLines.png", function (err, image) {
+				Jimp.read("TheImages/Other/items/GridLines.png", function (err, image) {
 					if (err) throw err;
 					image.resize(mainSize, mainSize);
 					newimage.composite(image, 0, 0);
 					done[m.length][0] = true;
 					done[loc[1]][loc[2]] = false;
-					setImage(loc[1], loc[2], "TheImages/Other/You.png", newimage);
+					setImage(loc[1], loc[2], "TheImages/Other/items/You.png", newimage);
 				});
 			});
 		}
@@ -4846,6 +4843,7 @@ client.on("guildCreate", function (Guild) {
 	}
 });
 client.on("ready", function () {
+	upTime=Date.now();
 	console.log("Galactica | Online");
 	powerEmoji = client.guilds.get("354670066480054272").emojis.find("name", "Fist");
 	resources["power"].emoji = powerEmoji.toString();
@@ -4890,6 +4888,7 @@ client.on("messageReactionAdd", function (reaction, user) {
 	}
 });
 client.on("message", function (message) {
+
 	attacks = require("./other.json").attacks;
 	accountData = require("./accounts.json").players;
 	factions = require("./factions.json").factions;
@@ -4898,6 +4897,9 @@ client.on("message", function (message) {
 
 	if (message.author.bot) {
 		return;
+	}
+	if(checked>0){
+		checked = 0;
 	}
 	let command = message.content.toLowerCase().split(" ")[0];
 	let args = message.content.toLowerCase().split(" ");
