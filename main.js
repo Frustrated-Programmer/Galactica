@@ -1662,7 +1662,7 @@ const commands = [
 				if (player.isInSafeZone[0]) {
 					location += "\nCurrently in the Safe Zone"
 				}
-				else if (playerisDominating[0]) {
+				else if (player.isDominating[0]) {
 					location += "\nCurrently in the Domination Zone"
 				}
 			}
