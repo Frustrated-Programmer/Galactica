@@ -6,7 +6,7 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 let checked = 0;
-setInterval(function () {
+let checker = setInterval(function () {
 	fs.readFile("./galactica.log", "utf8", function (err, data) {
 		if (err) {
 			console.log(err)
@@ -2427,7 +2427,11 @@ const commands = [
 		values     : ["\"station\" [ID]", "\"colony\" [ID]"],
 		reqs       : ["normCommand", "profile", "attacking false", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
-
+			sendBasicEmbed({
+				content:"WIP",
+				color:embedColors.red,
+				channel:message.channel
+			})
 		}
 	},
 	{
