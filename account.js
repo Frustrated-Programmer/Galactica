@@ -40,6 +40,7 @@ var Account = function (data) {
 	this["Scientific Labs"] = data["Scientific Labs"]||0;
 	this["Super Resource Containers"] = data["Super Resource Containers"] ||0;
 	this["Domination Kingdoms"] = data["Domination Kingdoms"] || 0;
+	this["Super Galactic Shields"] = data["Super Galactic Shields"] || 0;
 	this["Eagle Eyed"] = data["Eagle Eyed"] || 0;
 };
 module.exports = Account;

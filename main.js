@@ -2012,6 +2012,10 @@ const commands = [
 			let done = [];
 			let playersVision = 3;
 			playersVision += playerData["Eagle Eyed"];
+			console.log(playersVision)
+			if(typeof playersVision !== "number"){
+				playersVision = 3;
+			}
 			let canShowFunc = function (y, x) {
 				let theMap = map[playerData.location[0]];
 
