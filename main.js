@@ -124,7 +124,7 @@ function attackPlayerFunction() {
 	 defenderChoice     : null || {}
 	 round              : 0,
 	 timeStarted        : Date.now(),
-	 timeSinceLastAttack: 0
+	 timeSinceLastAttack: Date.now(),
 	 }
 	 */
 
@@ -328,6 +328,11 @@ function attackPlayerFunction() {
 				embed2.addField("Health", "Your Health: `" + accountData[attack.defender].health + "`\nOpponents Health: `" + accountData[attack.attacker].health + "`");
 				client.users.get(attack.attacker).send({embed: embed1});
 				client.users.get(attack.defender).send({embed: embed2});
+
+				attack.attackerChoice = null;
+				attack.defenderChoice = null;
+				attack.round++;
+				attack.timeSinceLastAttack = Date.now();
 			}
 
 
@@ -411,7 +416,15 @@ function checkWaitTimes() {
 						channel: client.users.get(listOfWaitTimes[i].player),
 						color  : embedColors.blue
 					});
+					let loc = listOfWaitTimes[i].headTo;
+					if (loc[1] < 3 && loc[2] < 3) {
+						accountData[listOfWaitTimes[i].player].isInSafeZone = true;
+					}
+					else if (loc[1] > 16 && loc[2] > 16) {
+						accountData[listOfWaitTimes[i].player].isDominating = true;
+					}
 					listOfWaitTimes.splice(i, 1);
+
 					break;
 				case "colonization":
 					if (accountData[listOfWaitTimes[i].player].didntMove) {
@@ -2012,8 +2025,7 @@ const commands = [
 			let done = [];
 			let playersVision = 3;
 			playersVision += playerData["Eagle Eyed"];
-			console.log(playersVision)
-			if(typeof playersVision !== "number"){
+			if (typeof playersVision !== "number") {
 				playersVision = 3;
 			}
 			let canShowFunc = function (y, x) {
@@ -2149,7 +2161,7 @@ const commands = [
 							typeImage = "Unknown";
 						}
 
-						setImage(i, j, "TheImages/" + folder + "/" + who + "/" + typeImage + ".png",newimage);
+						setImage(i, j, "TheImages/" + folder + "/" + who + "/" + typeImage + ".png", newimage);
 					}
 				}
 				done.push([]);
