@@ -7,6 +7,7 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 let checked = 0;
 let checker = setInterval(function () {
+	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
 	fs.readFile("./galactica.log", "utf8", function (err, data) {
 		if (err) {
 			console.log(err)
