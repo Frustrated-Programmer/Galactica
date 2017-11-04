@@ -763,7 +763,7 @@ function getTimeRemaining(time) {
 		}
 		if (times[i][1] > 0) {
 			timeLeftText += "`" + times[i][1] + "` " + times[i][2];
-			if (times[i][1] > 0) {
+			if (times[i][1] > 1) {
 				timeLeftText += "s";
 			}
 			if (i + 2 === times.length) {
@@ -1965,7 +1965,7 @@ const commands = [
 		description: "scan the area around you",
 		usage      : "scan",
 		values     : [],
-		reqs       : ["normCommand", "profile true", "warping false", "outOfCommision"],
+		reqs       : ["normCommand", "profile true", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
 			let mainSize = require("./other.json").imageSize;
 			let go = null;
@@ -2145,7 +2145,7 @@ const commands = [
 							typeImage = "Unknown";
 						}
 
-						setImage(i, j, "TheImages/" + folder + "/" + who + "/" + typeImage + ".png");
+						setImage(i, j, "TheImages/" + folder + "/" + who + "/" + typeImage + ".png",newimage);
 					}
 				}
 				done.push([]);
@@ -2328,7 +2328,7 @@ const commands = [
 				});
 			}
 			if (defender) {
-				if (!defender.healing) {
+				if (!defender.healing || defender.isInSafeZone) {
 					if (matchArray(playerData.location, defender.location, false)) {
 						if (message.channel.type === "text") {
 							sendBasicEmbed({
