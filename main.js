@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = require("./other.json").uniPre || "-";
+const universalPrefix = require("./other.json").uniPre || "test";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -65,11 +65,19 @@ let checker = setInterval(function () {
 		}
 		if (player.isDominating) {
 			let amo = 0;
-			switch (playerData["Domination Kingdoms"]){
-				case 1: amo = Math.floor(rank.dom/5);break;
-				case 2: amo = Math.floor(rank.dom/3);break;
-				case 3: amo = Math.floor(rank.dom/3)*2;break;
-				case 4: amo = rank.dom;break;
+			switch (playerData["Domination Kingdoms"]) {
+				case 1:
+					amo = Math.floor(rank.dom / 5);
+					break;
+				case 2:
+					amo = Math.floor(rank.dom / 3);
+					break;
+				case 3:
+					amo = Math.floor(rank.dom / 3) * 2;
+					break;
+				case 4:
+					amo = rank.dom;
+					break;
 			}
 			accountData[accountData.names[i]]["credits"] += rank.dom + amo;
 		}
@@ -186,10 +194,10 @@ function attackPlayerFunction() {
 			}
 			else {
 				let damage = Math.round(Math.random() * 8) + 2;
-				let defLaserPer = Math.round(((accountData[attack.defender]["Compressed Laser Generators"] * 5)/damage) * 100);
-				let attLaserPer = Math.round(((accountData[attack.attacker]["Compressed Laser Generators"] * 5)/damage) * 100);
-				let attShields = Math.round(((accountData[attack.attacker]["Super Galactic Shields"]*5)/damage)*100);
-				let defShields = Math.round(((accountData[attack.defender]["Super Galactic Shields"]*5)/damage)*100);
+				let defLaserPer = Math.round(((accountData[attack.defender]["Compressed Laser Generators"] * 5) / damage) * 100);
+				let attLaserPer = Math.round(((accountData[attack.attacker]["Compressed Laser Generators"] * 5) / damage) * 100);
+				let attShields = Math.round(((accountData[attack.attacker]["Super Galactic Shields"] * 5) / damage) * 100);
+				let defShields = Math.round(((accountData[attack.defender]["Super Galactic Shields"] * 5) / damage) * 100);
 				let aChoiceTxt = "";
 				let dChoiceTxt = "";
 
@@ -1158,8 +1166,10 @@ const reqChecks = {
 				val: false, msg: "A bug occurred. please report this code `channelMustBeTextOrDm`"
 			}
 		}
-	}
-};
+	},
+	"outOfCommision"   : function (reqArgs, message, args, playerData, prefix) {
+		return {val:false,msg:"This command is out of service for the moment"}
+	};
 const serverStuff = require("./other.json").serverStuff;
 const updateAccount = require("./account.js");
 const commands = [
@@ -1691,7 +1701,7 @@ const commands = [
 		description: "warp to somewhere",
 		usage      : "warp [VALUE]",
 		values     : ["{GALAXY}", "{X} {Y}", "{GALAXY} {X} {Y}"],
-		reqs       : ["normCommand", "profile true", "warping false", "attacking false","healing false"],
+		reqs       : ["normCommand", "profile true", "warping false", "attacking false", "healing false"],
 		effect     : function (message, args, playerData, prefix) {
 
 			let numbers = getNumbers(message.content);
@@ -1779,7 +1789,7 @@ const commands = [
 					if (warpType !== "positionBase") {
 						timeUntilFinishedWarping += 60000 * 5;//5 mins if its a galaxy warp
 					}
-					timeUntilFinishedWarping -= Math.round((playerData["HyperDrive Generator"]/timeUntilFinishedWarping)*100);
+					timeUntilFinishedWarping -= Math.round((playerData["HyperDrive Generator"] / timeUntilFinishedWarping) * 100);
 					listOfWaitTimes.push({
 						player : playerData.userID,
 						expires: Date.now() + timeUntilFinishedWarping,
@@ -1954,7 +1964,7 @@ const commands = [
 		description: "scan the area around you",
 		usage      : "scan",
 		values     : [],
-		reqs       : ["normCommand", "profile true", "warping false"],
+		reqs       : ["normCommand", "profile true", "warping false", "outOfCommision"],
 		effect     : function (message, args, playerData, prefix) {
 			let mainSize = require("./other.json").imageSize;
 			let go = null;
@@ -2000,7 +2010,7 @@ const commands = [
 
 			let done = [];
 			let playersVision = 3;
-			playersVision+=playerData["Eagle Eyed"];
+			playersVision += playerData["Eagle Eyed"];
 			let canShowFunc = function (y, x) {
 				let theMap = map[playerData.location[0]];
 
@@ -2106,13 +2116,14 @@ const commands = [
 									folder = m[i][j].item + "s";
 									if (m[i][j].item === "colony") {
 										folder = "planets"
+										typeImage = m[i][j].type + "Planet";
 									}
 								}
 								else {
 									if (m[i][j].item === "planet") {
 										folder = "planets";
 										who = "Neutral";
-										typeImage = m[i][j].type;
+										typeImage = m[i][j].type + "Planet";
 									}
 									else {
 										folder = "Other";
@@ -2230,6 +2241,9 @@ const commands = [
 					embed.setDescription("Invalid Usage\nNeed to include a research ID or NAME");
 				}
 			}
+			if (!args.length) {
+				args = ["list"];
+			}
 			switch (args[0]) {
 				case "info":
 					if (number !== null) {
@@ -2262,9 +2276,9 @@ const commands = [
 						if (playerData["research"] >= item.costs[level]) {
 							playerData["research"] -= item.costs[level];
 							let researchTime = item.timesToResearch[level];
-							researchTime -= Math.round(((playerData["Scientific Labs"]*5)/researchTime)*100);
+							researchTime -= Math.round(((playerData["Scientific Labs"] * 5) / researchTime) * 100);
 							listOfWaitTimes.push({
-								expires: Date.now()+ researchTime,
+								expires: Date.now() + researchTime,
 								type   : "research",
 								player : playerData.userID,
 								which  : researches.names[number]
@@ -2313,7 +2327,7 @@ const commands = [
 				});
 			}
 			if (defender) {
-				if(!defender.healing) {
+				if (!defender.healing) {
 					if (matchArray(playerData.location, defender.location, false)) {
 						if (message.channel.type === "text") {
 							sendBasicEmbed({
@@ -2429,9 +2443,9 @@ const commands = [
 		reqs       : ["normCommand", "profile", "attacking false", "warping false"],
 		effect     : function (message, args, playerData, prefix) {
 			sendBasicEmbed({
-				content:"WIP",
-				color:embedColors.red,
-				channel:message.channel
+				content: "WIP",
+				color  : embedColors.red,
+				channel: message.channel
 			})
 		}
 	},
@@ -2440,26 +2454,26 @@ const commands = [
 		description: "heal yourself",
 		usage      : "heal",
 		values     : [],
-		reqs       : ["normCommand","profile true","attacking false","warping false","healing false"],
+		reqs       : ["normCommand", "profile true", "attacking false", "warping false", "healing false"],
 		effect     : function (message, args, playerData, prefix) {
-			if(playerData.health<100){
+			if (playerData.health < 100) {
 				playerData.healing = true;
 				listOfWaitTimes.push({
 					player : playerData.userID,
-					expires: Date.now() + (100-playerData.health)*60000,
+					expires: Date.now() + (100 - playerData.health) * 60000,
 					type   : "heal"
 				});
 				sendBasicEmbed({
-					content:"Healing started. will take\n"+getTimeRemaining((100-playerData.health)*60000),
-					color:embedColors.red,
-					channel:message.channel
+					content: "Healing started. will take\n" + getTimeRemaining((100 - playerData.health) * 60000),
+					color  : embedColors.red,
+					channel: message.channel
 				})
 			}
-			else{
+			else {
 				sendBasicEmbed({
-					content:"You are at full health already.",
-					color:embedColors.red,
-					channel:message.channel
+					content: "You are at full health already.",
+					color  : embedColors.red,
+					channel: message.channel
 				})
 			}
 		}
@@ -2494,8 +2508,8 @@ const commands = [
 				let max = false;
 				let amount = Math.round((Date.now() - playerData.lastCollection) / timesTake.collectionRate);//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
 				let oldAmount = null;
-				let maxAmount = Math.round(((playerData["Super Resource Containers"]*10)/amount)*100);
-				if (amount +maxAmount> timesTake.collectionMax / 60000) {
+				let maxAmount = Math.round(((playerData["Super Resource Containers"] * 10) / amount) * 100);
+				if (amount + maxAmount > timesTake.collectionMax / 60000) {
 					max = true;
 					oldAmount = amount;
 					amount = timesTake.collectionMax / 60000;
