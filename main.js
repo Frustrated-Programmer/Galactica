@@ -1168,8 +1168,9 @@ const reqChecks = {
 		}
 	},
 	"outOfCommision"   : function (reqArgs, message, args, playerData, prefix) {
-		return {val:false,msg:"This command is out of service for the moment"}
-	};
+		return {val: false, msg: "This command is out of service for the moment"}
+	}
+};
 const serverStuff = require("./other.json").serverStuff;
 const updateAccount = require("./account.js");
 const commands = [
