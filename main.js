@@ -5121,7 +5121,22 @@ client.on("messageReactionAdd", function (reaction, user) {
 	}
 });
 client.on("message", function (message) {
-
+	if(message.channel.type === "text"){
+		if(serverStuff[message.guild.id]==null){
+			serverStuff.names.push(message.guild.id);
+			serverStuff[message.guild.id] = {
+				prefix         : "-",
+				serverID       : message.guild.id,
+				modChannel     : null,
+				warnings       : {},
+				allowedChannels: {},
+				welcomeChannel : {
+					id     : null,
+					message: null
+				}
+			};
+		}
+	}
 	attacks = require("./other.json").attacks;
 	accountData = require("./accounts.json").players;
 	factions = require("./factions.json").factions;
