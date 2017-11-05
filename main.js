@@ -4789,9 +4789,12 @@ const commands = [
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
 			client.destroy().then(function () {
-				console.log("Successfully logged out");
-				process.exit();
+				console.log("Destroy");
 			});
+			setTimeout(function () {
+				console.log("exit");
+				process.exit();
+			},1000);
 		}
 	},
 	{
