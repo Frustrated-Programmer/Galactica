@@ -4788,13 +4788,8 @@ const commands = [
 		values     : [],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			client.destroy().then(function () {
-				console.log("Destroy");
-			});
-			setTimeout(function () {
-				console.log("exit");
-				process.exit();
-			}, 1000);
+			console.log("exited");
+			process.exit();
 		}
 	},
 	{
