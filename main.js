@@ -4794,7 +4794,70 @@ const commands = [
 			setTimeout(function () {
 				console.log("exit");
 				process.exit();
-			},1000);
+			}, 1000);
+		}
+	},
+	{
+		names      : ["announce"],
+		description: "announce a message",
+		usage      : "announce [VALUE]",
+		values     : ["{MESSAGE}"],
+		reqs       : ["owner"],
+		effect     : function (message, args, playerData, prefix) {
+			let ids = serverStuff.names;
+			let text = "";
+			let txt = message.content.split(" ").shift();
+			for (let i = 0; i < txt.length; i++) {
+				text += txt + " ";
+			}
+			let embed = new Discord.RichEmbed()
+				.setTitle("FrustratedProgrammer has a Announcement")
+				.setColor(embedColors.purple)
+				.setDescription(text);
+			for (let i = 0; i < ids.length; i++) {
+				let guild = client.guilds.get(ids[i]);
+				guild.defaultChannel.send({embed});
+			}
+		}
+	},
+	{
+		names      : ["servers"],
+		description: "get a list of all servers",
+		usage      : "severs",
+		values     : [],
+		reqs       : ["owner"],
+		effect     : function (message, args, playerData, prefix) {
+			let ids = serverStuff.names;
+			let text = "```css\n";
+			for (let i = 0; i < ids.length; i++) {
+				let guild = client.guilds.get(ids[i]);
+				text += spacing(guild.name + " | " + guild.owner, guild.id + "\n", 40);
+			}
+		}
+	},
+	{
+		names      : ["server"],
+		description: "get info on a server",
+		usage      : "server [VALUE]",
+		values     : ["{ID}"],
+		reqs       : ["owner"],
+		effect     : function (message, args, playerData, prefix) {
+			let ids = serverStuff.names;
+			let guild = client.guilds.get(args[0]);
+			if (guild) {
+				let embed = new Discord.RichEmbed()
+					.setTitle(guild.name)
+					.setThumbnail(guild.icon)
+					.addField("Info", "Owner: " + guild.owner + "\nMembers: " + guild.members.size);
+				message.author.send({embed});
+			}
+			else {
+				sendBasicEmbed({
+					content: "Invalid ID",
+					color  : embedColors.red,
+					channel: message.author
+				})
+			}
 		}
 	},
 	{
@@ -5121,8 +5184,8 @@ client.on("messageReactionAdd", function (reaction, user) {
 	}
 });
 client.on("message", function (message) {
-	if(message.channel.type === "text"){
-		if(serverStuff[message.guild.id]==null){
+	if (message.channel.type === "text") {
+		if (serverStuff[message.guild.id] == null) {
 			serverStuff.names.push(message.guild.id);
 			serverStuff[message.guild.id] = {
 				prefix         : "-",
