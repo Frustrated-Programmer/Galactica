@@ -4828,6 +4828,7 @@ const commands = [
 				let guild = client.guilds.get(ids[i]);
 				text += spacing(guild.name + " | " + guild.owner, guild.id + "\n", 40);
 			}
+			message.channel.send(text);
 		}
 	},
 	{
