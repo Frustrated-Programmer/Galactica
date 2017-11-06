@@ -136,8 +136,14 @@ let checker = setInterval(function () {
 		}
 	}
 }, 60000 * 10);
-
-
+fs.exists('./permissions.json', (exists) => {
+	if(!exists){
+		fs.writeFile("permissions.json", "{}", (err) => {
+			if (err) throw err;
+			console.log("created Permissions.json");
+		});
+	}
+});
 /**VARIABLES**/
 let powerEmoji = "";
 let upTime = 0;
