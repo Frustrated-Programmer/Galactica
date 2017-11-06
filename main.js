@@ -2361,128 +2361,46 @@ const commands = [
 		names      : ["attackPlayer", "pAttack", "attackP"],
 		description: "attack the player",
 		usage      : "attackPlayer [VALUE]",
-		values     : ["@player", "PLAYER_ID", "STATION_NAME", "PLANET_NAME"],
+		values     : ["@player", "PLAYERS_ID","LOOK_ID"],
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
-			let numbers = getNumbers(args[0], true);
+			let nums = getNumbers(args[0], false);
 			let defender = null;
-			if (numbers.length) {
-				if (numbers[0] > 0) {
-					let otherPlayers = [];
-					for (let i = 0; i < accountData.names.length; i++) {
-						if (matchArray(accountData[accountData.names[i]].location, playerData.location, false)) {
-							otherPlayers.push(accountData.names[i]);
+			if (nums.length) {
+				if(nums.length<3) {
+					let numbers = parseInt(nums[0],10);
+					if (numbers > 0) {
+						let otherPlayers = [];
+						for (let i = 0; i < accountData.names.length; i++) {
+							if (matchArray(accountData[accountData.names[i]].location, playerData.location, false)) {
+								otherPlayers.push(accountData.names[i]);
+							}
 						}
-					}
-					if (otherPlayers[numbers[0] - 1] != null) {
-						defender = accountData[otherPlayers[numbers[0] - 1]];
-						if (!defender.healing || defender.isInSafeZone) {
-							if (matchArray(playerData.location, defender.location, false)) {
-								if (message.channel.type === "text") {
-									sendBasicEmbed({
-										content: "Attacking has started...\nPlease check your DMs",
-										color  : embedColors.darkRed,
-										channel: message.channel
-									});
-								}
-								playerData.attacking = true;
-								defender.attacking = true;
-								let embed = new Discord.RichEmbed()
-									.setTitle("WARNING YOU ARE UNDER ATTACK")
-									.setColor(embedColors.darkRed)
-									.setDescription("You are under attack from `" + playerData.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
-								client.fetchUser(defender.userID).then(function (user) {
-									user.send({embed});
-								});
-								embed = new Discord.RichEmbed()
-									.setTitle("WARNING YOU ARE ATTACKING")
-									.setColor(embedColors.darkRed)
-									.setDescription("You are attacking `" + defender.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
-								client.fetchUser(playerData.userID).then(function (user) {
-									user.send({embed});
-								});
+						if (otherPlayers[numbers - 1] != null) {
+							defender = accountData[otherPlayers[numbers - 1]];
 
-
-								setTimeout(function () {
-									if (attackTimeInterval === false) {
-										attackTimeInterval = setInterval(attackPlayerFunction, 1000);
-									}
-									let m1 = null;
-									let emojis = ["🛡", "📡", "☄", "🏃"];
-									let reactFun = function (message, num) {
-										message.react(emojis[num]).then(function () {
-											if (emojis[num + 1]) {
-												reactFun(message, num + 1);
-											}
-										});
-									};
-									let embed = new Discord.RichEmbed()
-										.setTitle("WARNING YOU ARE UNDER ATTACK BY `" + playerData.username + "`")
-										.setColor(embedColors.darkRed)
-										.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
-										.setFooter("This an RPS strategy. ");
-									client.users.get(defender.userID).send({embed}).then(function (m) {
-										reactFun(m, 0);
-										m1 = m.id;
-									});
-									embed = new Discord.RichEmbed()
-										.setTitle("WARNING YOU ARE ATTACKING `" + defender.username + "`")
-										.setColor(embedColors.darkRed)
-										.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
-										.setFooter("This is an RPS strategy");
-									client.users.get(playerData.userID).send({embed}).then(function (m) {
-										reactFun(m, 0);
-
-										let doFun = function () {
-											if (m1 != null) {
-												require("./other.json").attacks.push({
-													attackersMid       : m.id,
-													defendersMid       : m1,
-													attacker           : playerData.userID,
-													defender           : defender.userID,
-													attackerChoice     : null,
-													defenderChoice     : null,
-													round              : 0,
-													timeStarted        : Date.now(),
-													timeSinceLastAttack: Date.now()
-												});
-												saveJsonFile("./other.json");
-											}
-											else {
-												setTimeout(function () {
-													doFun();
-												}, 500);
-											}
-										};
-										doFun();
-//372082226021793792||372082226021793792
-									});
-								}, 10000);
-							}
-							else {
-								sendBasicEmbed({
-									content: "You arent in the same location as him/her",
-									color  : embedColors.red,
-									channel: message.channel
-								})
-							}
 						}
 						else {
 							sendBasicEmbed({
-								content: "You are un able to attack this player.",
+								content: "There is no player with that id.\nCheck `" + prefix + "lookAround` again",
 								color  : embedColors.red,
 								channel: message.channel
-							})
+							});
 						}
-
+					}
+				}
+				else{
+					if(accountData[nums[0]]!=null){
+						defender = accountData[nums[0]];
 					}
 					else {
 						sendBasicEmbed({
-							content: "There is no player with that id.\nCheck `" + prefix + "lookAround` again",
+							content: "Invalid Player ID",
 							color  : embedColors.red,
 							channel: message.channel
 						});
 					}
+
 				}
 			}
 			else {
@@ -2491,6 +2409,106 @@ const commands = [
 					color  : embedColors.red,
 					channel: message.channel
 				});
+			}
+			if(defender) {
+				if (!defender.healing || defender.isInSafeZone) {
+					if (matchArray(playerData.location, defender.location, false)) {
+						if (message.channel.type === "text") {
+							sendBasicEmbed({
+								content: "Attacking has started...\nPlease check your DMs",
+								color  : embedColors.darkRed,
+								channel: message.channel
+							});
+						}
+						playerData.attacking = true;
+						defender.attacking = true;
+						let embed = new Discord.RichEmbed()
+							.setTitle("WARNING YOU ARE UNDER ATTACK")
+							.setColor(embedColors.darkRed)
+							.setDescription("You are under attack from `" + playerData.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
+						client.fetchUser(defender.userID).then(function (user) {
+							user.send({embed});
+						});
+						embed = new Discord.RichEmbed()
+							.setTitle("WARNING YOU ARE ATTACKING")
+							.setColor(embedColors.darkRed)
+							.setDescription("You are attacking `" + defender.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
+						client.fetchUser(playerData.userID).then(function (user) {
+							user.send({embed});
+						});
+
+
+						setTimeout(function () {
+							if (attackTimeInterval === false) {
+								attackTimeInterval = setInterval(attackPlayerFunction, 1000);
+							}
+							let m1 = null;
+							let emojis = ["🛡", "📡", "☄", "🏃"];
+							let reactFun = function (message, num) {
+								message.react(emojis[num]).then(function () {
+									if (emojis[num + 1]) {
+										reactFun(message, num + 1);
+									}
+								});
+							};
+							let embed = new Discord.RichEmbed()
+								.setTitle("WARNING YOU ARE UNDER ATTACK BY `" + playerData.username + "`")
+								.setColor(embedColors.darkRed)
+								.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
+								.setFooter("This an RPS strategy. ");
+							client.users.get(defender.userID).send({embed}).then(function (m) {
+								reactFun(m, 0);
+								m1 = m.id;
+							});
+							embed = new Discord.RichEmbed()
+								.setTitle("WARNING YOU ARE ATTACKING `" + defender.username + "`")
+								.setColor(embedColors.darkRed)
+								.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
+								.setFooter("This is an RPS strategy");
+							client.users.get(playerData.userID).send({embed}).then(function (m) {
+								reactFun(m, 0);
+
+								let doFun = function () {
+									if (m1 != null) {
+										require("./other.json").attacks.push({
+											attackersMid       : m.id,
+											defendersMid       : m1,
+											attacker           : playerData.userID,
+											defender           : defender.userID,
+											attackerChoice     : null,
+											defenderChoice     : null,
+											round              : 0,
+											timeStarted        : Date.now(),
+											timeSinceLastAttack: Date.now()
+										});
+										saveJsonFile("./other.json");
+									}
+									else {
+										setTimeout(function () {
+											doFun();
+										}, 500);
+									}
+								};
+								doFun();
+//372082226021793792||372082226021793792
+							});
+						}, 10000);
+					}
+					else {
+						sendBasicEmbed({
+							content: "You arent in the same location as him/her",
+							color  : embedColors.red,
+							channel: message.channel
+						})
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: "You are un able to attack this player.",
+						color  : embedColors.red,
+						channel: message.channel
+					})
+				}
 			}
 		}
 	},
