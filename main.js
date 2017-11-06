@@ -146,12 +146,7 @@ fs.exists('./permissions.json', function(exists) {
 		});
 	}
 });
-if(listOfWaitTimes.length){
-	waitTimesInterval = setInterval(checkWaitTimes,1000);
-}
-if(attacks.length){
-	attackTimeInterval = setInterval(attackPlayerFunction,1000);
-}
+
 
 /**VARIABLES**/
 let powerEmoji = "";
@@ -165,6 +160,12 @@ let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
 
+if(listOfWaitTimes.length){
+	waitTimesInterval = setInterval(checkWaitTimes,1000);
+}
+if(attacks.length){
+	attackTimeInterval = setInterval(attackPlayerFunction,1000);
+}
 
 /**FUNCTIONS**/
 function isVerified(ID){
