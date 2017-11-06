@@ -7,6 +7,46 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 let checked = 0;
 let checker = setInterval(function () {
+	let guilds = client.guilds.array();
+	for (let i = 0; i < guilds.length; i++) {
+		let found = false;
+		for (let j = 0; j < serverStuff.names.length; j++) {
+			if (serverStuff.names[j] === guilds[i].id) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			serverStuff[guilds[i].id] = {
+				prefix         : "-",
+				serverID       : guilds[i].id,
+				modChannel     : null,
+				warnings       : {},
+				allowedChannels: {},
+				welcomeChannel : {
+					id     : null,
+					message: null
+				},
+				goodbyeChannel : {
+					id     : null,
+					message: null
+				}
+			};
+		}
+	}
+	for (let i = 0; i < serverStuff.names.length; i++) {
+		let found = false;
+		for (let j = 0; j < guilds.length; j++) {
+			if (serverStuff.names[i] === guilds[j].id) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			delete serverStuff[serverStuff.names[i]];
+			serverStuff.names.splice(i, 1)
+		}
+	}
 	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
 	fs.readFile("./galactica.log", "utf8", function (err, data) {
 		if (err) {
@@ -1931,7 +1971,7 @@ const commands = [
 				}
 			}
 			if (otherPlayers.length) {
-				let txt = "NAME---|FACTION|HP|---ID\n```css\n";
+				let txt = "ID|NAME---|FACTION|HP|\n```css\n";
 				for (let i = 0; i < otherPlayers.length; i++) {
 					let name = "";
 					if (isValidText(otherPlayers[i].username)) {
@@ -1965,10 +2005,13 @@ const commands = [
 					else {
 						spaceFaction = "None Yet  |";
 					}
-
-					txt += name + spaceName + "|" + spaceFaction + otherPlayers[i].health + "|" + otherPlayers[i].userID + "|\n";
+					let space = "";
+					if (i + 1 < 10) {
+						space += " ";
+					}
+					txt += "[" + (i + 1) + space + "]|" + name + spaceName + "|" + spaceFaction + otherPlayers[i].health + "|\n";
 				}
-				embed.addField("Players", txt + "```\nAttack a player via `attackPlayer [PLAYER_ID]`");
+				embed.addField("Players", txt + "```\nAttack a player via `attackPlayer [ID]`");
 			}
 			message.channel.send({embed});
 		}
@@ -2321,131 +2364,130 @@ const commands = [
 		values     : ["@player", "PLAYER_ID", "STATION_NAME", "PLANET_NAME"],
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
-
-			let numbers = getNumbers(args[0], false);
+			let numbers = getNumbers(args[0], true);
 			let defender = null;
 			if (numbers.length) {
-				if (accountData[numbers[0]]) {
-					defender = accountData[numbers[0]];
-				}
-				else {
-					sendBasicEmbed({
-						content: "Invalid player id.",
-						color  : embedColors.red,
-						channel: message.channel
-					});
-				}
-			}
-			else {
-				sendBasicEmbed({
-					content: "Invalid player id.",
-					color  : embedColors.red,
-					channel: message.channel
-				});
-			}
-			if (defender) {
-				if (!defender.healing || defender.isInSafeZone) {
-					if (matchArray(playerData.location, defender.location, false)) {
-						if (message.channel.type === "text") {
-							sendBasicEmbed({
-								content: "Attacking has started...\nPlease check your DMs",
-								color  : embedColors.darkRed,
-								channel: message.channel
-							});
+				if (numbers[0] > 0) {
+					let otherPlayers = [];
+					for (let i = 0; i < accountData.names.length; i++) {
+						if (matchArray(accountData[accountData.names[i]].location, playerData.location, false)) {
+							otherPlayers.push(accountData.names[i]);
 						}
-						playerData.attacking = true;
-						defender.attacking = true;
-						let embed = new Discord.RichEmbed()
-							.setTitle("WARNING YOU ARE UNDER ATTACK")
-							.setColor(embedColors.darkRed)
-							.setDescription("You are under attack from `" + playerData.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
-						client.fetchUser(defender.userID).then(function (user) {
-							user.send({embed});
-						});
-						embed = new Discord.RichEmbed()
-							.setTitle("WARNING YOU ARE ATTACKING")
-							.setColor(embedColors.darkRed)
-							.setDescription("You are attacking `" + defender.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
-						client.fetchUser(playerData.userID).then(function (user) {
-							user.send({embed});
-						});
-
-
-						setTimeout(function () {
-							if (attackTimeInterval === false) {
-								attackTimeInterval = setInterval(attackPlayerFunction, 1000);
-							}
-							let m1 = null;
-							let emojis = ["🛡", "📡", "☄", "🏃"];
-							let reactFun = function (message, num) {
-								message.react(emojis[num]).then(function () {
-									if (emojis[num + 1]) {
-										reactFun(message, num + 1);
-									}
+					}
+					if (otherPlayers[numbers[0] - 1] != null) {
+						defender = accountData[otherPlayers[numbers[0] - 1]];
+						if (!defender.healing || defender.isInSafeZone) {
+							if (matchArray(playerData.location, defender.location, false)) {
+								if (message.channel.type === "text") {
+									sendBasicEmbed({
+										content: "Attacking has started...\nPlease check your DMs",
+										color  : embedColors.darkRed,
+										channel: message.channel
+									});
+								}
+								playerData.attacking = true;
+								defender.attacking = true;
+								let embed = new Discord.RichEmbed()
+									.setTitle("WARNING YOU ARE UNDER ATTACK")
+									.setColor(embedColors.darkRed)
+									.setDescription("You are under attack from `" + playerData.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
+								client.fetchUser(defender.userID).then(function (user) {
+									user.send({embed});
 								});
-							};
-							let embed = new Discord.RichEmbed()
-								.setTitle("WARNING YOU ARE UNDER ATTACK BY `" + playerData.username + "`")
-								.setColor(embedColors.darkRed)
-								.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
-								.setFooter("This an RPS strategy. ");
-							client.users.get(defender.userID).send({embed}).then(function (m) {
-								reactFun(m, 0);
-								m1 = m.id;
-							});
-							embed = new Discord.RichEmbed()
-								.setTitle("WARNING YOU ARE ATTACKING `" + defender.username + "`")
-								.setColor(embedColors.darkRed)
-								.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
-								.setFooter("This is an RPS strategy");
-							client.users.get(playerData.userID).send({embed}).then(function (m) {
-								reactFun(m, 0);
+								embed = new Discord.RichEmbed()
+									.setTitle("WARNING YOU ARE ATTACKING")
+									.setColor(embedColors.darkRed)
+									.setDescription("You are attacking `" + defender.username + "`'s fleet\nYou have 10 seconds to prepare yourself.");
+								client.fetchUser(playerData.userID).then(function (user) {
+									user.send({embed});
+								});
 
-								let doFun = function () {
-									if (m1 != null) {
-										require("./other.json").attacks.push({
-											attackersMid       : m.id,
-											defendersMid       : m1,
-											attacker           : playerData.userID,
-											defender           : defender.userID,
-											attackerChoice     : null,
-											defenderChoice     : null,
-											round              : 0,
-											timeStarted        : Date.now(),
-											timeSinceLastAttack: Date.now()
+
+								setTimeout(function () {
+									if (attackTimeInterval === false) {
+										attackTimeInterval = setInterval(attackPlayerFunction, 1000);
+									}
+									let m1 = null;
+									let emojis = ["🛡", "📡", "☄", "🏃"];
+									let reactFun = function (message, num) {
+										message.react(emojis[num]).then(function () {
+											if (emojis[num + 1]) {
+												reactFun(message, num + 1);
+											}
 										});
-										saveJsonFile("./other.json");
-									}
-									else {
-										setTimeout(function () {
-											doFun();
-										}, 500);
-									}
-								};
-								doFun();
+									};
+									let embed = new Discord.RichEmbed()
+										.setTitle("WARNING YOU ARE UNDER ATTACK BY `" + playerData.username + "`")
+										.setColor(embedColors.darkRed)
+										.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
+										.setFooter("This an RPS strategy. ");
+									client.users.get(defender.userID).send({embed}).then(function (m) {
+										reactFun(m, 0);
+										m1 = m.id;
+									});
+									embed = new Discord.RichEmbed()
+										.setTitle("WARNING YOU ARE ATTACKING `" + defender.username + "`")
+										.setColor(embedColors.darkRed)
+										.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
+										.setFooter("This is an RPS strategy");
+									client.users.get(playerData.userID).send({embed}).then(function (m) {
+										reactFun(m, 0);
+
+										let doFun = function () {
+											if (m1 != null) {
+												require("./other.json").attacks.push({
+													attackersMid       : m.id,
+													defendersMid       : m1,
+													attacker           : playerData.userID,
+													defender           : defender.userID,
+													attackerChoice     : null,
+													defenderChoice     : null,
+													round              : 0,
+													timeStarted        : Date.now(),
+													timeSinceLastAttack: Date.now()
+												});
+												saveJsonFile("./other.json");
+											}
+											else {
+												setTimeout(function () {
+													doFun();
+												}, 500);
+											}
+										};
+										doFun();
 //372082226021793792||372082226021793792
-							});
-						}, 10000);
+									});
+								}, 10000);
+							}
+							else {
+								sendBasicEmbed({
+									content: "You arent in the same location as him/her",
+									color  : embedColors.red,
+									channel: message.channel
+								})
+							}
+						}
+						else {
+							sendBasicEmbed({
+								content: "You are un able to attack this player.",
+								color  : embedColors.red,
+								channel: message.channel
+							})
+						}
+
 					}
 					else {
 						sendBasicEmbed({
-							content: "You arent in the same location as him/her",
+							content: "There is no player with that id.\nCheck `" + prefix + "lookAround` again",
 							color  : embedColors.red,
 							channel: message.channel
-						})
+						});
 					}
-				}
-				else {
-					sendBasicEmbed({
-						content: "You are un able to attack this player.",
-						color  : embedColors.red,
-						channel: message.channel
-					})
 				}
 			}
 			else {
 				sendBasicEmbed({
-					content: "Invalid player id.",
+					content: "You have to include the player's id.\nFound via `" + prefix + "lookAround`",
 					color  : embedColors.red,
 					channel: message.channel
 				});
@@ -4828,7 +4870,7 @@ const commands = [
 				let guild = client.guilds.get(ids[i]);
 				text += spacing(guild.name + " | " + guild.owner, guild.id + "\n", 40);
 			}
-			message.channel.send(text);
+			message.channel.send(text + "```");
 		}
 	},
 	{
@@ -5126,6 +5168,10 @@ client.on("guildCreate", function (Guild) {
 			welcomeChannel : {
 				id     : null,
 				message: null
+			},
+			goodbyeChannel : {
+				id     : null,
+				message: null
 			}
 		};
 		//TODO: add a welcome message
@@ -5190,6 +5236,10 @@ client.on("message", function (message) {
 				warnings       : {},
 				allowedChannels: {},
 				welcomeChannel : {
+					id     : null,
+					message: null
+				},
+				goodbyeChannel : {
 					id     : null,
 					message: null
 				}
