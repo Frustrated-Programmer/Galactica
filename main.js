@@ -35,6 +35,7 @@ let checker = setInterval(function () {
 			};
 		}
 	}
+	console.log("Inbetween guilds and server");
 	for (let i = 0; i < serverStuff.names.length; i++) {
 		let found = false;
 		for (let j = 0; j < guilds.length; j++) {
@@ -49,20 +50,7 @@ let checker = setInterval(function () {
 		}
 	}
 	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
-	fs.readFile("./galactica.log", "utf8", function (err, data) {
-		if (err) {
-			console.log(err)
-		}
-		let words = data.split(" ");
-		if (words.length >= 5000) {
-			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
-				if (err) {
-					throw err
-				}
-				console.log("Refreshed due to amount of logs.");
-			});
-		}
-	});
+	console.log("for loop accountDara")
 	for (let i = 0; i < accountData.names.length; i++) {
 		let player = accountData[accountData.names[i]];
 		let rankLevel = 0;
@@ -96,6 +84,7 @@ let checker = setInterval(function () {
 		process.exit();
 	}
 	checked++;
+	console.log("2nd account Data")
 	for (let i = 0; i < accountData.names.length; i++) {
 		let player = accountData[accountData.names[i]];
 		let rank = null;
