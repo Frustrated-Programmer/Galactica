@@ -152,6 +152,13 @@ let map = require("./other.json").map;
 
 
 /**FUNCTIONS**/
+function isVerified(ID){
+	let accounts = require("./permissions.json");
+	if(accounts[ID]!=null){
+		return true;
+	}
+	return false;
+};
 function attackPlayerFunction() {
 	/**
 	 @attacks is an array full of
@@ -447,7 +454,6 @@ function getBorders(location) {
 	return bordering;
 }
 function checkWaitTimes() {
-	console.log("Entering Check Wait Times");
 	listOfWaitTimes = require("./other.json").listOfWaitTimes;
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires <= Date.now()) {
@@ -629,6 +635,8 @@ function checkWaitTimes() {
 								channel: client.users.get(playerData.userID)
 							});
 							listOfWaitTimes.splice(i, 1);
+						}).catch(function (err) {
+							throw  err;
 						});
 					}
 					else {
@@ -665,7 +673,6 @@ function checkWaitTimes() {
 		clearInterval(waitTimesInterval);
 		waitTimesInterval = false;
 	}
-	console.log("Leaving Wait Times");
 }
 function createMap(galaxys, xSize, ySize) {
 	let planets = [
@@ -4995,9 +5002,14 @@ const commands = [
 							acc.stations.splice(j, 1);
 						}
 						else {
-							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
-							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
-							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
+							if(other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "SafeZone" || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "DominateZone") {
+								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
+								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
+								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
+							}
+							else{
+								acc.stations.splice(i,1);
+							}
 						}
 					}
 					for (let j = 0; j < acc.colonies.length; j++) {
@@ -5006,9 +5018,14 @@ const commands = [
 							acc.colonies.splice(j, 1);
 						}
 						else {
-							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
-							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
-							other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
+							if(other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "SafeZone" || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "DominateZone") {
+
+								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
+								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
+								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
+							}else{
+								acc.colonies.splice(i,1);
+							}
 						}
 					}
 				}
@@ -5276,6 +5293,7 @@ client.on("messageReactionAdd", function (reaction, user) {
 	}
 });
 client.on("message", function (message) {
+
 	if (message.channel.type === "text") {
 		if (serverStuff[message.guild.id] == null) {
 			serverStuff.names.push(message.guild.id);
@@ -5320,6 +5338,18 @@ client.on("message", function (message) {
 			}
 		}
 	}
+	if(message.channel.type === "dm"){
+		if(message.content.toLowerCase() === "i allow galactica to store my enduser's data"){
+			sendBasicEmbed({
+				content:"Thank you for playing with us",
+				color:embedColors.green,
+				channel:message.channel
+			});
+			let perms = require("./permissions.json");
+			perms[message.author.id] = true;
+			saveJsonFile("./permissions.json");
+		}
+	}
 	if (args[0][0] === universalPrefix || args[0] === "<@" + client.user.id + ">" || args[0].substring(0, serverPrefix.length) === serverPrefix) {
 		if (args[0].substring(0, serverPrefix.length) === serverPrefix) {
 			command = args[0].substring(serverPrefix.length, message.content.length);
@@ -5336,6 +5366,7 @@ client.on("message", function (message) {
 			if (!(commands[i] instanceof Array)) {
 				for (let j = 0; j < commands[i].names.length; j++) {
 					if (commands[i].names[j].toLowerCase() === command) {
+
 						if (message.channel.type !== "dm") {
 							//SEND_MESSAGES
 							if (!checkPerms({user: "bot", perms: "SEND_MESSAGES", message: message})) {
@@ -5356,28 +5387,39 @@ client.on("message", function (message) {
 								return;
 							}
 						}
-						if (isValidText(message.content)) {
-							if (accountData[message.author.id] != null) {
-								accountData[message.author.id] = new updateAccount(accountData[message.author.id]);
+						if(isVerified(message.author.id)) {
+							if (isValidText(message.content)) {
+								if (accountData[message.author.id] != null) {
+									accountData[message.author.id] = new updateAccount(accountData[message.author.id]);
 
-								if (accountData[message.author.id].username !== message.author.username) {
-									accountData[message.author.id].username = message.author.username;
+									if (accountData[message.author.id].username !== message.author.username) {
+										accountData[message.author.id].username = message.author.username;
+									}
 								}
+								runCommand(commands[i], message, args, accountData[message.author.id], serverPrefix);
+								saveJsonFile("./accounts.json");
+								saveJsonFile("./factions.json");
+								saveJsonFile("./other.json");
+								break;
 							}
-							runCommand(commands[i], message, args, accountData[message.author.id], serverPrefix);
-							saveJsonFile("./accounts.json");
-							saveJsonFile("./factions.json");
-							saveJsonFile("./other.json");
-							break;
-						}
-						else {
-							sendBasicEmbed({
-								content: "Unreadable message...\nPlease send only characters `A-Z` and Numbers `0-9`",
-								color  : embedColors.red,
-								channel: message.author
-							}).then(function () {
-								return;
-							})
+							else {
+								sendBasicEmbed({
+									content: "Unreadable message...\nPlease send only characters `A-Z` and Numbers `0-9`",
+									color  : embedColors.red,
+									channel: message.author
+								}).then(function () {
+									return;
+								})
+							}
+						}else{
+							let embed = new Discord.RichEmbed()
+								.setTitle("Permission to store EndUser's Data")
+								.setDescription("Discord's Terms Of Service requires me to have **your** permission to store any data related to you.")
+								.addField("This includes ~~(but not limited to)~~","```css\nUsernames\nIDs\nProfile Pictures\nMessages```")
+								.addField("✅","To Give me permission please say in your DMs this exact message\n```fix\nI allow Galactica to store my EndUser's Data```\nOtherwise you will not be allowed to use Galactica")
+								.setFooter("None of your info will be sold/shared")
+								.setColor(embedColors.red);
+							message.author.send({embed});
 						}
 					}
 				}
