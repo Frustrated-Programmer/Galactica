@@ -7,6 +7,7 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 let checked = 0;
 let checker = setInterval(function () {
+	console.log("Ran Checker");
 	let guilds = client.guilds.array();
 	for (let i = 0; i < guilds.length; i++) {
 		let found = false;
@@ -135,6 +136,7 @@ let checker = setInterval(function () {
 			})
 		}
 	}
+	console.log("Leaving Checker")
 }, 60000 * 10);
 
 
@@ -153,6 +155,7 @@ let map = require("./other.json").map;
 
 /**FUNCTIONS**/
 function attackPlayerFunction() {
+	console.log("Attack Interval");
 	/**
 	 @attacks is an array full of
 	 {
@@ -425,6 +428,11 @@ function attackPlayerFunction() {
 			}, 5000);
 		}
 	}
+	if(!attacks.length){
+		clearInterval(attackTimeInterval);
+		attackTimeInterval = false;
+	}
+	console.log("Leaving Attack Interval")
 }
 function getBorders(location) {
 	let bordering = [];
@@ -443,6 +451,7 @@ function getBorders(location) {
 	return bordering;
 }
 function checkWaitTimes() {
+	console.log("Entering Check Wait Times");
 	listOfWaitTimes = require("./other.json").listOfWaitTimes;
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires <= Date.now()) {
@@ -660,6 +669,7 @@ function checkWaitTimes() {
 		clearInterval(waitTimesInterval);
 		waitTimesInterval = false;
 	}
+	console.log("Leaving Wait Times");
 }
 function createMap(galaxys, xSize, ySize) {
 	let planets = [
@@ -1060,25 +1070,6 @@ const reqChecks = {
 			return {val: true, msg: ""};
 		}
 		return {val: false, msg: "You must be an owner of the bot."}
-	},
-	"modChannel"       : function (reqArgs, message, args, playerData, prefix) {
-		if (message.channel.type === "text") {
-			for (let i = 0; i < serverStuff.names.length; i++) {
-				if (serverStuff[serverStuff.names[i]].serverID === message.channel.guild.id) {
-					if (serverStuff[serverStuff.names[i]].modChannel != null) {
-						return {
-							val: client.channels.get(serverStuff[serverStuff.names[i]].modChannel) != null,
-							msg: "You must have a mod channel."
-						}
-					}
-					return {val: false, msg: "You must have a mod channel."}
-				}
-			}
-			return {val: false, msg: "You must have a mod channel."}
-		}
-		else {
-			return {val: false, msg: "You must be in a text channel."}
-		}
 	},
 	"warping"          : function (reqArgs, message, args, playerData, prefix) {
 		let x = "false";
@@ -1549,7 +1540,7 @@ const commands = [
 		}
 	},
 	{
-		names      : ["iWantDeleteMyAccountForever"],
+		names      : ["iWantToDeleteMyAccountForever"],
 		description: "delete Your account",
 		usage      : "delete",
 		values     : [],
@@ -2361,14 +2352,14 @@ const commands = [
 		names      : ["attackPlayer", "pAttack", "attackP"],
 		description: "attack the player",
 		usage      : "attackPlayer [VALUE]",
-		values     : ["@player", "PLAYERS_ID","LOOK_ID"],
+		values     : ["@player", "PLAYERS_ID", "LOOK_ID"],
 		reqs       : ["normCommand", "profile true", "warping false", "attacking false"],
 		effect     : function (message, args, playerData, prefix) {
 			let nums = getNumbers(args[0], false);
 			let defender = null;
 			if (nums.length) {
-				if(nums.length<3) {
-					let numbers = parseInt(nums[0],10);
+				if (nums.length < 3) {
+					let numbers = parseInt(nums[0], 10);
 					if (numbers > 0) {
 						let otherPlayers = [];
 						for (let i = 0; i < accountData.names.length; i++) {
@@ -2389,8 +2380,8 @@ const commands = [
 						}
 					}
 				}
-				else{
-					if(accountData[nums[0]]!=null){
+				else {
+					if (accountData[nums[0]] != null) {
 						defender = accountData[nums[0]];
 					}
 					else {
@@ -2410,7 +2401,7 @@ const commands = [
 					channel: message.channel
 				});
 			}
-			if(defender) {
+			if (defender) {
 				if (!defender.healing || defender.isInSafeZone) {
 					if (matchArray(playerData.location, defender.location, false)) {
 						if (message.channel.type === "text") {
@@ -4298,7 +4289,7 @@ const commands = [
 				if (client.channels.get(nums[0]) != null) {
 					serverStuff[message.guild.id].modChannel = nums[0];
 					sendBasicEmbed({
-						content: "Set <#" + nums[0] + "> as the mod channel.\nYou may now use `warn`, `kick`, `mute` and `ban`",
+						content: "Set <#" + nums[0] + "> as the mod channel.",
 						color  : embedColors.purple,
 						channel: message.channel
 					})
@@ -4489,8 +4480,17 @@ const commands = [
 		description: "warn a user",
 		usage      : "warn [VALUE]",
 		values     : ["{@USER} [REASON]", "{@USER_ID} [REASON]"],
-		reqs       : ["channel text", "userPerms KICK_MEMBERS", "modChannel"],
+		reqs       : ["channel text", "userPerms KICK_MEMBERS"],
 		effect     : function (message, args, playerData, prefix) {
+			let modChannel = false;
+			let canDelete = checkPerms({
+				message: message,
+				user   : "bot",
+				perms  : "MANAGE_MESSAGES"
+			});
+			if (serverStuff[message.guild.id].modChannel != null) {
+				modChannel = true;
+			}
 			let nums = getNumbers(message.content);
 			let reason = "No reason supplied";
 			if (args.length >= 2) {
@@ -4501,47 +4501,48 @@ const commands = [
 			}
 			if (nums.length) {
 				client.fetchUser(nums[0]).then(function (user) {
-
-					let warningNum = "This is the 1st warning given to this user.";
-					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
-						serverStuff[message.guild.id].warnings[nums[0]]++;
-						warningNum = "This the " + serverStuff[message.guild.id].warnings[nums[0]];
-						let num = "" + serverStuff[message.guild.id].warnings[nums[0]];
-						switch (num[num.length - 1]) {
-							case "1":
-								warningNum += "st";
-								break;
-							case "2":
-								warningNum += "nd";
-								break;
-							case "3":
-								warningNum += "rd";
-								break;
-							default:
-								warningNum += "th";
-								break;
-						}
-						warningNum += " warning given to this user.";
-					}
-					else {
-						serverStuff[message.guild.id].warnings[nums[0]] = 1;
-					}
-					let embed = new Discord.RichEmbed()
-						.setTitle("WARNING <@!" + nums[0] + ">")
-						.setColor(embedColors.yellow)
-						.setDescription("<@!" + nums[0] + "> has been warned\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
-						.setFooter(warningNum);
-					client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
-					let deleteIt = checkPerms({
-						message: message,
-						user   : "bot",
-						perms  : "MANAGE_MESSAGES"
+					sendBasicEmbed({
+						content:"You have been warned in the server: `"+message.guild.name+"`\nReason: "+reason,
+						color:embedColors.orange,
+						channel:user
 					});
+					if (modChannel) {
+						let warningNum = "This is the 1st warning given to this user.";
+						if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
+							serverStuff[message.guild.id].warnings[nums[0]]++;
+							warningNum = "This the " + serverStuff[message.guild.id].warnings[nums[0]];
+							let num = "" + serverStuff[message.guild.id].warnings[nums[0]];
+							switch (num[num.length - 1]) {
+								case "1":
+									warningNum += "st";
+									break;
+								case "2":
+									warningNum += "nd";
+									break;
+								case "3":
+									warningNum += "rd";
+									break;
+								default:
+									warningNum += "th";
+									break;
+							}
+							warningNum += " warning given to this user.";
+						}
+						else {
+							serverStuff[message.guild.id].warnings[nums[0]] = 1;
+						}
+						let embed = new Discord.RichEmbed()
+							.setTitle("WARNING <@!" + nums[0] + ">")
+							.setColor(embedColors.yellow)
+							.setDescription("<@!" + nums[0] + "> has been warned\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
+							.setFooter(warningNum);
+						client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+					}
 					let embedNew = new Discord.RichEmbed()
 						.setDescription("warned the user")
 						.setColor(embedColors.purple);
 					message.channel.send({embed: embedNew}).then(function (mess) {
-						if (deleteIt) {
+						if (canDelete) {
 							message.delete();
 							setTimeout(function () {
 								mess.delete();
@@ -4555,7 +4556,6 @@ const commands = [
 						color  : embedColors.red,
 						channel: message.channel
 					})
-
 				});
 
 			}
@@ -4573,13 +4573,17 @@ const commands = [
 		description: "Clear warnings from a user",
 		usage      : "clearWarnings [VALUE]",
 		values     : ["{USER_ID}", "{@USER}"],
-		reqs       : ["channel text", "userPerms KICK_MEMBERS", "modChannel"],
+		reqs       : ["channel text", "userPerms KICK_MEMBERS"],
 		effect     : function (message, args, playerData, prefix) {
-			let deleteIt = checkPerms({
+			let modChannel = false;
+			let canDelete = checkPerms({
 				message: message,
 				user   : "bot",
 				perms  : "MANAGE_MESSAGES"
 			});
+			if (serverStuff[message.guild.id].modChannel != null) {
+				modChannel = true;
+			}
 			let nums = getNumbers(message.content);
 			let reason = "No reason supplied";
 			if (args.length >= 2) {
@@ -4590,21 +4594,27 @@ const commands = [
 			}
 			if (nums.length) {
 				client.fetchUser(nums[0]).then(function (user) {
-
 					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
-						let clearedWarnings = "This user HAD " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
-						delete serverStuff[message.guild.id].warnings[nums[0]];
-						let embed = new Discord.RichEmbed()
-							.setTitle("CLEARING <@!" + nums[0] + ">'S WARNINGS")
-							.setColor(embedColors.green)
-							.setDescription("<@!" + nums[0] + "> has had his warnings removed\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
-							.setFooter(clearedWarnings);
-						client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+						sendBasicEmbed({
+							content:"All your warnings in the server `"+message.guild.name+"` have been cleared\nReason: "+reason,
+							color:embedColors.orange,
+							channel:user
+						});
+						if(modChannel) {
+							let clearedWarnings = "This user HAD " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
+							delete serverStuff[message.guild.id].warnings[nums[0]];
+							let embed = new Discord.RichEmbed()
+								.setTitle("CLEARING <@!" + nums[0] + ">'S WARNINGS")
+								.setColor(embedColors.green)
+								.setDescription("<@!" + nums[0] + "> has had his warnings removed\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
+								.setFooter(clearedWarnings);
+							client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+						}
 						let embed2 = new Discord.RichEmbed()
 							.setDescription("cleared user's warnings.")
 							.setColor(embedColors.purple);
 						message.channel.send({embed: embed2}).then(function (mess) {
-							if (deleteIt) {
+							if (canDelete) {
 								message.delete();
 								setTimeout(function () {
 									mess.delete();
@@ -4644,8 +4654,14 @@ const commands = [
 		description: "kick a user",
 		usage      : "kick [VALUE]",
 		values     : ["{@USER} [REASON]", "{@USER_ID} [REASON]"],
-		reqs       : ["channel text", "userPerms KICK_MEMBERS", "modChannel", "botPerms KICK_MEMBERS"],
+		reqs       : ["channel text", "userPerms KICK_MEMBERS", "botPerms KICK_MEMBERS"],
 		effect     : function (message, args, playerData, prefix) {
+			let modChannel = false;
+			let canDelete = checkPerms({
+				message: message,
+				user   : "bot",
+				perms  : "MANAGE_MESSAGES"
+			});
 			let nums = getNumbers(message.content);
 			let reason = "No reason supplied";
 			if (args.length >= 2) {
@@ -4660,23 +4676,25 @@ const commands = [
 					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
 						warningNum = "This user had " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
 					}
-					let embed = new Discord.RichEmbed()
-						.setTitle("KICKING <@!" + nums[0] + ">")
-						.setColor(embedColors.orange)
-						.setDescription("<@!" + nums[0] + "> has been kicked!\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
-						.setFooter(warningNum);
-					client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
-					client.guilds.get(message.guild.id).members.get(nums[0]).kick(reason);
-					let deleteIt = checkPerms({
-						message: message,
-						user   : "bot",
-						perms  : "MANAGE_MESSAGES"
+					sendBasicEmbed({
+						content: "You have been kicked from the server: `"+message.guild.name+"`\nReason: "+reason,
+						color  : embedColors.red,
+						channel: message.channel
 					});
+					if(modChannel) {
+						let embed = new Discord.RichEmbed()
+							.setTitle("KICKING <@!" + nums[0] + ">")
+							.setColor(embedColors.orange)
+							.setDescription("<@!" + nums[0] + "> has been kicked!\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
+							.setFooter(warningNum);
+						client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+					}
+					client.guilds.get(message.guild.id).members.get(nums[0]).kick(reason);
 					let embed2 = new Discord.RichEmbed()
 						.setDescription("kicked the user")
 						.setColor(embedColors.purple);
 					message.channel.send({embed: embed2}).then(function (mess) {
-						if (deleteIt) {
+						if (canDelete) {
 							message.delete();
 							setTimeout(function () {
 								mess.delete();
@@ -4705,9 +4723,15 @@ const commands = [
 		names      : ["ban"],
 		description: "ban a user",
 		usage      : "ban [VALUE]",
-		values     : ["{@USER} [REASON] [DELETE_DAYS_OF_MESSAGES]", "{@USER_ID} [REASON] [DELETE_DAYS_OF_MESSAGES]"],
-		reqs       : ["channel text", "userPerms BAN_MEMBERS", "modChannel", "botPerms BAN_MEMBERS"],
+		values     : ["{@USER} [REASON]", "{@USER_ID} [REASON]"],
+		reqs       : ["channel text", "userPerms BAN_MEMBERS", "botPerms BAN_MEMBERS"],
 		effect     : function (message, args, playerData, prefix) {
+			let modChannel = false;
+			let canDelete = checkPerms({
+				message: message,
+				user   : "bot",
+				perms  : "MANAGE_MESSAGES"
+			});
 			let nums = getNumbers(message.content);
 			let reason = "No reason supplied";
 
@@ -4724,24 +4748,21 @@ const commands = [
 					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
 						warningNum = "This user had " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
 					}
-					let embed = new Discord.RichEmbed()
-						.setTitle("BANNING <@!" + nums[0] + ">")
-						.setColor(embedColors.red)
-						.setDescription("<@!" + nums[0] + "> has been banned!\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
-						.setFooter(warningNum);
-					client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
-					let days = nums[1] || 0;
-					client.guilds.get(message.guild.id).members.get(nums[0]).ban({days: days, reason: reason});
-					let deleteIt = checkPerms({
-						message: message,
-						user   : "bot",
-						perms  : "MANAGE_MESSAGES"
-					});
+					if(modChannel) {
+						let embed = new Discord.RichEmbed()
+							.setTitle("BANNING <@!" + nums[0] + ">")
+							.setColor(embedColors.red)
+							.setDescription("<@!" + nums[0] + "> has been banned!\n**Reason:** " + reason + "\nGiven by: <@!" + message.author.id + ">")
+							.setFooter(warningNum);
+						client.channels.get(serverStuff[message.guild.id].modChannel).send({embed});
+					}
+					client.guilds.get(message.guild.id).members.get(nums[0]).ban({days: 1, reason: reason});
+
 					let embed2 = new Discord.RichEmbed()
 						.setDescription("banned the user")
 						.setColor(embedColors.purple);
 					message.channel.send({embed: embed2}).then(function (mess) {
-						if (deleteIt) {
+						if (canDelete) {
 							message.delete();
 							setTimeout(function () {
 								mess.delete();
@@ -5099,7 +5120,9 @@ const commands = [
 
 /**CLIENTS**/
 setInterval(function () {
+	console.log("Entering sweepMessages");
 	client.sweepMessages((60000 * 60) * 24);
+	console.log("Leaving sweepMessages");
 }, 60000 * 60);
 client.on("guildMemberRemove", function (member) {
 	if (serverStuff[member.guild.id].goodbyeChannel.id != null) {
