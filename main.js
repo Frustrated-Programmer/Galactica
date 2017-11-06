@@ -4225,6 +4225,13 @@ const commands = [
 						color  : embedColors.purple,
 						channel: message.channel
 					});
+					if (serverStuff[message.guild.id].modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle("allowed Channel")
+							.setDescription("<@!" + message.author.id + "> Allowed <#"+nums[0]+"> as a channel for Galactica Usage")
+							.setColor(embedColors.purple);
+						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
+					}
 				}
 				else {
 					sendBasicEmbed({
@@ -4253,12 +4260,19 @@ const commands = [
 			let nums = getNumbers(message.content);
 			if (nums.length) {
 				if (client.channels.get(nums[0]) != null) {
-					delete serverStuff[message.guild.id].allowedChannels[nums[0]];
+					serverStuff[message.guild.id].allowedChannels[nums[0]] = false;
 					sendBasicEmbed({
 						content: "Set <#" + nums[0] + "> as a disallowed channel.",
 						color  : embedColors.purple,
 						channel: message.channel
 					})
+					if (serverStuff[message.guild.id].modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle("Disallowed Channel")
+							.setDescription("<@!" + message.author.id + "> Dis-allowed <#"+nums[0]+"> as a channel for Galactica Usage")
+							.setColor(embedColors.purple);
+						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
+					}
 				}
 				else {
 					sendBasicEmbed({
@@ -4338,7 +4352,7 @@ const commands = [
 						color  : embedColors.purple,
 						channel: message.channel
 					});
-					if (serverStuff[message.channel.guild.id].modChannel != null) {
+					if (serverStuff[message.guild.id].modChannel != null) {
 						let embed = new Discord.RichEmbed()
 							.setTitle("Welcome Message")
 							.setDescription("Welcome message was changed by <@!" + message.author.id + "> to\n" + welcomeTxt)
