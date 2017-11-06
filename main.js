@@ -146,6 +146,13 @@ fs.exists('./permissions.json', function(exists) {
 		});
 	}
 });
+if(listOfWaitTimes.length){
+	waitTimesInterval = setInterval(checkWaitTimes,1000);
+}
+if(attacks.length){
+	attackTimeInterval = setInterval(attackPlayerFunction,1000);
+}
+
 /**VARIABLES**/
 let powerEmoji = "";
 let upTime = 0;
@@ -1096,6 +1103,12 @@ const reqChecks = {
 			if (reqArgs[0] === "true") {
 				return {val: false, msg: "You have to be warping to use this command."}
 			}
+			let timeLeft = "Time Remaining: ";
+			for(let i =0;i<listOfWaitTimes.length;i++){
+				if(listOfWaitTimes[i].type === "warp" && listOfWaitTimes[i].player === playerData.userID){
+					timeLeft += getTimeRemaining(Date.now() - listOfWaitTimes[i].expires);
+				}
+			}
 			return {val: false, msg: "You can't be warping to use this command."}
 		}
 	},
@@ -1695,7 +1708,7 @@ const commands = [
 
 	["GAMEPLAY", "MAIN"],
 	{
-		names      : ["stats", "me", "info"],
+		names      : ["stats", "me", "info","status"],
 		description: "Get your stats or someone else's stats",
 		usage      : "stats (VALUE)",
 		values     : ["{@USER}", "PLAYER_ID"],
@@ -1857,7 +1870,7 @@ const commands = [
 					if (!waitTimesInterval) {
 						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
 					}
-					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + goToPos[2] + "x" + goToPos[1] + "`";
+					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + (goToPos[2]+1) + "x" + (goToPos[1]+1) + "`";
 					sendBasicEmbed({
 						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
 						color  : embedColors.blue,
@@ -2250,7 +2263,7 @@ const commands = [
 				setTimeout(function () {
 					doFun();
 				}, 1000);
-				Jimp.read("TheImages/Other/items/GridLines.png", function (err, image) {
+				Jimp.read("./TheImages/Other/items/GridLines.png", function (err, image) {
 					if (err) throw err;
 					image.resize(mainSize, mainSize);
 					newimage.composite(image, 0, 0);
