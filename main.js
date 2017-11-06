@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = require("./other.json").uniPre || "-";
+const universalPrefix = require("./other.json").uniPre || "test";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -136,10 +136,12 @@ let checker = setInterval(function () {
 		}
 	}
 }, 60000 * 10);
-fs.exists('./permissions.json', (exists) => {
+fs.exists('./permissions.json', function(exists) {
 	if(!exists){
-		fs.writeFile("permissions.json", "{}", (err) => {
-			if (err) throw err;
+		fs.writeFile("permissions.json", "{}", function(err) {
+			if (err){
+				throw err;
+			}
 			console.log("created Permissions.json");
 		});
 	}
@@ -164,7 +166,7 @@ function isVerified(ID){
 		return true;
 	}
 	return false;
-};
+}
 function attackPlayerFunction() {
 	/**
 	 @attacks is an array full of
@@ -464,6 +466,7 @@ function checkWaitTimes() {
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires <= Date.now()) {
 			let playerData = accountData[listOfWaitTimes[i].player];
+			console.log(playerData);
 			let loc = playerData.location;
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
@@ -598,6 +601,7 @@ function checkWaitTimes() {
 					}
 					break;
 				case "attackStation":
+
 					if (playerData.didntMove) {
 						let loc = playerData.location;
 						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(function (user) {
@@ -2373,7 +2377,8 @@ const commands = [
 						let otherPlayers = [];
 						for (let i = 0; i < accountData.names.length; i++) {
 							if (matchArray(accountData[accountData.names[i]].location, playerData.location, false)) {
-								otherPlayers.push(accountData.names[i]);
+								if(accountData.names[i] !== playerData.userID){
+								otherPlayers.push(accountData.names[i]);}
 							}
 						}
 						if (otherPlayers[numbers - 1] != null) {
@@ -5258,7 +5263,9 @@ client.on("ready", function () {
 	console.log("Galactica | Online");
 	powerEmoji = client.guilds.get("354670066480054272").emojis.find("name", "Fist");
 	resources["power"].emoji = powerEmoji.toString();
-	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
+	if(universalPrefix!=="test") {
+		client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
+	}
 });
 client.on("messageReactionAdd", function (reaction, user) {
 	if (user.bot) {
