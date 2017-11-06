@@ -7,7 +7,6 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 let checked = 0;
 let checker = setInterval(function () {
-	console.log("Ran Checker");
 	let guilds = client.guilds.array();
 	for (let i = 0; i < guilds.length; i++) {
 		let found = false;
@@ -35,7 +34,6 @@ let checker = setInterval(function () {
 			};
 		}
 	}
-	console.log("Inbetween guilds and server");
 	for (let i = 0; i < serverStuff.names.length; i++) {
 		let found = false;
 		for (let j = 0; j < guilds.length; j++) {
@@ -50,18 +48,31 @@ let checker = setInterval(function () {
 		}
 	}
 	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
-	console.log("for loop accountDara")
+	fs.readFile("./galactica.log", "utf8", function (err, data) {
+		if (err) {
+			console.log(err);
+		}
+		let words = data.split(" ");
+		if (words.length >= 5000) {
+			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
+				if (err) {
+					throw err
+				}
+				console.log("Refreshed due to amount of logs.");
+			});
+		}
+	});
 	for (let i = 0; i < accountData.names.length; i++) {
 		let player = accountData[accountData.names[i]];
 		let rankLevel = 0;
-		for (let j = 0; j < ranks.list.length; i++) {
-			if (player["power"] >= ranks.list[i]) {
+		for (let j = 0; j < ranks.list.length; j++) {
+			if (player["power"] >= ranks.list[j]) {
 				rankLevel = j;
 			}
 		}
 		if (player.rank !== ranks.names[rankLevel]) {
 			let promo = "demoted";
-			for (let j = 0; j < ranks.names.length; i++) {
+			for (let j = 0; j < ranks.names.length; j++) {
 				if (ranks.names[j] === player.rank) {
 					if (j > rankLevel) {
 						promo = "promoted";
@@ -78,13 +89,12 @@ let checker = setInterval(function () {
 			})
 		}
 	}
-	console.log("client's status === " + client.status);
+	console.log(client.status);
 	if (client.status !== 1 || checked >= 1) {
 		console.log("rebooted");
 		process.exit();
 	}
 	checked++;
-	console.log("2nd account Data")
 	for (let i = 0; i < accountData.names.length; i++) {
 		let player = accountData[accountData.names[i]];
 		let rank = null;
@@ -125,7 +135,6 @@ let checker = setInterval(function () {
 			})
 		}
 	}
-	console.log("Leaving Checker")
 }, 60000 * 10);
 
 
@@ -144,7 +153,6 @@ let map = require("./other.json").map;
 
 /**FUNCTIONS**/
 function attackPlayerFunction() {
-	console.log("Attack Interval");
 	/**
 	 @attacks is an array full of
 	 {
@@ -417,11 +425,10 @@ function attackPlayerFunction() {
 			}, 5000);
 		}
 	}
-	if(!attacks.length){
+	if (!attacks.length) {
 		clearInterval(attackTimeInterval);
 		attackTimeInterval = false;
 	}
-	console.log("Leaving Attack Interval")
 }
 function getBorders(location) {
 	let bordering = [];
@@ -4217,7 +4224,7 @@ const commands = [
 					if (serverStuff[message.guild.id].modChannel != null) {
 						let embed = new Discord.RichEmbed()
 							.setTitle("allowed Channel")
-							.setDescription("<@!" + message.author.id + "> Allowed <#"+nums[0]+"> as a channel for Galactica Usage")
+							.setDescription("<@!" + message.author.id + "> Allowed <#" + nums[0] + "> as a channel for Galactica Usage")
 							.setColor(embedColors.purple);
 						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
 					}
@@ -4258,7 +4265,7 @@ const commands = [
 					if (serverStuff[message.guild.id].modChannel != null) {
 						let embed = new Discord.RichEmbed()
 							.setTitle("Disallowed Channel")
-							.setDescription("<@!" + message.author.id + "> Dis-allowed <#"+nums[0]+"> as a channel for Galactica Usage")
+							.setDescription("<@!" + message.author.id + "> Dis-allowed <#" + nums[0] + "> as a channel for Galactica Usage")
 							.setColor(embedColors.purple);
 						client.channels.get(serverStuff[message.channel.guild.id].modChannel).send({embed});
 					}
@@ -4505,9 +4512,9 @@ const commands = [
 			if (nums.length) {
 				client.fetchUser(nums[0]).then(function (user) {
 					sendBasicEmbed({
-						content:"You have been warned in the server: `"+message.guild.name+"`\nReason: "+reason,
-						color:embedColors.orange,
-						channel:user
+						content: "You have been warned in the server: `" + message.guild.name + "`\nReason: " + reason,
+						color  : embedColors.orange,
+						channel: user
 					});
 					if (modChannel) {
 						let warningNum = "This is the 1st warning given to this user.";
@@ -4599,11 +4606,11 @@ const commands = [
 				client.fetchUser(nums[0]).then(function (user) {
 					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
 						sendBasicEmbed({
-							content:"All your warnings in the server `"+message.guild.name+"` have been cleared\nReason: "+reason,
-							color:embedColors.orange,
-							channel:user
+							content: "All your warnings in the server `" + message.guild.name + "` have been cleared\nReason: " + reason,
+							color  : embedColors.orange,
+							channel: user
 						});
-						if(modChannel) {
+						if (modChannel) {
 							let clearedWarnings = "This user HAD " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
 							delete serverStuff[message.guild.id].warnings[nums[0]];
 							let embed = new Discord.RichEmbed()
@@ -4680,11 +4687,11 @@ const commands = [
 						warningNum = "This user had " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
 					}
 					sendBasicEmbed({
-						content: "You have been kicked from the server: `"+message.guild.name+"`\nReason: "+reason,
+						content: "You have been kicked from the server: `" + message.guild.name + "`\nReason: " + reason,
 						color  : embedColors.red,
 						channel: message.channel
 					});
-					if(modChannel) {
+					if (modChannel) {
 						let embed = new Discord.RichEmbed()
 							.setTitle("KICKING <@!" + nums[0] + ">")
 							.setColor(embedColors.orange)
@@ -4751,7 +4758,7 @@ const commands = [
 					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
 						warningNum = "This user had " + serverStuff[message.guild.id].warnings[nums[0]] + " warnings.";
 					}
-					if(modChannel) {
+					if (modChannel) {
 						let embed = new Discord.RichEmbed()
 							.setTitle("BANNING <@!" + nums[0] + ">")
 							.setColor(embedColors.red)
@@ -5123,9 +5130,8 @@ const commands = [
 
 /**CLIENTS**/
 setInterval(function () {
-	console.log("Entering sweepMessages");
 	client.sweepMessages((60000 * 60) * 24);
-	console.log("Leaving sweepMessages");
+	console.log("swept messages");
 }, 60000 * 60);
 client.on("guildMemberRemove", function (member) {
 	if (serverStuff[member.guild.id].goodbyeChannel.id != null) {
