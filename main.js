@@ -161,7 +161,7 @@ let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
 
 if(listOfWaitTimes.length){
-	waitTimesInterval = setInterval(checkWaitTimes,1000);
+	//waitTimesInterval = setInterval(checkWaitTimes,1000);
 }
 if(attacks.length){
 	attackTimeInterval = setInterval(attackPlayerFunction,1000);
@@ -474,7 +474,7 @@ function checkWaitTimes() {
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires <= Date.now()) {
 			let playerData = accountData[listOfWaitTimes[i].player];
-			console.log(playerData);
+			console.log(playerData.didntMove);
 			let loc = playerData.location;
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
@@ -609,7 +609,7 @@ function checkWaitTimes() {
 					}
 					break;
 				case "attackStation":
-
+					console.log(playerData);
 					if (playerData.didntMove) {
 						let loc = playerData.location;
 						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(function (user) {
