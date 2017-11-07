@@ -160,7 +160,7 @@ let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
 
-waitTimesInterval = setInterval(checkWaitTimes,1000);
+//waitTimesInterval = setInterval(checkWaitTimes,1000);
 /**FUNCTIONS**/
 function isVerified(ID) {
 	let accounts = require("./permissions.json");
