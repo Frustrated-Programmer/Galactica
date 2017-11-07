@@ -160,7 +160,7 @@ let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
 
-
+waitTimesInterval = setInterval(checkWaitTimes,1000);
 /**FUNCTIONS**/
 function isVerified(ID) {
 	let accounts = require("./permissions.json");
@@ -654,7 +654,7 @@ function checkWaitTimes() {
 							content: "Attacking the station at\nGalaxy: `" + loc[0] + "` Area: `" + station[2] + "x" + station[1] + "`\nHas failed.\nYou either\nmoved from your spot\nwere under attack",
 							color  : embedColors.red,
 							channel: client.users.get(player.userID)
-						})
+						});
 						listOfWaitTimes.splice(i, 1);
 					}
 					break;
@@ -5267,7 +5267,7 @@ client.on("guildCreate", function (Guild) {
 });
 client.on("ready", function () {
 	if (listOfWaitTimes.length) {
-		waitTimesInterval = setInterval(checkWaitTimes,1000);
+		//waitTimesInterval = setInterval(checkWaitTimes,1000);
 	}
 	if (attacks.length) {
 		attackTimeInterval = setInterval(attackPlayerFunction, 1000);
