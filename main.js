@@ -1,7 +1,7 @@
 /**Set Up **/
 let version = require("./other.json").version;
 let Jimp = require("jimp");
-const universalPrefix = require("./other.json").uniPre || "test";
+const universalPrefix = require("./other.json").uniPre || "-";
 const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -136,10 +136,10 @@ let checker = setInterval(function () {
 		}
 	}
 }, 60000 * 10);
-fs.exists('./permissions.json', function(exists) {
-	if(!exists){
-		fs.writeFile("permissions.json", "{}", function(err) {
-			if (err){
+fs.exists('./permissions.json', function (exists) {
+	if (!exists) {
+		fs.writeFile("permissions.json", "{}", function (err) {
+			if (err) {
 				throw err;
 			}
 			console.log("created Permissions.json");
@@ -160,17 +160,11 @@ let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
 
-if(listOfWaitTimes.length){
-	//waitTimesInterval = setInterval(checkWaitTimes,1000);
-}
-if(attacks.length){
-	attackTimeInterval = setInterval(attackPlayerFunction,1000);
-}
 
 /**FUNCTIONS**/
-function isVerified(ID){
+function isVerified(ID) {
 	let accounts = require("./permissions.json");
-	if(accounts[ID]!=null){
+	if (accounts[ID] != null) {
 		return true;
 	}
 	return false;
@@ -474,7 +468,7 @@ function checkWaitTimes() {
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires <= Date.now()) {
 			let playerData = accountData[listOfWaitTimes[i].player];
-			console.log(playerData.didntMove);
+
 			let loc = playerData.location;
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
@@ -585,7 +579,6 @@ function checkWaitTimes() {
 					listOfWaitTimes.splice(i, 1);
 					break;
 				case "buildStation":
-					let playerData = accountData[listOfWaitTimes[i].player];
 					if (playerData.didntMove) {
 						playerData.stations.push({
 							location: playerData.location,
@@ -609,6 +602,7 @@ function checkWaitTimes() {
 					}
 					break;
 				case "attackStation":
+					let playerData = accountData[listOfWaitTimes[i].player];
 					console.log(playerData);
 					if (playerData.didntMove) {
 						let loc = playerData.location;
@@ -677,7 +671,6 @@ function checkWaitTimes() {
 					listOfWaitTimes.splice(i, 1);
 					break;
 			}
-
 		}
 	}
 
@@ -1105,8 +1098,8 @@ const reqChecks = {
 				return {val: false, msg: "You have to be warping to use this command."}
 			}
 			let timeLeft = "Time Remaining: ";
-			for(let i =0;i<listOfWaitTimes.length;i++){
-				if(listOfWaitTimes[i].type === "warp" && listOfWaitTimes[i].player === playerData.userID){
+			for (let i = 0; i < listOfWaitTimes.length; i++) {
+				if (listOfWaitTimes[i].type === "warp" && listOfWaitTimes[i].player === playerData.userID) {
 					timeLeft += getTimeRemaining(Date.now() - listOfWaitTimes[i].expires);
 				}
 			}
@@ -1709,7 +1702,7 @@ const commands = [
 
 	["GAMEPLAY", "MAIN"],
 	{
-		names      : ["stats", "me", "info","status"],
+		names      : ["stats", "me", "info", "status"],
 		description: "Get your stats or someone else's stats",
 		usage      : "stats (VALUE)",
 		values     : ["{@USER}", "PLAYER_ID"],
@@ -1871,7 +1864,7 @@ const commands = [
 					if (!waitTimesInterval) {
 						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
 					}
-					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + (goToPos[2]+1) + "x" + (goToPos[1]+1) + "`";
+					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + (goToPos[2] + 1) + "x" + (goToPos[1] + 1) + "`";
 					sendBasicEmbed({
 						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
 						color  : embedColors.blue,
@@ -2391,8 +2384,9 @@ const commands = [
 						let otherPlayers = [];
 						for (let i = 0; i < accountData.names.length; i++) {
 							if (matchArray(accountData[accountData.names[i]].location, playerData.location, false)) {
-								if(accountData.names[i] !== playerData.userID){
-								otherPlayers.push(accountData.names[i]);}
+								if (accountData.names[i] !== playerData.userID) {
+									otherPlayers.push(accountData.names[i]);
+								}
 							}
 						}
 						if (otherPlayers[numbers - 1] != null) {
@@ -5027,13 +5021,13 @@ const commands = [
 							acc.stations.splice(j, 1);
 						}
 						else {
-							if(other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "SafeZone" || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "DominateZone") {
+							if (other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "SafeZone" || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "DominateZone") {
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
 							}
-							else{
-								acc.stations.splice(i,1);
+							else {
+								acc.stations.splice(i, 1);
 							}
 						}
 					}
@@ -5043,13 +5037,14 @@ const commands = [
 							acc.colonies.splice(j, 1);
 						}
 						else {
-							if(other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "SafeZone" || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "DominateZone") {
+							if (other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "SafeZone" || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "DominateZone") {
 
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
-							}else{
-								acc.colonies.splice(i,1);
+							}
+							else {
+								acc.colonies.splice(i, 1);
 							}
 						}
 					}
@@ -5273,11 +5268,17 @@ client.on("guildCreate", function (Guild) {
 	}
 });
 client.on("ready", function () {
+	if (listOfWaitTimes.length) {
+		waitTimesInterval = setInterval(checkWaitTimes,1000);
+	}
+	if (attacks.length) {
+		attackTimeInterval = setInterval(attackPlayerFunction, 1000);
+	}
 	upTime = Date.now();
 	console.log("Galactica | Online");
 	powerEmoji = client.guilds.get("354670066480054272").emojis.find("name", "Fist");
 	resources["power"].emoji = powerEmoji.toString();
-	if(universalPrefix!=="test") {
+	if (universalPrefix !== "test") {
 		client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
 	}
 });
@@ -5365,12 +5366,12 @@ client.on("message", function (message) {
 			}
 		}
 	}
-	if(message.channel.type === "dm"){
-		if(message.content.toLowerCase() === "i allow galactica to store my enduser's data"){
+	if (message.channel.type === "dm") {
+		if (message.content.toLowerCase() === "i allow galactica to store my enduser's data") {
 			sendBasicEmbed({
-				content:"Thank you for playing with us",
-				color:embedColors.green,
-				channel:message.channel
+				content: "Thank you for playing with us",
+				color  : embedColors.green,
+				channel: message.channel
 			});
 			let perms = require("./permissions.json");
 			perms[message.author.id] = true;
@@ -5414,7 +5415,7 @@ client.on("message", function (message) {
 								return;
 							}
 						}
-						if(isVerified(message.author.id)) {
+						if (isVerified(message.author.id)) {
 							if (isValidText(message.content)) {
 								if (accountData[message.author.id] != null) {
 									accountData[message.author.id] = new updateAccount(accountData[message.author.id]);
@@ -5438,12 +5439,13 @@ client.on("message", function (message) {
 									return;
 								})
 							}
-						}else{
+						}
+						else {
 							let embed = new Discord.RichEmbed()
 								.setTitle("Permission to store EndUser's Data")
 								.setDescription("Discord's Terms Of Service requires me to have **your** permission to store any data related to you.")
-								.addField("This includes ~~(but not limited to)~~","```css\nUsernames\nIDs\nProfile Pictures\nMessages```")
-								.addField("✅","To Give me permission please say in your DMs this exact message\n```fix\nI allow Galactica to store my EndUser's Data```\nOtherwise you will not be allowed to use Galactica")
+								.addField("This includes ~~(but not limited to)~~", "```css\nUsernames\nIDs\nProfile Pictures\nMessages```")
+								.addField("✅", "To Give me permission please say in your DMs this exact message\n```fix\nI allow Galactica to store my EndUser's Data```\nOtherwise you will not be allowed to use Galactica")
 								.setFooter("None of your info will be sold/shared")
 								.setColor(embedColors.red);
 							message.author.send({embed});
