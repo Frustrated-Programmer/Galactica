@@ -603,7 +603,7 @@ function checkWaitTimes() {
 					break;
 				case "attackStation":
 					let playerData = accountData[listOfWaitTimes[i].player];
-					console.log(playerData);
+					let loc = playerData.location;
 					if (playerData.didntMove) {
 						let loc = playerData.location;
 						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(function (user) {
