@@ -467,9 +467,8 @@ function checkWaitTimes() {
 	listOfWaitTimes = require("./other.json").listOfWaitTimes;
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires <= Date.now()) {
-			let playerData = accountData[listOfWaitTimes[i].player];
-
-			let loc = playerData.location;
+			var playerData = accountData[listOfWaitTimes[i].player];
+			var loc = playerData.location;
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
 					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
@@ -602,8 +601,7 @@ function checkWaitTimes() {
 					}
 					break;
 				case "attackStation":
-					let playerData = accountData[listOfWaitTimes[i].player];
-					let loc = playerData.location;
+
 					if (playerData.didntMove) {
 						let loc = playerData.location;
 						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(function (user) {
