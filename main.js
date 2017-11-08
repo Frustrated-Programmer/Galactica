@@ -5281,7 +5281,7 @@ client.on("ready", function () {
 		}
 	}, 60000 * 10);
 	let reboot = require("./other.json").lastReboot;
-	if(lastReboot!=null&&lastReboot != {}){
+	if(reboot!=null&&reboot != {}){
 
 		client.channels.get(reboot.chan).fetchMessage(reboot.id).then(function (mess) {
 			let embed = new Discord.RichEmbed()
