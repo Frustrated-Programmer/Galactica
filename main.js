@@ -5282,7 +5282,13 @@ client.on("ready", function () {
 	}, 60000 * 10);
 	if(require("./other.json").lastReboot!=null){
 		let reboot = require("./other.json").lastReboot;
-
+		client.channels.get(reboot.chan).fetchMessage(reboot.id).then(function (mess) {
+			let embed = new Discord.RichEmbed()
+				.setColor(embedColors.green)
+				.setDescription("Rebooted!\n**Time Took:** "+getTimeRemaining(Date.now()-reboot.time));
+			mess.edit({embed});
+			require("./other.json").lastReboot = {};
+		})
 
 	}
 	if (listOfWaitTimes.length) {
