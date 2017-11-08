@@ -31,7 +31,7 @@ let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
 if(require("./other.json").lastReboot==null){
-	require("./other.json").lastReboot = null;
+	require("./other.json").lastReboot = {};
 }
 
 /**FUNCTIONS**/
@@ -4777,7 +4777,7 @@ const commands = [
 			console.log("Rebooting Process started | Sending Message");
 			message.channel.send({embed})
 				.then(function (mess) {
-					require("./other.json").lastReboot = {id:mess.id,chan:mess.channel,time:Date.now()};
+					require("./other.json").lastReboot = {id:mess.id,chan:mess.channel.id,time:Date.now()};
 					saveJsonFile("./other.json");
 					console.log("Sent reboot message | Saved reboot message | Destroying client");
 					client.destroy().then(function(){
@@ -5282,12 +5282,7 @@ client.on("ready", function () {
 	}, 60000 * 10);
 	if(require("./other.json").lastReboot!=null){
 		let reboot = require("./other.json").lastReboot;
-		client.channels.get(reboot.chan).fetchMessage(reboot.id).then(function (mess) {
-			let embed = new Discord.RichEmbed()
-				.setColor(embedColors.green)
-				.setDescription("Rebooted!\n**Time Took:** "+getTimeRemaining(Date.now()-reboot.time));
-			mess.edit({embed});
-		})
+		
 	}
 	if (listOfWaitTimes.length) {
 		waitTimesInterval = setInterval(checkWaitTimes,1000);
