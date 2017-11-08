@@ -160,7 +160,6 @@ let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
 
-//waitTimesInterval = setInterval(checkWaitTimes,1000);
 /**FUNCTIONS**/
 function isVerified(ID) {
 	let accounts = require("./permissions.json");
@@ -467,21 +466,21 @@ function checkWaitTimes() {
 	listOfWaitTimes = require("./other.json").listOfWaitTimes;
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
 		if (listOfWaitTimes[i].expires <= Date.now()) {
-			var playerData = accountData[listOfWaitTimes[i].player];
-			var loc = playerData.location;
+			let playerData = accountData[listOfWaitTimes[i].player];
+			let loc = playerData.location;
 			switch (listOfWaitTimes[i].type) {
 				case "warp":
 					accountData[listOfWaitTimes[i].player].location = listOfWaitTimes[i].headTo;
+					let headTo = listOfWaitTimes[i].headTo;
 					sendBasicEmbed({
-						content: "Your warp to:\nGalaxy: `" + (listOfWaitTimes[i].headTo[0] + 1) + "` Area: `" + (listOfWaitTimes[i].headTo[2] + 1) + "x" + (listOfWaitTimes[i].headTo[1] + 1) + "`\nhas finished.",
+						content: "Your warp to:\nGalaxy: `" + (headTo[0] + 1) + "` Area: `" + (headTo[2] + 1) + "x" + (headTo[1] + 1) + "`\nhas finished.",
 						channel: client.users.get(listOfWaitTimes[i].player),
 						color  : embedColors.blue
 					});
-					let loc = listOfWaitTimes[i].headTo;
-					if (loc[1] < 3 && loc[2] < 3) {
+					if (headTo[1] < 3 && headTo[2] < 3) {
 						accountData[listOfWaitTimes[i].player].isInSafeZone = true;
 					}
-					else if (loc[1] > 16 && loc[2] > 16) {
+					else if (headTo[1] > 16 && headTo[2] > 16) {
 						accountData[listOfWaitTimes[i].player].isDominating = true;
 					}
 					listOfWaitTimes.splice(i, 1);
@@ -503,7 +502,6 @@ function checkWaitTimes() {
 								channel: user,
 								color  : embedColors.blue
 							});
-							let loc = accountData[listOfWaitTimes[i].player].location;
 							accountData[listOfWaitTimes[i].player]["power"] += powerIncreases.colonize;
 
 							map[loc[0]][loc[1]][loc[2]].item = "colony";
@@ -528,7 +526,6 @@ function checkWaitTimes() {
 				case "attackColony":
 					let colony = listOfWaitTimes[i].at;
 					if (playerData.didntMove) {
-						let loc = playerData.location;
 
 						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(function (user) {
 
@@ -601,9 +598,7 @@ function checkWaitTimes() {
 					}
 					break;
 				case "attackStation":
-
 					if (playerData.didntMove) {
-						let loc = playerData.location;
 						client.fetchUser(map[loc[0]][loc[1]][loc[2]].ownersID).then(function (user) {
 							let powGained = powerIncreases.buildStation;
 							let powLost = powerIncreases.attackStation;
@@ -651,9 +646,9 @@ function checkWaitTimes() {
 					}
 					else {
 						sendBasicEmbed({
-							content: "Attacking the station at\nGalaxy: `" + loc[0] + "` Area: `" + station[2] + "x" + station[1] + "`\nHas failed.\nYou either\nmoved from your spot\nwere under attack",
+							content: "Attacking the station at\nGalaxy: `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`\nHas failed.\nYou either\nmoved from your spot\nwere under attack",
 							color  : embedColors.red,
-							channel: client.users.get(player.userID)
+							channel: client.users.get(playerData.userID)
 						});
 						listOfWaitTimes.splice(i, 1);
 					}
@@ -4868,8 +4863,8 @@ const commands = [
 		values     : ["{CODE}"],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			let words = message.content.split(";");
-			words[0] = words[0].slice((universalPrefix + "eval ").length, words[0].length);
+			let words = message.content.split(" ");
+			words.shift();
 			if (words[0][0] === "`" && words[0][1] === "`" && words[0][2] === "`") {
 				let newWords = message.content.split("```");
 				words = newWords[1].split("\n");
@@ -4881,7 +4876,6 @@ const commands = [
 			for (let i = 0; i < words.length; i++) {
 				let checkLogs = words[i].split("(");
 				evalCode += words[i] + " ";
-				log(words[i]);
 				code += words[i] + "\n";
 			}
 			eval(evalCode);
@@ -5455,6 +5449,6 @@ client.on("message", function (message) {
 	}
 
 });
-client.login(require("./config.json").token);//Secure Login
+//client.login(require("./config.json").token);//Secure Login
 
 
