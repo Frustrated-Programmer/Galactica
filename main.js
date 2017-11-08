@@ -5280,7 +5280,7 @@ client.on("ready", function () {
 			}
 		}
 	}, 60000 * 10);
-	if(require(",/other.json").lastReboot!=null){
+	if(require("./other.json").lastReboot!=null){
 		let reboot = require("./other.json").lastReboot;
 		client.channels.get(reboot.chan).fetchMessage(reboot.id).then(function (mess) {
 			let embed = new Discord.RichEmbed()
@@ -5478,6 +5478,4 @@ client.on("message", function (message) {
 	}
 
 });
-console.log(require("./config.json").token);
 client.login(require("./config.json").token);//Secure Login
-console.log("This should never log");
