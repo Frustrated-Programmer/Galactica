@@ -30,7 +30,7 @@ let factions = require("./factions.json").factions;
 let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
-if(require("./other.json").lastReboot==null){
+if (require("./other.json").lastReboot == null) {
 	require("./other.json").lastReboot = {};
 }
 
@@ -970,7 +970,7 @@ const reqChecks = {
 					timeLeft += getTimeRemaining(Date.now() - listOfWaitTimes[i].expires);
 				}
 			}
-			return {val: false, msg: "You can't be warping to use this command.\n"+timeLeft}
+			return {val: false, msg: "You can't be warping to use this command.\n" + timeLeft}
 		}
 	},
 	"healing"          : function (reqArgs, message, args, playerData, prefix) {
@@ -4765,7 +4765,7 @@ const commands = [
 		}
 	},
 	{
-		names      : ["reboot","exit","update"],
+		names      : ["reboot", "exit", "update"],
 		description: "reboots the bot",
 		usage      : "reboot",
 		values     : [],
@@ -4777,10 +4777,10 @@ const commands = [
 			console.log("Rebooting Process started | Sending Message");
 			message.channel.send({embed})
 				.then(function (mess) {
-					require("./other.json").lastReboot = {id:mess.id,chan:mess.channel.id,time:Date.now()};
+					require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
 					saveJsonFile("./other.json");
 					console.log("Sent reboot message | Saved reboot message | Destroying client");
-					client.destroy().then(function(){
+					client.destroy().then(function () {
 						console.log("Destroyed Client | Exiting");
 						process.exit();
 					});
@@ -4788,7 +4788,7 @@ const commands = [
 			setTimeout(function () {
 				console.log("Force-Reboot");
 				process.exit();
-			},5000);
+			}, 5000);
 		}
 	},
 	{
@@ -5150,7 +5150,7 @@ client.on("guildCreate", function (Guild) {
 	}
 });
 client.on("ready", function () {
-	checker =  setInterval(function () {
+	checker = setInterval(function () {
 		let guilds = client.guilds.array();
 		for (let i = 0; i < guilds.length; i++) {
 			let found = false;
@@ -5281,19 +5281,21 @@ client.on("ready", function () {
 		}
 	}, 60000 * 10);
 	let reboot = require("./other.json").lastReboot;
-	if(reboot!=null&&reboot != {}){
-
-		client.channels.get(reboot.chan).fetchMessage(reboot.id).then(function (mess) {
-			let embed = new Discord.RichEmbed()
-				.setColor(embedColors.green)
-				.setDescription("Rebooted!\n**Time Took:** "+getTimeRemaining(Date.now()-reboot.time));
-			mess.edit({embed});
-			require("./other.json").lastReboot = {};
-		})
+	if (reboot != null && reboot != {}) {
+		let chan = client.channels.get(reboot.chan)
+		if (chan != null) {
+			chan.fetchMessage(reboot.id).then(function (mess) {
+				let embed = new Discord.RichEmbed()
+					.setColor(embedColors.green)
+					.setDescription("Rebooted!\n**Time Took:** " + getTimeRemaining(Date.now() - reboot.time));
+				mess.edit({embed});
+				require("./other.json").lastReboot = {};
+			})
+		}
 
 	}
 	if (listOfWaitTimes.length) {
-		waitTimesInterval = setInterval(checkWaitTimes,1000);
+		waitTimesInterval = setInterval(checkWaitTimes, 1000);
 	}
 	if (attacks.length) {
 		attackTimeInterval = setInterval(attackPlayerFunction, 1000);
