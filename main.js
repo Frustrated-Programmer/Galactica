@@ -970,7 +970,7 @@ const reqChecks = {
 					timeLeft += getTimeRemaining(Date.now() - listOfWaitTimes[i].expires);
 				}
 			}
-			return {val: false, msg: "You can't be warping to use this command."}
+			return {val: false, msg: "You can't be warping to use this command.\n"+timeLeft}
 		}
 	},
 	"healing"          : function (reqArgs, message, args, playerData, prefix) {
@@ -5290,7 +5290,7 @@ client.on("ready", function () {
 		})
 	}
 	if (listOfWaitTimes.length) {
-		//waitTimesInterval = setInterval(checkWaitTimes,1000);
+		waitTimesInterval = setInterval(checkWaitTimes,1000);
 	}
 	if (attacks.length) {
 		attackTimeInterval = setInterval(attackPlayerFunction, 1000);
