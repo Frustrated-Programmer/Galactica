@@ -6,136 +6,7 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 let checked = 0;
-let checker = setInterval(function () {
-	let guilds = client.guilds.array();
-	for (let i = 0; i < guilds.length; i++) {
-		let found = false;
-		for (let j = 0; j < serverStuff.names.length; j++) {
-			if (serverStuff.names[j] === guilds[i].id) {
-				found = true;
-				break;
-			}
-		}
-		if (!found) {
-			serverStuff[guilds[i].id] = {
-				prefix         : "-",
-				serverID       : guilds[i].id,
-				modChannel     : null,
-				warnings       : {},
-				allowedChannels: {},
-				welcomeChannel : {
-					id     : null,
-					message: null
-				},
-				goodbyeChannel : {
-					id     : null,
-					message: null
-				}
-			};
-		}
-	}
-	for (let i = 0; i < serverStuff.names.length; i++) {
-		let found = false;
-		for (let j = 0; j < guilds.length; j++) {
-			if (serverStuff.names[i] === guilds[j].id) {
-				found = true;
-				break;
-			}
-		}
-		if (!found) {
-			delete serverStuff[serverStuff.names[i]];
-			serverStuff.names.splice(i, 1)
-		}
-	}
-	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
-	fs.readFile("./galactica.log", "utf8", function (err, data) {
-		if (err) {
-			console.log(err);
-		}
-		let words = data.split(" ");
-		if (words.length >= 5000) {
-			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
-				if (err) {
-					throw err
-				}
-				console.log("Refreshed due to amount of logs.");
-			});
-		}
-	});
-	for (let i = 0; i < accountData.names.length; i++) {
-		let player = accountData[accountData.names[i]];
-		let rankLevel = 0;
-		for (let j = 0; j < ranks.list.length; j++) {
-			if (player["power"] >= ranks.list[j]) {
-				rankLevel = j;
-			}
-		}
-		if (player.rank !== ranks.names[rankLevel]) {
-			let promo = "demoted";
-			for (let j = 0; j < ranks.names.length; j++) {
-				if (ranks.names[j] === player.rank) {
-					if (j > rankLevel) {
-						promo = "promoted";
-					}
-				}
-			}
-			player.rank = ranks.names[rankLevel];
-			client.fetchUser(player.id).then(function (user) {
-				sendBasicEmbed({
-					content: "You've been " + promo + " to " + ranks.names[rankLevel],
-					color  : promo === "demoted" ? embedColors.red : embedColors.green,
-					channel: user
-				})
-			})
-		}
-	}
-	console.log(client.status);
-	if (client.status !== 1 || checked >= 1) {
-		console.log("rebooted");
-		process.exit();
-	}
-	checked++;
-	for (let i = 0; i < accountData.names.length; i++) {
-		let player = accountData[accountData.names[i]];
-		let rank = null;
-		for (let j = 0; j < ranks.names.length; i++) {
-			if (ranks.names[i].toLowerCase() === player.rank) {
-				rank = ranks[ranks.names[i]]
-			}
-		}
-		if (player.isDominating) {
-			let amo = 0;
-			switch (playerData["Domination Kingdoms"]) {
-				case 1:
-					amo = Math.floor(rank.dom / 5);
-					break;
-				case 2:
-					amo = Math.floor(rank.dom / 3);
-					break;
-				case 3:
-					amo = Math.floor(rank.dom / 3) * 2;
-					break;
-				case 4:
-					amo = rank.dom;
-					break;
-			}
-			accountData[accountData.names[i]]["credits"] += rank.dom + amo;
-		}
-		else if (player.isInSafeZone) {
-			accountData[accountData.names[i]]["credits"] -= rank.safe;
-		}
-		if (accountData[accountData.names[i]]["credits"] < 0) {
-			accountData[accountData.names[i]]["credits"] = 0;
-			client.fetchUser(accountData[accountData.names[i]].userID).then(function (user) {
-				sendBasicEmbed({
-					content: "You were removed from the SafeZone due to having Insufficient Funds\nIt costs " + rank.safe + " " + resources["credits"] + " credits every 10 minutes to stay in the safe zone.",
-					color  : embedColors.red,
-					channel: user
-				})
-			})
-		}
-	}
-}, 60000 * 10);
+let checker = false;
 fs.exists('./permissions.json', function (exists) {
 	if (!exists) {
 		fs.writeFile("permissions.json", "{}", function (err) {
@@ -159,6 +30,9 @@ let factions = require("./factions.json").factions;
 let listOfWaitTimes = require("./other.json").listOfWaitTimes;
 let timesTake = require("./items.js").times;
 let map = require("./other.json").map;
+if(require("./other.json").lastReboot==null){
+	require("./other.json").lastReboot = null;
+}
 
 /**FUNCTIONS**/
 function isVerified(ID) {
@@ -4891,14 +4765,30 @@ const commands = [
 		}
 	},
 	{
-		names      : ["exit"],
-		description: "Turns off the bot",
-		usage      : "exit",
+		names      : ["reboot","exit","update"],
+		description: "reboots the bot",
+		usage      : "reboot",
 		values     : [],
 		reqs       : ["owner"],
 		effect     : function (message, args, playerData, prefix) {
-			console.log("exited");
-			process.exit();
+			let embed = new Discord.RichEmbed()
+				.setColor(embedColors.purple)
+				.setDescription("Rebooting bot now");
+			console.log("Rebooting Process started | Sending Message");
+			message.channel.send({embed})
+				.then(function (mess) {
+					require("./other.json").lastReboot = {id:mess.id,chan:mess.channel,time:Date.now()};
+					saveJsonFile("./other.json");
+					console.log("Sent reboot message | Saved reboot message | Destroying client");
+					client.destroy().then(function(){
+						console.log("Destroyed Client | Exiting");
+						process.exit();
+					});
+				});
+			setTimeout(function () {
+				console.log("Force-Reboot");
+				process.exit();
+			},5000);
 		}
 	},
 	{
@@ -5260,6 +5150,145 @@ client.on("guildCreate", function (Guild) {
 	}
 });
 client.on("ready", function () {
+	checker =  setInterval(function () {
+		let guilds = client.guilds.array();
+		for (let i = 0; i < guilds.length; i++) {
+			let found = false;
+			for (let j = 0; j < serverStuff.names.length; j++) {
+				if (serverStuff.names[j] === guilds[i].id) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				serverStuff[guilds[i].id] = {
+					prefix         : "-",
+					serverID       : guilds[i].id,
+					modChannel     : null,
+					warnings       : {},
+					allowedChannels: {},
+					welcomeChannel : {
+						id     : null,
+						message: null
+					},
+					goodbyeChannel : {
+						id     : null,
+						message: null
+					}
+				};
+			}
+		}
+		for (let i = 0; i < serverStuff.names.length; i++) {
+			let found = false;
+			for (let j = 0; j < guilds.length; j++) {
+				if (serverStuff.names[i] === guilds[j].id) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				delete serverStuff[serverStuff.names[i]];
+				serverStuff.names.splice(i, 1)
+			}
+		}
+		client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
+		fs.readFile("./galactica.log", "utf8", function (err, data) {
+			if (err) {
+				console.log(err);
+			}
+			let words = data.split(" ");
+			if (words.length >= 5000) {
+				fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
+					if (err) {
+						throw err
+					}
+					console.log("Refreshed due to amount of logs.");
+				});
+			}
+		});
+		for (let i = 0; i < accountData.names.length; i++) {
+			let player = accountData[accountData.names[i]];
+			let rankLevel = 0;
+			for (let j = 0; j < ranks.list.length; j++) {
+				if (player["power"] >= ranks.list[j]) {
+					rankLevel = j;
+				}
+			}
+			if (player.rank !== ranks.names[rankLevel]) {
+				let promo = "demoted";
+				for (let j = 0; j < ranks.names.length; j++) {
+					if (ranks.names[j] === player.rank) {
+						if (j > rankLevel) {
+							promo = "promoted";
+						}
+					}
+				}
+				player.rank = ranks.names[rankLevel];
+				client.fetchUser(player.id).then(function (user) {
+					sendBasicEmbed({
+						content: "You've been " + promo + " to " + ranks.names[rankLevel],
+						color  : promo === "demoted" ? embedColors.red : embedColors.green,
+						channel: user
+					})
+				})
+			}
+		}
+		console.log(client.status);
+		if (client.status !== 1 || checked >= 1) {
+			console.log("rebooted");
+			process.exit();
+		}
+		checked++;
+		for (let i = 0; i < accountData.names.length; i++) {
+			let player = accountData[accountData.names[i]];
+			let rank = null;
+			for (let j = 0; j < ranks.names.length; i++) {
+				if (ranks.names[i].toLowerCase() === player.rank) {
+					rank = ranks[ranks.names[i]]
+				}
+			}
+			if (player.isDominating) {
+				let amo = 0;
+				switch (playerData["Domination Kingdoms"]) {
+					case 1:
+						amo = Math.floor(rank.dom / 5);
+						break;
+					case 2:
+						amo = Math.floor(rank.dom / 3);
+						break;
+					case 3:
+						amo = Math.floor(rank.dom / 3) * 2;
+						break;
+					case 4:
+						amo = rank.dom;
+						break;
+				}
+				accountData[accountData.names[i]]["credits"] += rank.dom + amo;
+			}
+			else if (player.isInSafeZone) {
+				accountData[accountData.names[i]]["credits"] -= rank.safe;
+			}
+			if (accountData[accountData.names[i]]["credits"] < 0) {
+				accountData[accountData.names[i]]["credits"] = 0;
+				client.fetchUser(accountData[accountData.names[i]].userID).then(function (user) {
+					sendBasicEmbed({
+						content: "You were removed from the SafeZone due to having Insufficient Funds\nIt costs " + rank.safe + " " + resources["credits"] + " credits every 10 minutes to stay in the safe zone.",
+						color  : embedColors.red,
+						channel: user
+					})
+				})
+			}
+		}
+	}, 60000 * 10);
+	if(require(",/other.json").lastReboot!=null){
+		let reboot = require(",/other.json").lastReboot;
+		client.channels.get(reboot.chan).fetchMessage(reboot.id).then(function (mess) {
+			let embed = new Discord.RichEmbed()
+				.setColor(embedColors.green)
+				.setDescription("Rebooted!\n**Time Took:** "+getTimeRemaining(Date.now()-reboot.time));
+			mess.edit({embed});
+		})
+	}
 	if (listOfWaitTimes.length) {
 		//waitTimesInterval = setInterval(checkWaitTimes,1000);
 	}
@@ -5449,6 +5478,6 @@ client.on("message", function (message) {
 	}
 
 });
-//client.login(require("./config.json").token);//Secure Login
-
-
+console.log(require("./config.json").token);
+client.login(require("./config.json").token);//Secure Login
+console.log("This should never log");
