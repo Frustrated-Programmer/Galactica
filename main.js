@@ -118,7 +118,7 @@ function checkerFunction() {
 			})
 		}
 	}
-	console.log("logging client.status: "+client.status);
+	console.log("logging client.status: " + client.status);
 	if (client.status !== 1 || checked >= 1) {
 		log("rebooted");
 		process.exit();
@@ -570,13 +570,13 @@ function checkWaitTimes() {
 							content: "Attacking the colony at\nGalaxy: `" + colony[0] + "` Area: `" + colony[2] + "x" + colony[1] + "`\nHas failed.\nYou either\nmoved from your spot\nwere under attack",
 							color  : embedColors.red,
 							channel: client.users.get(player.userID)
-						})
+						});
 						listOfWaitTimes.splice(i, 1);
 					}
 					break;
 				case "research":
 					accountData[listOfWaitTimes[i].player][listOfWaitTimes[i].which]++;
-					console.log("WaitTimes Reasearch. Logging level of research: "+accountData[listOfWaitTimes[i].player][listOfWaitTimes[i].which]);
+					console.log("WaitTimes Reasearch. Logging level of research: " + accountData[listOfWaitTimes[i].player][listOfWaitTimes[i].which]);
 					sendBasicEmbed({
 						content: "Your research `" + listOfWaitTimes[i].which + "` has finished.",
 						color  : embedColors.yellow,
@@ -831,23 +831,23 @@ function getNumbers(text, parsed) {
 }//insert in text get back an array of all the numbers in that text
 function getTimeRemaining(time) {
 	time = parseInt(time, 10);
-	if(time < 0){
-		time = parseInt(((""+time).substring(1,(""+time).length)),10)
+	if (time < 0) {
+		time = parseInt((("" + time).substring(1, ("" + time).length)), 10)
 	}
-	let times = [[31557600000000,"millennial"], [3155760000000, "century"], [315576000000,  "decade"], [31557600000,  "year"], [86400000,  "day"], [3600000,  "hour"], [60000,  "minute"], [1000,  "second"], [1, "millisecond"]];
+	let times = [[31557600000000, "millennial"], [3155760000000, "century"], [315576000000, "decade"], [31557600000, "year"], [86400000, "day"], [3600000, "hour"], [60000, "minute"], [1000, "second"], [1, "millisecond"]];
 	let timesLeft = [];
 	let timeLeftText = "";
 	let fakeTime = time;
 	for (let i = 0; i < times.length; i++) {
 		if (fakeTime >= times[i][0]) {
-			timesLeft.push([times[i][1],0]);
+			timesLeft.push([times[i][1], 0]);
 			while (fakeTime >= times[i][0]) {
 				fakeTime -= times[i][0];
-				timesLeft[timesLeft.length-1][1]++;
+				timesLeft[timesLeft.length - 1][1]++;
 			}
 		}
 	}
-	for(let i = 0;i<timesLeft.length;i++){
+	for (let i = 0; i < timesLeft.length; i++) {
 		if (timesLeft[i][1] > 0) {
 			timeLeftText += "`" + timesLeft[i][1] + "` " + timesLeft[i][0];
 			if (timesLeft[i][1] > 1) {
@@ -1032,7 +1032,7 @@ function runCommand(command, message, args, playerData, prefix) {
 
 //	playerData.messagesXp += Math.round(15 + (Math.random() * 10));
 	command.effect(message, args, playerData, prefix);
-	return;
+
 }
 
 
@@ -1542,7 +1542,7 @@ const commands = [
 			message.channel.send({embed}).then(function () {
 				embed.setDescription("Response time: `" + (Date.now() - storedTimeForPingCommand) + "` ms");
 
-				let msgID = message.channel.lastMessageID
+				let msgID = message.channel.lastMessageID;
 				let msg = message.channel.fetchMessage(msgID).then(function (m) {
 					m.edit({embed});
 				});
@@ -1763,18 +1763,18 @@ const commands = [
 				for (let j = 0; j < spaceLength - len.length; j++) {
 					space += " ";
 				}
-				if(player[resources.names[i]]>0) {
+				if (player[resources.names[i]] > 0) {
 					playerResources += player[resources.names[i]] + space + "| " + resources[resources.names[i]].emoji + " " + resources.names[i];
 					playerResources += "\n";
 				}
 			}
-			if(playerResources !== "```css\n") {
+			if (playerResources !== "```css\n") {
 				embed.addField("Resources", playerResources + "```");
 			}
-			else{
-				embed.addField("Resources","You currently don't have any resources");
+			else {
+				embed.addField("Resources", "You currently don't have any resources");
 			}
-			embed.addField("Stations and Colonies","You have `"+playerData.stations.length+"` stations"+"You have `"+playerData.colonies.length+"` colonies");
+			embed.addField("Stations and Colonies", "You have `" + playerData.stations.length + "` stations\nYou have `" + playerData.colonies.length + "` colonies");
 			message.channel.send({embed});
 		}
 	},
@@ -1916,13 +1916,18 @@ const commands = [
 			else if (loc.item === "empty") {
 				theitem = "Space";
 			}
-			console.log("Look command. Logging the map spot",loc);
+			console.log("Look command. Logging the map spot", loc);
 
 			let item = "Empty Space";
 			let info = "Unoccupied Space";
 			let attack = "Attack this " + loc.item + " via `" + prefix + "attack" + loc.item + "`";
 			let moreInfo = "";
 			let safe = loc.item.toLowerCase() === "safezone";
+
+			let embed = new Discord.RichEmbed()
+				.setColor(embedColors.blue)
+				.setTitle("Location:");
+
 			if (loc.type.toLowerCase() !== "empty" && loc.item.toLowerCase() !== "empty") {
 				item = loc.type;
 				if (loc.ownersID !== null) {
@@ -1943,14 +1948,14 @@ const commands = [
 						embed.addField("Information", info + "\n```css\nLevel: " + station.level + "\nDoes: " + stations[loc.type].description + "```" + attack);
 					}
 				}
-				else if(loc.item.toLowerCase() === "safezone"){
+				else if (loc.item.toLowerCase() === "safezone") {
 					attack = "";
 					info = "In the current area nobody is allowed to attack anyone else in this area";
 					item = "Safe Zone";
 				}
-				else if(loc.item.toLowerCase() === "dominatezone"){
+				else if (loc.item.toLowerCase() === "dominatezone") {
 					attack = "";
-					info = "In the dominate zone you get "+resources["credits"].emoji+" credits if you're the only one in the dominate zone.";
+					info = "In the dominate zone you get " + resources["credits"].emoji + " credits if you're the only one in the dominate zone.";
 					item = "Dominate Zone";
 
 				}
@@ -1996,10 +2001,7 @@ const commands = [
 					}
 				}
 			}
-			let embed = new Discord.RichEmbed()
-				.setColor(embedColors.blue)
-				.setTitle("Location:")
-				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Position:`" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`\nYou're at a **" + loc.type + "** " + theitem+"\n"+info);
+			embed.setDescription("Galaxy: `" + (pos[0] + 1) + "` Position:`" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`\nYou're at a **" + loc.type + "** " + theitem + "\n" + info);
 
 			let otherPlayers = [];
 			for (let i = 0; i < accountData.names.length; i++) {
@@ -2051,7 +2053,7 @@ const commands = [
 					}
 					txt += "[" + (i + 1) + space + "]|" + name + spaceName + "|" + spaceFaction + otherPlayers[i].health + "|\n";
 				}
-				if(safe) {
+				if (safe) {
 					embed.addField("Players", txt + "```\nAttack a player via `attackPlayer [ID]`");
 				}
 			}
@@ -2353,7 +2355,7 @@ const commands = [
 						let level = playerData[researches.names[number]];
 						embed.setTitle("RESEARCH INFO");
 						embed.setDescription("You have `" + playerData["research"] + "` 💡 research\n" + researches.names[number] + "'s level is `" + (level + 1) + "`");
-						embed.addField(researches.names[number], item.does[level] + "\nCosts: " + item.costs[level] + " 💡 research\nTime: " + getTimeRemaining(item.timesToResearch[level]))
+						embed.addField(researches.names[number], item.does[level] + "\nCosts: " + item.costs[level] + " 💡 research\nTime: " + getTimeRemaining(item.timesToResearch[level]));
 						embed.setFooter(prefix + "research " + researches.names[number]);
 					}
 					break;
@@ -2701,7 +2703,7 @@ const commands = [
 					for (let j = 0; j < planet.generatesRates.length; j++) {
 						let stuff = planet.generatesRates[j].split(" ");
 						if (stuff[0] === "people") {
-							let extra = Math.round(parseInt(stuff[1], 10) * (amoPpl / 100)) * amount
+							let extra = Math.round(parseInt(stuff[1], 10) * (amoPpl / 100)) * amount;
 							if (extra > 0) {
 								if (colony.people + extra < colony.maxPeople) {
 									playerData.colonies[i].people += extra;
@@ -2962,7 +2964,7 @@ const commands = [
 						}
 						if (playerData[args[0]] >= amount) {
 							playerData[args[0]] -= amount;
-							playerData["credits"] += resources[args[0]].sellRate * amount
+							playerData["credits"] += resources[args[0]].sellRate * amount;
 							sendBasicEmbed({
 								content: "sold `" + amount + "` " + resources[args[0]].emoji + " " + args[0] + "\nGained: `" + (resources[args[0]].sellRate * amount) + "` " + resources["credits"].emoji + " credits.",
 								color  : embedColors.blue,
@@ -3529,7 +3531,7 @@ const commands = [
 			else {
 				let level = stationToUpgrade.level + 1;
 				let station = stations[playerData.stations[whichStation].type];
-				console.log("Upgrade Station. Logging Station's costs"+station.costs);
+				console.log("Upgrade Station. Logging Station's costs" + station.costs);
 				if (checkGP(playerData.stations[whichStation].type, level - 1, playerData).val) {
 					if (station.costs.length < level) {
 						if (station.extra.upgradeTo) {
@@ -3547,7 +3549,7 @@ const commands = [
 					}
 					for (let i = 0; i < station.costs[level].length; i++) {
 						let costsStuff = station.costs[level][i].split(" ");
-						if (playerData[costsStuff[0]] < parseInt(costsStuff[1],10)) {
+						if (playerData[costsStuff[0]] < parseInt(costsStuff[1], 10)) {
 							hasEnough = false;
 							missingItems.push([(parseInt(costsStuff[1], 10) - playerData[costsStuff[0]]), resources[costsStuff[0]]].emoji);
 						}
@@ -4000,7 +4002,6 @@ const commands = [
 								faction.members[i].rank = "mod";
 							}
 						}
-						;
 					}
 					else {
 						sendBasicEmbed({
@@ -4318,7 +4319,7 @@ const commands = [
 						content: "Set <#" + nums[0] + "> as a disallowed channel.",
 						color  : embedColors.purple,
 						channel: message.channel
-					})
+					});
 					if (serverStuff[message.guild.id].modChannel != null) {
 						let embed = new Discord.RichEmbed()
 							.setTitle("Disallowed Channel")
@@ -5317,7 +5318,7 @@ client.on("ready", function () {
 	checker = setInterval(checkerFunction, 60000 * 10);
 	let reboot = require("./other.json").lastReboot;
 	if (reboot != null && reboot != {}) {
-		let chan = client.channels.get(reboot.chan)
+		let chan = client.channels.get(reboot.chan);
 		if (chan != null) {
 			chan.fetchMessage(reboot.id).then(function (mess) {
 				let embed = new Discord.RichEmbed()
@@ -5497,7 +5498,7 @@ client.on("message", function (message) {
 									color  : embedColors.red,
 									channel: message.author
 								}).then(function () {
-									return;
+
 								})
 							}
 						}
