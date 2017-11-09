@@ -474,6 +474,7 @@ function getBorders(location) {
 		bordering.push(map[location[0]][location[1]][location[2] - 1].type);
 	}
 	if (location[2] < map[location[0]][location[1]].length) {
+		console.log(map[location[0]][location[1]][location[2] + 1]);
 		bordering.push(map[location[0]][location[1]][location[2] + 1].type);
 	}
 	return bordering;
