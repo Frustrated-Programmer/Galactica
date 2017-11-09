@@ -852,7 +852,7 @@ function getTimeRemaining(time) {
 	for(let i = 0;i<timesLeft.length;i++){
 		console.log(timesLeft)
 		if (timesLeft[i][1] > 0) {
-			timeLeftText += "`" + timesLeft[i][1] + "` " + times[i][0];
+			timeLeftText += "`" + timesLeft[i][1] + "` " + timesLeft[i][0];
 			if (timesLeft[i][1] > 1) {
 				timeLeftText += "s";
 			}
