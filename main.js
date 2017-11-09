@@ -1717,12 +1717,12 @@ const commands = [
 				let player = accountData[accountData.names[i]];
 				if (typeof player["power"] === "number") {
 					let name = getValidName(player.username,15);
-
 					if (lb.length) {
 						let pushWhere = "none";
 						for (let j = 0; j < lb.length; j++) {
-							if (player["power"] > lb[j]) {
+							if (player["power"] > lb[j][1]) {
 								pushWhere = j;
+								break;
 							}
 						}
 						if(typeof pushWhere === "string"){
@@ -5355,7 +5355,7 @@ client.on("ready", function () {
 
 	}
 	if (listOfWaitTimes.length) {
-		//waitTimesInterval = setInterval(checkWaitTimes, 1000);
+		waitTimesInterval = setInterval(checkWaitTimes, 1000);
 	}
 	if (attacks.length) {
 		attackTimeInterval = setInterval(attackPlayerFunction, 1000);
