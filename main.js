@@ -13,7 +13,7 @@ fs.exists('./permissions.json', function (exists) {
 			if (err) {
 				throw err;
 			}
-			console.log("created Permissions.json");
+			log("created Permissions.json");
 		});
 	}
 });
@@ -35,6 +35,136 @@ if (require("./other.json").lastReboot == null) {
 }
 
 /**FUNCTIONS**/
+function checkerFunction() {
+	let guilds = client.guilds.array();
+	for (let i = 0; i < guilds.length; i++) {
+		let found = false;
+		for (let j = 0; j < serverStuff.names.length; j++) {
+			if (serverStuff.names[j] === guilds[i].id) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			serverStuff[guilds[i].id] = {
+				prefix         : "-",
+				serverID       : guilds[i].id,
+				modChannel     : null,
+				warnings       : {},
+				allowedChannels: {},
+				welcomeChannel : {
+					id     : null,
+					message: null
+				},
+				goodbyeChannel : {
+					id     : null,
+					message: null
+				}
+			};
+		}
+	}
+	for (let i = 0; i < serverStuff.names.length; i++) {
+		let found = false;
+		for (let j = 0; j < guilds.length; j++) {
+			if (serverStuff.names[i] === guilds[j].id) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			delete serverStuff[serverStuff.names[i]];
+			serverStuff.names.splice(i, 1)
+		}
+	}
+	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
+	fs.readFile("./galactica.log", "utf8", function (err, data) {
+		if (err) {
+			throw  err;
+		}
+		let words = data.split(" ");
+		if (words.length >= 5000) {
+			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
+				if (err) {
+					throw err
+				}
+				log("Refreshed due to amount of logs.");
+			});
+		}
+	});
+	for (let i = 0; i < accountData.names.length; i++) {
+		let player = accountData[accountData.names[i]];
+		let rankLevel = 0;
+		for (let j = 0; j < ranks.list.length; j++) {
+			if (player["power"] >= ranks.list[j]) {
+				rankLevel = j;
+			}
+		}
+		if (player.rank !== ranks.names[rankLevel]) {
+			let promo = "demoted";
+			for (let j = 0; j < ranks.names.length; j++) {
+				if (ranks.names[j] === player.rank) {
+					if (j > rankLevel) {
+						promo = "promoted";
+					}
+				}
+			}
+			player.rank = ranks.names[rankLevel];
+			client.fetchUser(player.id).then(function (user) {
+				sendBasicEmbed({
+					content: "You've been " + promo + " to " + ranks.names[rankLevel],
+					color  : promo === "demoted" ? embedColors.red : embedColors.green,
+					channel: user
+				})
+			})
+		}
+	}
+	console.log("logging client.status: "+client.status);
+	if (client.status !== 1 || checked >= 1) {
+		log("rebooted");
+		process.exit();
+	}
+	checked++;
+	for (let i = 0; i < accountData.names.length; i++) {
+		let player = accountData[accountData.names[i]];
+		let rank = null;
+		for (let j = 0; j < ranks.names.length; i++) {
+			if (ranks.names[i].toLowerCase() === player.rank) {
+				rank = ranks[ranks.names[i]]
+			}
+		}
+		if (player.isDominating) {
+			let amo = 0;
+			switch (playerData["Domination Kingdoms"]) {
+				case 1:
+					amo = Math.floor(rank.dom / 5);
+					break;
+				case 2:
+					amo = Math.floor(rank.dom / 3);
+					break;
+				case 3:
+					amo = Math.floor(rank.dom / 3) * 2;
+					break;
+				case 4:
+					amo = rank.dom;
+					break;
+			}
+			accountData[accountData.names[i]]["credits"] += rank.dom + amo;
+		}
+		else if (player.isInSafeZone) {
+			accountData[accountData.names[i]]["credits"] -= rank.safe;
+		}
+		if (accountData[accountData.names[i]]["credits"] < 0) {
+			accountData[accountData.names[i]]["credits"] = 0;
+			client.fetchUser(accountData[accountData.names[i]].userID).then(function (user) {
+				sendBasicEmbed({
+					content: "You were removed from the SafeZone due to having Insufficient Funds\nIt costs " + rank.safe + " " + resources["credits"] + " credits every 10 minutes to stay in the safe zone.",
+					color  : embedColors.red,
+					channel: user
+				})
+			})
+		}
+	}
+}
 function isVerified(ID) {
 	let accounts = require("./permissions.json");
 	if (accounts[ID] != null) {
@@ -293,25 +423,31 @@ function attackPlayerFunction() {
 				}
 			};
 			setTimeout(function () {
-
+				attack.timeSinceLastAttack = Date.now();
 				let embed = new Discord.RichEmbed()
 					.setTitle("YOU ARE UNDER ATTACK BY `" + accountData[attack.attacker].username + "`")
 					.setColor(embedColors.darkRed)
 					.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
 					.setFooter("This an RPS strategy. ");
-				client.users.get(attack.defender).send({embed}).then(function (m) {
-					reactFun(m, 0);
-					m1 = m.id;
-				});
 				embed = new Discord.RichEmbed()
 					.setTitle("YOU ARE ATTACKING `" + accountData[attack.defender].username + "`")
 					.setColor(embedColors.darkRed)
 					.setDescription("Please choose either \n:shield: SHIELD (loses to :comet:) (beats :satellite:)\n:satellite: LASER (loses to :shield:) (beats :comet:)\n:comet: PHOTON TORPEDO (beats :shield:) (loses to :satellite:)\n:runner: ESCAPE (40% chance of success)\nYou have `20` seconds or until both sides chooses")
 					.setFooter("This is an RPS strategy");
-				client.users.get(attack.attacker).send({embed}).then(function (m) {
-					reactFun(m, 0);
-					doFun(m);
-				});
+
+				client.fetchUser(attack.defender).then(
+					function (user) {
+						attack.timeSinceLastAttack = Date.now();
+						user.send({embed}).then(function (m) {
+							reactFun(m, 0);
+							m1 = m.id;
+						});
+						client.users.get(attack.attacker).send({embed}).then(function (m) {
+							reactFun(m, 0);
+							doFun(m);
+						});
+					}
+				)
 			}, 5000);
 		}
 	}
@@ -440,7 +576,7 @@ function checkWaitTimes() {
 					break;
 				case "research":
 					accountData[listOfWaitTimes[i].player][listOfWaitTimes[i].which]++;
-					console.log(accountData[listOfWaitTimes[i].player][listOfWaitTimes[i].which]);
+					console.log("WaitTimes Reasearch. Logging level of research: "+accountData[listOfWaitTimes[i].player][listOfWaitTimes[i].which]);
 					sendBasicEmbed({
 						content: "Your research `" + listOfWaitTimes[i].which + "` has finished.",
 						color  : embedColors.yellow,
@@ -831,7 +967,6 @@ function checkGP(station, level, playerData) {
 		if (levels[station]) {
 			let stat = levels[station][level];
 			if (stat) {
-				console.log("s" + stat[1] + "g" + GP);
 				return {
 					val: GP >= stat[1],
 					msg: "You haven't unlocked this upgrade.\nResearch *Gravatic Purification* to unlock this station."
@@ -1796,10 +1931,21 @@ const commands = [
 						embed.addField("Information", info + "\n```css\nLevel: " + station.level + "\nDoes: " + stations[loc.type].description + "```" + attack);
 					}
 				}
+				else if(loc.item.toLowerCase() === "safezone"){
+					attack = "";
+					info = "In the current area nobody is allowed to attack anyone else in this area";
+					item = "Safe Zone";
+
+				}
+				else if(loc.item.toLowerCase() === "dominate"){
+					attack = "";
+					info = "In the dominate zone you get "+resources["credits"].emoji+" credits if you're the only one in the dominate zone.";
+					item = "Dominate Zone";
+
+				}
 				else {
 					let Bonuses = "";
 					let Rates = "";
-					console.log(loc);
 					for (let i = 0; i < planets[loc.type].bonuses.length; i++) {
 						Bonuses += planets[loc.type].bonuses[i][0] + "\n";
 					}
@@ -2054,8 +2200,8 @@ const commands = [
 									folder = m[i][j].item + "s";
 									if (m[i][j].item === "colony") {
 										folder = "planets"
-										typeImage = m[i][j].type + "Planet";
 									}
+									typeImage = m[i][j].type + "Planet";
 								}
 								else {
 									if (m[i][j].item === "planet") {
@@ -3365,7 +3511,7 @@ const commands = [
 			else {
 				let level = stationToUpgrade.level + 1;
 				let station = stations[playerData.stations[whichStation].type];
-				console.log(station.costs);
+				console.log("Upgrade Station. Logging Station's costs"+station.costs);
 				if (checkGP(playerData.stations[whichStation].type, level - 1, playerData).val) {
 					if (station.costs.length < level) {
 						if (station.extra.upgradeTo) {
@@ -3383,7 +3529,7 @@ const commands = [
 					}
 					for (let i = 0; i < station.costs[level].length; i++) {
 						let costsStuff = station.costs[level][i].split(" ");
-						if (playerData[costsStuff[0]] < costsStuff[1]) {
+						if (playerData[costsStuff[0]] < parseInt(costsStuff[1],10)) {
 							hasEnough = false;
 							missingItems.push([(parseInt(costsStuff[1], 10) - playerData[costsStuff[0]]), resources[costsStuff[0]]].emoji);
 						}
@@ -4774,19 +4920,19 @@ const commands = [
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.purple)
 				.setDescription("Rebooting bot now");
-			console.log("Rebooting Process started | Sending Message");
+			log("Rebooting Process started | Sending Message");
 			message.channel.send({embed})
 				.then(function (mess) {
 					require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
 					saveJsonFile("./other.json");
-					console.log("Sent reboot message | Saved reboot message | Destroying client");
+					log("Sent reboot message | Saved reboot message | Destroying client");
 					client.destroy().then(function () {
-						console.log("Destroyed Client | Exiting");
+						log("Destroyed Client | Exiting");
 						process.exit();
 					});
 				});
 			setTimeout(function () {
-				console.log("Force-Reboot");
+				log("Force-Reboot");
 				process.exit();
 			}, 5000);
 		}
@@ -5050,7 +5196,7 @@ const commands = [
 /**CLIENTS**/
 setInterval(function () {
 	client.sweepMessages((60000 * 60) * 24);
-	console.log("swept messages");
+	log("swept messages");
 }, 60000 * 60);
 client.on("guildMemberRemove", function (member) {
 	if (serverStuff[member.guild.id].goodbyeChannel.id != null) {
@@ -5150,136 +5296,7 @@ client.on("guildCreate", function (Guild) {
 	}
 });
 client.on("ready", function () {
-	checker = setInterval(function () {
-		let guilds = client.guilds.array();
-		for (let i = 0; i < guilds.length; i++) {
-			let found = false;
-			for (let j = 0; j < serverStuff.names.length; j++) {
-				if (serverStuff.names[j] === guilds[i].id) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				serverStuff[guilds[i].id] = {
-					prefix         : "-",
-					serverID       : guilds[i].id,
-					modChannel     : null,
-					warnings       : {},
-					allowedChannels: {},
-					welcomeChannel : {
-						id     : null,
-						message: null
-					},
-					goodbyeChannel : {
-						id     : null,
-						message: null
-					}
-				};
-			}
-		}
-		for (let i = 0; i < serverStuff.names.length; i++) {
-			let found = false;
-			for (let j = 0; j < guilds.length; j++) {
-				if (serverStuff.names[i] === guilds[j].id) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				delete serverStuff[serverStuff.names[i]];
-				serverStuff.names.splice(i, 1)
-			}
-		}
-		client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
-		fs.readFile("./galactica.log", "utf8", function (err, data) {
-			if (err) {
-				console.log(err);
-			}
-			let words = data.split(" ");
-			if (words.length >= 5000) {
-				fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
-					if (err) {
-						throw err
-					}
-					console.log("Refreshed due to amount of logs.");
-				});
-			}
-		});
-		for (let i = 0; i < accountData.names.length; i++) {
-			let player = accountData[accountData.names[i]];
-			let rankLevel = 0;
-			for (let j = 0; j < ranks.list.length; j++) {
-				if (player["power"] >= ranks.list[j]) {
-					rankLevel = j;
-				}
-			}
-			if (player.rank !== ranks.names[rankLevel]) {
-				let promo = "demoted";
-				for (let j = 0; j < ranks.names.length; j++) {
-					if (ranks.names[j] === player.rank) {
-						if (j > rankLevel) {
-							promo = "promoted";
-						}
-					}
-				}
-				player.rank = ranks.names[rankLevel];
-				client.fetchUser(player.id).then(function (user) {
-					sendBasicEmbed({
-						content: "You've been " + promo + " to " + ranks.names[rankLevel],
-						color  : promo === "demoted" ? embedColors.red : embedColors.green,
-						channel: user
-					})
-				})
-			}
-		}
-		console.log(client.status);
-		if (client.status !== 1 || checked >= 1) {
-			console.log("rebooted");
-			process.exit();
-		}
-		checked++;
-		for (let i = 0; i < accountData.names.length; i++) {
-			let player = accountData[accountData.names[i]];
-			let rank = null;
-			for (let j = 0; j < ranks.names.length; i++) {
-				if (ranks.names[i].toLowerCase() === player.rank) {
-					rank = ranks[ranks.names[i]]
-				}
-			}
-			if (player.isDominating) {
-				let amo = 0;
-				switch (playerData["Domination Kingdoms"]) {
-					case 1:
-						amo = Math.floor(rank.dom / 5);
-						break;
-					case 2:
-						amo = Math.floor(rank.dom / 3);
-						break;
-					case 3:
-						amo = Math.floor(rank.dom / 3) * 2;
-						break;
-					case 4:
-						amo = rank.dom;
-						break;
-				}
-				accountData[accountData.names[i]]["credits"] += rank.dom + amo;
-			}
-			else if (player.isInSafeZone) {
-				accountData[accountData.names[i]]["credits"] -= rank.safe;
-			}
-			if (accountData[accountData.names[i]]["credits"] < 0) {
-				accountData[accountData.names[i]]["credits"] = 0;
-				client.fetchUser(accountData[accountData.names[i]].userID).then(function (user) {
-					sendBasicEmbed({
-						content: "You were removed from the SafeZone due to having Insufficient Funds\nIt costs " + rank.safe + " " + resources["credits"] + " credits every 10 minutes to stay in the safe zone.",
-						color  : embedColors.red,
-						channel: user
-					})
-				})
-			}
-		}
-	}, 60000 * 10);
+	checker = setInterval(checkerFunction, 60000 * 10);
 	let reboot = require("./other.json").lastReboot;
 	if (reboot != null && reboot != {}) {
 		let chan = client.channels.get(reboot.chan)
@@ -5301,7 +5318,7 @@ client.on("ready", function () {
 		attackTimeInterval = setInterval(attackPlayerFunction, 1000);
 	}
 	upTime = Date.now();
-	console.log("Galactica | Online");
+	log("Galactica | Online");
 	powerEmoji = client.guilds.get("354670066480054272").emojis.find("name", "Fist");
 	resources["power"].emoji = powerEmoji.toString();
 	if (universalPrefix !== "test") {
