@@ -5325,6 +5325,7 @@ client.on("guildCreate", function (Guild) {
 	}
 });
 client.on("ready", function () {
+	checkerFunction();
 	checker = setInterval(checkerFunction, 60000 * 10);
 	let reboot = require("./other.json").lastReboot;
 	if (reboot != null && reboot != {}) {
