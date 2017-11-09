@@ -464,7 +464,6 @@ function attackPlayerFunction() {
 }
 function getBorders(location) {
 	let bordering = [];
-	console.log(location);
 	if (location[1] > 0) {
 		bordering.push(map[location[0]][location[1] - 1][location[2]].type);
 	}
@@ -475,7 +474,6 @@ function getBorders(location) {
 		bordering.push(map[location[0]][location[1]][location[2] - 1].type);
 	}
 	if (location[2]+1 < map[location[0]][location[1]].length) {
-		console.log(map[location[0]][location[1]][location[2] + 1]);
 		bordering.push(map[location[0]][location[1]][location[2] + 1].type);
 	}
 	return bordering;
@@ -3598,6 +3596,7 @@ const commands = [
 						}
 					}
 					else {
+						console.log("Upgrade Station. Logging Stations missing" + missingItems);
 						let missingResources = "";
 						for (let i = 0; i < missingItems.length; i++) {
 							missingResources += missingItems[i][0] + " " + missingItems[i][1] + "\n"
