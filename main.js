@@ -3574,7 +3574,7 @@ const commands = [
 						let costsStuff = station.costs[level][i].split(" ");
 						if (playerData[costsStuff[0]] < parseInt(costsStuff[1], 10)) {
 							hasEnough = false;
-							missingItems.push([(parseInt(costsStuff[1], 10) - playerData[costsStuff[0]]), resources[costsStuff[0]]].emoji);
+							missingItems.push([(parseInt(costsStuff[1], 10) - playerData[costsStuff[0]]), resources[costsStuff[0]].emoji]);
 						}
 					}
 					if (hasEnough) {
