@@ -109,7 +109,7 @@ function checkerFunction() {
 				}
 			}
 			player.rank = ranks.names[rankLevel];
-			client.fetchUser(player.id).then(function (user) {
+			client.fetchUser(player.userID).then(function (user) {
 				sendBasicEmbed({
 					content: "You've been " + promo + " to " + ranks.names[rankLevel],
 					color  : promo === "demoted" ? embedColors.red : embedColors.green,
