@@ -1933,7 +1933,7 @@ const commands = [
 					info = "In the current area nobody is allowed to attack anyone else in this area";
 					item = "Safe Zone";
 				}
-				else if(loc.item.toLowerCase() === "dominate"){
+				else if(loc.item.toLowerCase() === "dominatezone"){
 					attack = "";
 					info = "In the dominate zone you get "+resources["credits"].emoji+" credits if you're the only one in the dominate zone.";
 					item = "Dominate Zone";
@@ -2202,7 +2202,7 @@ const commands = [
 									}
 									folder = m[i][j].item + "s";
 									if (m[i][j].item === "colony") {
-										folder = "planets"
+										folder = "planets";
 										typeImage = m[i][j].type + "Planet";
 									}
 								}
