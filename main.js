@@ -119,7 +119,7 @@ function checkerFunction() {
 		}
 	}
 	console.log("logging client.status: " + client.status);
-	if (client.status < 1 || checked >= 1) {
+	if (client.status > 1 || checked >= 1) {
 		log("rebooted");
 		process.exit();
 	}
