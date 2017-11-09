@@ -1039,6 +1039,28 @@ function runCommand(command, message, args, playerData, prefix) {
 	command.effect(message, args, playerData, prefix);
 
 }
+function getValidName(name,amo){
+	let newName = "";
+	if (isValidText(name)) {
+		newName = name;
+	}
+	else {
+		for (let j = 0; j < player.username.length; j++) {
+			if (name.charCodeAt(j) > 127) {
+				newName += "*";
+			}
+			else {
+				newName += name[j];
+			}
+		}
+	}
+
+	let spaceName = "";
+	for (let j = 0; j < amo - name.length; j++) {
+		spaceName += " ";
+	}
+	return newName+spaceName;
+}
 
 
 /**CONSTANTS**/
@@ -1686,8 +1708,16 @@ const commands = [
 			let lb = [];
 			for (let i = 0; i < accountData.names.length; i++) {
 				let player = accountData[accountData.names[i]];
-				console.log(player.username,player.power);
-				if (player["power"] > 0) {
+				if (typeof player["power"] === "number") {
+					let name = getValidName(player.username,15);
+					if (name.length > 10) {
+						name = name.substring(0, 7);
+						name += "...";
+					}
+					let spaceName = "";
+					for (let j = 0; j < 10 - name.length; j++) {
+						spaceName += " ";
+					}
 					if (lb.length) {
 						let pushWhere = "none";
 						for (let j = 0; j < lb.length; j++) {
@@ -1697,15 +1727,15 @@ const commands = [
 						}
 						if(typeof pushWhere === "string"){
 							if(lb.length<10) {
-								lb.push([player.username, player["power"]]);
+								lb.push([name, player["power"]]);
 							}
 						}
 						else{
-							lb.splice(pushWhere, 0, [player.username, player["power"]]);
+							lb.splice(pushWhere, 0, [name, player["power"]]);
 						}
 					}
 					else {
-						lb.push([player.username, player["power"]]);
+						lb.push([name, player["power"]]);
 					}
 				}
 				if (lb.length > 10) {
@@ -2030,28 +2060,7 @@ const commands = [
 			if (otherPlayers.length) {
 				let txt = "ID|NAME---|FACTION|HP|\n```css\n";
 				for (let i = 0; i < otherPlayers.length; i++) {
-					let name = "";
-					if (isValidText(otherPlayers[i].username)) {
-						name = otherPlayers[i].username;
-					}
-					else {
-						for (let j = 0; j < otherPlayers[i].username.length; j++) {
-							if (otherPlayers[i].username.charCodeAt(j) > 127) {
-								name += "*";
-							}
-							else {
-								name += otherPlayers[i].username[j];
-							}
-						}
-					}
-					if (name.length > 10) {
-						name = name.substring(0, 7);
-						name += "...";
-					}
-					let spaceName = "";
-					for (let j = 0; j < 10 - name.length; j++) {
-						spaceName += " ";
-					}
+					let name = getValidName(otherPlayers[i].username,10);
 					let spaceFaction = "";
 					if (otherPlayers[i].faction !== null) {
 						for (let j = 0; j < 10 - otherPlayers[i].faction.length; j++) {
@@ -2066,7 +2075,7 @@ const commands = [
 					if (i + 1 < 10) {
 						space += " ";
 					}
-					txt += "[" + (i + 1) + space + "]|" + name + spaceName + "|" + spaceFaction + otherPlayers[i].health + "|\n";
+					txt += "[" + (i + 1) + space + "]|" + name + "|" + spaceFaction + otherPlayers[i].health + "|\n";
 				}
 				if (safe) {
 					embed.addField("Players", txt + "```\nAttack a player via `attackPlayer [ID]`");
