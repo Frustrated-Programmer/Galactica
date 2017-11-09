@@ -35,7 +35,8 @@ if (require("./other.json").lastReboot == null) {
 }
 
 /**FUNCTIONS**/
-function checkerFunction() {
+function checkerFunction(skip) {
+	skip = skip || false;
 	let guilds = client.guilds.array();
 	for (let i = 0; i < guilds.length; i++) {
 		let found = false;
@@ -119,7 +120,7 @@ function checkerFunction() {
 		}
 	}
 	console.log("logging client.status: " + client.status);
-	if (client.status !== 1 || checked >= 1) {
+	if (client.status !== 1 || checked >= 1&&!skip) {
 		log("rebooted");
 		process.exit();
 	}
@@ -5325,7 +5326,7 @@ client.on("guildCreate", function (Guild) {
 	}
 });
 client.on("ready", function () {
-	checkerFunction();
+	checkerFunction(true);
 	checker = setInterval(checkerFunction, 60000 * 10);
 	let reboot = require("./other.json").lastReboot;
 	if (reboot != null && reboot != {}) {
