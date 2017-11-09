@@ -1681,6 +1681,7 @@ const commands = [
 			let lb = [];
 			for (let i = 0; i < accountData.names.length; i++) {
 				let player = accountData[accountData.names[i]];
+				console.log(player.username,player.power);
 				if (player["power"] > 0) {
 					if (lb.length) {
 						for (let j = 0; j < lb.length; j++) {
@@ -1699,7 +1700,7 @@ const commands = [
 			}
 			let lbText = "```css\n";
 			for (let i = 0; i < lb.length; i++) {
-				lbText += spacing("[" + (i + 1) + "]" + lb[i][0], lb[i][1] + " power\n", 30);
+				lbText += spacing("[" + (i + 1) + " ]" + lb[i][0], lb[i][1] + " power\n", 30);
 			}
 			sendBasicEmbed({
 				content: "Galactica's leaderboard of power is " + lbText + "```",
@@ -1746,7 +1747,7 @@ const commands = [
 				embed.addField("INFO:", "Faction:" + factions[player.faction].name + "\n" + resources["power"].emoji + " Power: " + player["power"] + "\nHealth:" + player.health + "\n**Location:**\n" + location);
 			}
 			else {
-				embed.addField("INFO:", "Rank:"+player.rank+"\n" + resources["power"].emoji + " Power: " + player["power"] + "\nLocation:\n" + location);
+				embed.addField("INFO:", "Rank:"+player.rank+"\nPower " + resources["power"].emoji + ": " + player["power"] + "\nLocation:\n" + location);
 			}
 
 			let playerResources = "```css\n";
@@ -1774,7 +1775,7 @@ const commands = [
 			else {
 				embed.addField("Resources", "You currently don't have any resources");
 			}
-			embed.addField("Stations and Colonies", "You have `" + playerData.stations.length + "` stations\nYou have `" + playerData.colonies.length + "` colonies");
+			embed.addField("Stations and Colonies", "You have `" + player.stations.length + "` stations\nYou have `" + player.colonies.length + "` colonies");
 			message.channel.send({embed});
 		}
 	},
