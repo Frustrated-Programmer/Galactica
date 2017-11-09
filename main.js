@@ -1045,7 +1045,7 @@ function getValidName(name,amo){
 		newName = name;
 	}
 	else {
-		for (let j = 0; j < player.username.length; j++) {
+		for (let j = 0; j <  name.length; j++) {
 			if (name.charCodeAt(j) > 127) {
 				newName += "*";
 			}
