@@ -384,8 +384,8 @@ function attackPlayerFunction() {
 						break;
 				}
 
-				embed1.addField("Health", "Your Health: `" + accountData[attack.attacker].health + "`\nOpponents Health: `" + accountData[attack.defender].health + "`");
-				embed2.addField("Health", "Your Health: `" + accountData[attack.defender].health + "`\nOpponents Health: `" + accountData[attack.attacker].health + "`");
+				embed1.addField("Health", "Your Health: `" + accountData[attack.attacker].health + "`\nOpponent's Health: `" + accountData[attack.defender].health + "`");
+				embed2.addField("Health", "Your Health: `" + accountData[attack.defender].health + "`\nOpponent's Health: `" + accountData[attack.attacker].health + "`");
 				client.users.get(attack.attacker).send({embed: embed1});
 				client.users.get(attack.defender).send({embed: embed2});
 
@@ -830,8 +830,6 @@ function getNumbers(text, parsed) {
 	return wordsWithNumbers;
 }//insert in text get back an array of all the numbers in that text
 function getTimeRemaining(time) {
-	console.log("log in getTimeRemaining fun. Logging time: ",time);
-	console.log("log in getTimeRemaining fun. Logging typeof time: ",typeof time);
 	time = parseInt(time, 10);
 	if(time < 0){
 		time = parseInt(((""+time).substring(1,(""+time).length)),10)
@@ -850,7 +848,6 @@ function getTimeRemaining(time) {
 		}
 	}
 	for(let i = 0;i<timesLeft.length;i++){
-		console.log(timesLeft)
 		if (timesLeft[i][1] > 0) {
 			timeLeftText += "`" + timesLeft[i][1] + "` " + timesLeft[i][0];
 			if (timesLeft[i][1] > 1) {
@@ -864,7 +861,6 @@ function getTimeRemaining(time) {
 			}
 		}
 	}
-	console.log("log in getTimeRemaining fun. Logging timeLeftText: ",timeLeftText);
 	return timeLeftText;
 }
 function checkPerms(args) {
@@ -1767,10 +1763,18 @@ const commands = [
 				for (let j = 0; j < spaceLength - len.length; j++) {
 					space += " ";
 				}
-				playerResources += player[resources.names[i]] + space + "| " + resources[resources.names[i]].emoji + " " + resources.names[i];
-				playerResources += "\n";
+				if(player[resources.names[i]]>0) {
+					playerResources += player[resources.names[i]] + space + "| " + resources[resources.names[i]].emoji + " " + resources.names[i];
+					playerResources += "\n";
+				}
 			}
-			embed.addField("Resources", playerResources + "```");
+			if(playerResources !== "```css\n") {
+				embed.addField("Resources", playerResources + "```");
+			}
+			else{
+				embed.addField("Resources","You currently don't have any resources");
+			}
+			embed.addField("Stations and Colonies","You have `"+playerData.stations.length+"` stations"+"You have `"+playerData.colonies.length+"` colonies");
 			message.channel.send({embed});
 		}
 	},
@@ -2903,7 +2907,7 @@ const commands = [
 						}
 						else {
 							sendBasicEmbed({
-								content: "You dont have enough " + resources["credits"].emoji + " credits for `" + amount + "` " + resources[args[0]].emoji + " " + args[0] + "!\nMissing `" + (playerData["credits"] - resources[args[0]].buyRate * amount) + " " + resources["credits"].emoji + " credits",
+								content: "You don't have enough " + resources["credits"].emoji + " credits for `" + amount + "` " + resources[args[0]].emoji + " " + args[0] + "!\nMissing `" + (playerData["credits"] - resources[args[0]].buyRate * amount) + " " + resources["credits"].emoji + " credits",
 								color  : embedColors.red,
 								channel: message.channel
 							});
@@ -2967,7 +2971,7 @@ const commands = [
 						}
 						else {
 							sendBasicEmbed({
-								content: "You dont have `" + amount + "` " + resources[args[0]].emoji + " " + args[0] + "!",
+								content: "You don't have `" + amount + "` " + resources[args[0]].emoji + " " + args[0] + "!",
 								color  : embedColors.red,
 								channel: message.channel
 							});
