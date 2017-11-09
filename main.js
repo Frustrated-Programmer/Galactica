@@ -2214,7 +2214,7 @@ const commands = [
 									}
 									else {
 										folder = "Other";
-										who = "Items";
+										who = "items";
 										typeImage = m[i][j].type
 									}
 								}
