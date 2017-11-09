@@ -836,25 +836,29 @@ function getTimeRemaining(time) {
 	if(time < 0){
 		time = parseInt(((""+time).substring(1,(""+time).length)),10)
 	}
-	let times = [[31557600000000, 0, "millennial"], [3155760000000, 0, "century"], [315576000000, 0, "decade"], [31557600000, 0, "year"], [86400000, 0, "day"], [3600000, 0, "hour"], [60000, 0, "minute"], [1000, 0, "second"], [1, 0, "millisecond"]];
+	let times = [[31557600000000,"millennial"], [3155760000000, "century"], [315576000000,  "decade"], [31557600000,  "year"], [86400000,  "day"], [3600000,  "hour"], [60000,  "minute"], [1000,  "second"], [1, "millisecond"]];
+	let timesLeft = [];
 	let timeLeftText = "";
 	let fakeTime = time;
 	for (let i = 0; i < times.length; i++) {
 		if (fakeTime >= times[i][0]) {
+			timesLeft.push([times[1],0]);
 			while (fakeTime >= times[i][0]) {
 				fakeTime -= times[i][0];
-				times[i][1]++;
+				timesLeft[timesLeft.length][1]++;
 			}
 		}
-		if (times[i][1] > 0) {
-			timeLeftText += "`" + times[i][1] + "` " + times[i][2];
-			if (times[i][1] > 1) {
+	}
+	for(let i = 0;i<timesLeft.length;i++){
+		if (timesLeft[i][1] > 0) {
+			timeLeftText += "`" + timesLeft[i][1] + "` " + times[i][0];
+			if (timesLeft[i][1] > 1) {
 				timeLeftText += "s";
 			}
-			if (i + 2 === times.length) {
+			if (i + 2 === timesLeft.length) {
 				timeLeftText += " and "
 			}
-			else if (i + 2 !== times.length) {
+			else if (i + 2 !== timesLeft.length) {
 				timeLeftText += ", "
 			}
 		}
@@ -1710,9 +1714,9 @@ const commands = [
 
 	["GAMEPLAY", "MAIN"],
 	{
-		names      : ["stats", "me", "info", "status"],
-		description: "Get your stats or someone else's stats",
-		usage      : "stats (VALUE)",
+		names      : ["status", "me", "info", "stats"],
+		description: "Get your status or someone else's status",
+		usage      : "status (VALUE)",
 		values     : ["{@USER}", "PLAYER_ID"],
 		reqs       : ["normCommand", "profile true"],
 		effect     : function (message, args, playerData, prefix) {
@@ -1726,11 +1730,11 @@ const commands = [
 			let embed = new Discord.RichEmbed()
 				.setFooter(player.userID)
 				.setColor(embedColors.blue)
-				.setTitle(player.username + "'s stats");
+				.setTitle(player.username + "'s status");
 
 			let location = "";
 			if (player.location instanceof Array) {
-				location = "Galaxy `" + (player.location[0] + 1) + "` Area: `" + (player.location[2] + 1) + "x" + (player.location[1] + 1) + "`";
+				location = "Galaxy `" + (player.location[0] + 1) + "` Position:`" + (player.location[2] + 1) + "x" + (player.location[1] + 1) + "`";
 				if (player.isInSafeZone[0]) {
 					location += "\nCurrently in the Safe Zone"
 				}
@@ -1872,7 +1876,7 @@ const commands = [
 					if (!waitTimesInterval) {
 						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
 					}
-					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Area: `" + (goToPos[2] + 1) + "x" + (goToPos[1] + 1) + "`";
+					playerData.location = "Warping to Galaxy: `" + (goToPos[0] + 1) + "` Position:`" + (goToPos[2] + 1) + "x" + (goToPos[1] + 1) + "`";
 					sendBasicEmbed({
 						content: "Warping will take approximately: " + getTimeRemaining(timeUntilFinishedWarping),
 						color  : embedColors.blue,
@@ -1990,7 +1994,7 @@ const commands = [
 			let embed = new Discord.RichEmbed()
 				.setColor(embedColors.blue)
 				.setTitle("Location:")
-				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`\nYou're at a **" + loc.type + "** " + theitem+"\n"+info);
+				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Position:`" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`\nYou're at a **" + loc.type + "** " + theitem+"\n"+info);
 
 			let otherPlayers = [];
 			for (let i = 0; i < accountData.names.length; i++) {
@@ -3061,7 +3065,7 @@ const commands = [
 						space += " "
 					}
 				}
-				txt += spacing("[" + (i + 1) + "] " + colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Area: " + (colonies[i].location[2] + 1) + " x " + (colonies[i].location[1] + 1), 50);
+				txt += spacing("[" + (i + 1) + "] " + colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Position:" + (colonies[i].location[2] + 1) + " x " + (colonies[i].location[1] + 1), 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -3106,7 +3110,7 @@ const commands = [
 						});
 						client.fetchUser(mapSpot.ownersID).then(function (user) {
 							sendBasicEmbed({
-								content: "Your colony at\nGalaxy `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`\nIs under attack by `" + playerData.username + "`\nYou have " + getTimeRemaining(timesTake.attackColony) + " to save it",
+								content: "Your colony at\nGalaxy `" + loc[0] + "` Position:`" + loc[2] + "x" + loc[1] + "`\nIs under attack by `" + playerData.username + "`\nYou have " + getTimeRemaining(timesTake.attackColony) + " to save it",
 								color  : embedColors.red,
 								channel: user
 							});
@@ -3199,7 +3203,7 @@ const commands = [
 					});
 					client.fetchUser(mapSpot.ownersID).then(function (user) {
 						sendBasicEmbed({
-							content: "Your station at\nGalaxy `" + loc[0] + "` Area: `" + loc[2] + "x" + loc[1] + "`\nIs under attack by `" + playerData.username + "`\nYou have " + getTimeRemaining(timesTake.attackStation) + " to save it",
+							content: "Your station at\nGalaxy `" + loc[0] + "` Position:`" + loc[2] + "x" + loc[1] + "`\nIs under attack by `" + playerData.username + "`\nYou have " + getTimeRemaining(timesTake.attackStation) + " to save it",
 							color  : embedColors.red,
 							channel: user
 						});
@@ -3477,7 +3481,7 @@ const commands = [
 			let stations = playerData.stations;
 			let txt = "```css\n";
 			for (let i = 0; i < stations.length; i++) {
-				txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  Area: " + (stations[i].location[2] + 1) + " x " + (stations[i].location[1] + 1), 50);
+				txt += spacing("[" + (stations[i].level + 1) + "] " + stations[i].type, "Galaxy: " + (stations[i].location[0] + 1) + "  Position:" + (stations[i].location[2] + 1) + " x " + (stations[i].location[1] + 1), 50);
 				txt += "\n";
 			}
 			txt += "```";
@@ -3747,7 +3751,7 @@ const commands = [
 
 			let faction = factions[playerData.faction];
 			let embed = new Discord.RichEmbed()
-				.setTitle(playerData.faction + "'s stats")
+				.setTitle(playerData.faction + "'s status")
 				.setFooter(playerData.userID)
 				.setColor(faction.color);
 			let factionsResources = "css\n";
