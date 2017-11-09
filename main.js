@@ -1901,16 +1901,13 @@ const commands = [
 			else if (loc.item === "empty") {
 				theitem = "Space";
 			}
-			let embed = new Discord.RichEmbed()
-				.setColor(embedColors.blue)
-				.setTitle("Location:")
-				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`\nYou're at a " + loc.type + " " + theitem);
 
 
 			let item = "Empty Space";
-			let info = "Unoccupied";
+			let info = "Unoccupied Space";
 			let attack = "Attack this " + loc.item + " via `" + prefix + "attack" + loc.item + "`";
 			let moreInfo = "";
+			let safe = loc.item.toLowerCase() === "safezone";
 			if (loc.type.toLowerCase() !== "empty" && loc.item.toLowerCase() !== "empty") {
 				item = loc.type;
 				if (loc.ownersID !== null) {
@@ -1935,7 +1932,6 @@ const commands = [
 					attack = "";
 					info = "In the current area nobody is allowed to attack anyone else in this area";
 					item = "Safe Zone";
-
 				}
 				else if(loc.item.toLowerCase() === "dominate"){
 					attack = "";
@@ -1985,6 +1981,11 @@ const commands = [
 					}
 				}
 			}
+			let embed = new Discord.RichEmbed()
+				.setColor(embedColors.blue)
+				.setTitle("Location:")
+				.setDescription("Galaxy: `" + (pos[0] + 1) + "` Area: `" + (pos[2] + 1) + "x" + (pos[1] + 1) + "`\nYou're at a **" + loc.type + "** " + theitem+"\n"+info);
+
 			let otherPlayers = [];
 			for (let i = 0; i < accountData.names.length; i++) {
 				let player = accountData[accountData.names[i]];
@@ -2035,7 +2036,9 @@ const commands = [
 					}
 					txt += "[" + (i + 1) + space + "]|" + name + spaceName + "|" + spaceFaction + otherPlayers[i].health + "|\n";
 				}
-				embed.addField("Players", txt + "```\nAttack a player via `attackPlayer [ID]`");
+				if(safe) {
+					embed.addField("Players", txt + "```\nAttack a player via `attackPlayer [ID]`");
+				}
 			}
 			message.channel.send({embed});
 		}
