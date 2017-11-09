@@ -842,7 +842,7 @@ function getTimeRemaining(time) {
 	let fakeTime = time;
 	for (let i = 0; i < times.length; i++) {
 		if (fakeTime >= times[i][0]) {
-			timesLeft.push([times[1],0]);
+			timesLeft.push([times[i][1],0]);
 			while (fakeTime >= times[i][0]) {
 				fakeTime -= times[i][0];
 				timesLeft[timesLeft.length-1][1]++;
