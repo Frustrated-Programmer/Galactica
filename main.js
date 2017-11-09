@@ -128,9 +128,13 @@ function checkerFunction() {
 		let player = accountData[accountData.names[i]];
 		let rank = null;
 		for (let j = 0; j < ranks.names.length; j++) {
-			if (ranks.names[j].toLowerCase() === player.rank) {
+			if (ranks.names[j].toLowerCase() === player.rank.toLowerCase()) {
 				rank = ranks[ranks.names[j]]
 			}
+		}
+		if(rank === null) {
+			log("Rank was null");
+			return;
 		}
 		if (player.isDominating) {
 			let amo = 0;
