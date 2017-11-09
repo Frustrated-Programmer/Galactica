@@ -3596,7 +3596,7 @@ const commands = [
 						}
 					}
 					else {
-						console.log("Upgrade Station. Logging Stations missing" + missingItems);
+						console.log("Upgrade Station. Logging Stations missing",missingItems,missingItems.length);
 						let missingResources = "";
 						for (let i = 0; i < missingItems.length; i++) {
 							missingResources += missingItems[i][0] + " " + missingItems[i][1] + "\n"
