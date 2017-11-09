@@ -1746,7 +1746,7 @@ const commands = [
 				embed.addField("INFO:", "Faction:" + factions[player.faction].name + "\n" + resources["power"].emoji + " Power: " + player["power"] + "\nHealth:" + player.health + "\n**Location:**\n" + location);
 			}
 			else {
-				embed.addField("INFO:", "Power: 000\nLocation:\n" + location);
+				embed.addField("INFO:", "Rank:"+player.rank+"\n" + resources["power"].emoji + " Power: " + player["power"] + "\nLocation:\n" + location);
 			}
 
 			let playerResources = "```css\n";
@@ -2992,7 +2992,7 @@ const commands = [
 	},
 
 	["PLANETS", "PLANET"],
-	{
+	 {
 		names      : ["colonize", "colo"],
 		description: "colonize a planet",
 		usage      : "colonize",
@@ -3005,29 +3005,38 @@ const commands = [
 			let isValid = mapSpot.item.toLowerCase() === "planet";
 			if (isValid) {
 				if (mapSpot.ownersID === null) {
-					playerData.didntMove = true;
-					listOfWaitTimes.push({
-						player : playerData.userID,
-						expires: Date.now() + timesTake.colonize,
-						type   : "colonization",
-						at     : playerData.location
-					});
-					let loc = playerData.location;
-					map[loc[0]][loc[1]][loc[2]].item = "colonizing";
-					map[loc[0]][loc[1]][loc[2]].soonOwner = playerData.userID;
-					if (!waitTimesInterval) {
-						waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
-					}
-					let embed = new Discord.RichEmbed()
-						.setDescription("You are colonizing a `" + mapSpot.type + "` planet.\nThis will take " + getTimeRemaining(timesTake.colonize) + " to complete.")
-						.setColor(embedColors.blue);
-					if (freeColony) {
-						embed.addField("FREE COLONY", "As this is your first station. Your colony is free of charge");
+					if (mapSpot.soonOwner === null) {
+						playerData.didntMove = true;
+						listOfWaitTimes.push({
+							player : playerData.userID,
+							expires: Date.now() + timesTake.colonize,
+							type   : "colonization",
+							at     : playerData.location
+						});
+						let loc = playerData.location;
+						map[loc[0]][loc[1]][loc[2]].item = "colonizing";
+						map[loc[0]][loc[1]][loc[2]].soonOwner = playerData.userID;
+						if (!waitTimesInterval) {
+							waitTimesInterval = setInterval(checkWaitTimes, 1000);//once every second
+						}
+						let embed = new Discord.RichEmbed()
+							.setDescription("You are colonizing a `" + mapSpot.type + "` planet.\nThis will take " + getTimeRemaining(timesTake.colonize) + " to complete.")
+							.setColor(embedColors.blue);
+						if (freeColony) {
+							embed.addField("FREE COLONY", "As this is your first station. Your colony is free of charge");
+						}
+						else {
+							embed.addField("LOST RESOURCES", Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax / 10) + " " + resources["food"].emoji + " food");
+						}
+						message.channel.send({embed});
 					}
 					else {
-						embed.addField("LOST RESOURCES", Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax / 10) + " " + resources["food"].emoji + " food");
+						sendBasicEmbed({
+							content: "This planet is being colonized by `" + accountData[mapSpot.ownersID].username + "`",
+							color  : embedColors.red,
+							channel: message.channel
+						});
 					}
-					message.channel.send({embed});
 				}
 				else {
 					sendBasicEmbed({
