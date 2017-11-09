@@ -3554,7 +3554,6 @@ const commands = [
 			else {
 				let level = stationToUpgrade.level + 1;
 				let station = stations[playerData.stations[whichStation].type];
-				console.log("Upgrade Station. Logging Station's costs" + station.costs);
 				if (checkGP(playerData.stations[whichStation].type, level - 1, playerData).val) {
 					if (station.costs.length < level) {
 						if (station.extra.upgradeTo) {
@@ -3596,7 +3595,6 @@ const commands = [
 						}
 					}
 					else {
-						console.log("Upgrade Station. Logging Stations missing",missingItems,missingItems.length);
 						let missingResources = "";
 						for (let i = 0; i < missingItems.length; i++) {
 							missingResources += missingItems[i][0] + " " + resources[missingItems[i][1]].emoji+" "+missingItems[i][1] + "\n"
