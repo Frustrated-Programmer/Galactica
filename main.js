@@ -833,6 +833,9 @@ function getTimeRemaining(time) {
 	console.log("log in getTimeRemaining fun. Logging time: ",time);
 	console.log("log in getTimeRemaining fun. Logging typeof time: ",typeof time);
 	time = parseInt(time, 10);
+	if(time < 0){
+		time = parseInt(((""+time).substring(1,(""+time).length)),10)
+	}
 	let times = [[31557600000000, 0, "millennial"], [3155760000000, 0, "century"], [315576000000, 0, "decade"], [31557600000, 0, "year"], [86400000, 0, "day"], [3600000, 0, "hour"], [60000, 0, "minute"], [1000, 0, "second"], [1, 0, "millisecond"]];
 	let timeLeftText = "";
 	let fakeTime = time;
