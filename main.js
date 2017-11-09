@@ -464,6 +464,7 @@ function attackPlayerFunction() {
 }
 function getBorders(location) {
 	let bordering = [];
+	console.log(location);
 	if (location[1] > 0) {
 		bordering.push(map[location[0]][location[1] - 1][location[2]].type);
 	}
