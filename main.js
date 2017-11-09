@@ -1960,7 +1960,6 @@ const commands = [
 			else if (loc.item === "empty") {
 				theitem = "Space";
 			}
-			console.log("Look command. Logging the map spot", loc);
 
 			let item = "Empty Space";
 			let info = "Unoccupied Space";
@@ -2336,7 +2335,7 @@ const commands = [
 			let numbs = getNumbers(args, false);
 			let number = null;
 			if (numbs.length) {
-				number = parseInt(numbs[0], 10);
+				number = parseInt(numbs[0], 10)-1;
 				if (number >= researches.names.length) {
 					embed.setColor(embedColors.red);
 					embed.setDescription("Invalid ID number");
@@ -2345,27 +2344,19 @@ const commands = [
 			}
 			else {
 				let newArgs = [];
+				if (newArgs[0] === "info") {
+					newArgs.splice(0, 1);
+				}
 				for (let i = 0; i < researches.names.length; i++) {
 					let name = researches.names[i].split(" ");
 					let found = matchArray(newArgs, name);
 					for (let q = 0; q < args.length; q++) {
 						newArgs.push(args[q]);
 					}
-					if (newArgs[0] === "info") {
-						newArgs.splice(0, 1);
-					}
 					if (found) {
 						number = i;
 						break;
 					}
-				}
-				if (number === null && newArgs.length && args[0] !== "list") {
-					embed.setColor(embedColors.red);
-					embed.setDescription("Invalid research name");
-				}
-				if (!newArgs.length) {
-					embed.setColor(embedColors.red);
-					embed.setDescription("Invalid Usage\nNeed to include a research ID or NAME");
 				}
 			}
 			if (!args.length) {
@@ -2389,7 +2380,7 @@ const commands = [
 					for (let i = 0; i < researches.names.length; i++) {
 						let item = researches[researches.names[i]];
 						let level = playerData[researches.names[i]] || 0;
-						txt += spacing("[" + i + "] " + researches.names[i], item.costs[level] + "\n", 40);
+						txt += spacing("[" + (i+1) + "] " + researches.names[i], item.costs[level] + "\n", 40);
 					}
 					txt += "```";
 					embed.setDescription(txt);
@@ -2413,9 +2404,8 @@ const commands = [
 							embed.setDescription("Researching `" + researches.names[number] + "`...\nWill take about " + getTimeRemaining(researchTime) + "\nCosts: " + item.costs[level] + "💡 Research");
 						}
 						else {
-							embed.setDescription("Not enough 💡 research.");
+							embed.setDescription("Invalid Research!");
 							embed.setColor(embedColors.red);
-							return;
 						}
 					}
 					break;
