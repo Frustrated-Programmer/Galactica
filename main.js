@@ -3574,7 +3574,7 @@ const commands = [
 						let costsStuff = station.costs[level][i].split(" ");
 						if (playerData[costsStuff[0]] < parseInt(costsStuff[1], 10)) {
 							hasEnough = false;
-							missingItems.push([(parseInt(costsStuff[1], 10) - playerData[costsStuff[0]]), resources[costsStuff[0]].emoji]);
+							missingItems.push([(parseInt(costsStuff[1], 10) - playerData[costsStuff[0]]), costsStuff[0]]);
 						}
 					}
 					if (hasEnough) {
@@ -3599,7 +3599,7 @@ const commands = [
 						console.log("Upgrade Station. Logging Stations missing",missingItems,missingItems.length);
 						let missingResources = "";
 						for (let i = 0; i < missingItems.length; i++) {
-							missingResources += missingItems[i][0] + " " + missingItems[i][1] + "\n"
+							missingResources += missingItems[i][0] + " " + resources[missingItems[i][1]].emoji+" "+missingItems[i][1] + "\n"
 						}
 						let embed = new Discord.RichEmbed()
 							.setColor(embedColors.red)
