@@ -1689,10 +1689,19 @@ const commands = [
 				console.log(player.username,player.power);
 				if (player["power"] > 0) {
 					if (lb.length) {
+						let pushWhere = "none";
 						for (let j = 0; j < lb.length; j++) {
 							if (player["power"] > lb[j]) {
-								lb.splice(j, 0, [player.username, player["power"]]);
+								pushWhere = j;
 							}
+						}
+						if(typeof pushWhere === "string"){
+							if(lb.length<10) {
+								lb.push([player.username, player["power"]]);
+							}
+						}
+						else{
+							lb.splice(pushWhere, 0, [player.username, player["power"]]);
 						}
 					}
 					else {
