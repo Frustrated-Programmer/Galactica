@@ -1055,10 +1055,16 @@ function getValidName(name,amo){
 		}
 	}
 
+	if (name.length > amo) {
+		name = name.substring(0, amo-3);
+		name += "...";
+	}
+
 	let spaceName = "";
 	for (let j = 0; j < amo - name.length; j++) {
 		spaceName += " ";
 	}
+
 	return newName+spaceName;
 }
 
@@ -1710,14 +1716,7 @@ const commands = [
 				let player = accountData[accountData.names[i]];
 				if (typeof player["power"] === "number") {
 					let name = getValidName(player.username,15);
-					if (name.length > 10) {
-						name = name.substring(0, 7);
-						name += "...";
-					}
-					let spaceName = "";
-					for (let j = 0; j < 10 - name.length; j++) {
-						spaceName += " ";
-					}
+
 					if (lb.length) {
 						let pushWhere = "none";
 						for (let j = 0; j < lb.length; j++) {
