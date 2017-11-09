@@ -1901,7 +1901,7 @@ const commands = [
 			else if (loc.item === "empty") {
 				theitem = "Space";
 			}
-
+			console.log("Look command. Logging the map spot",loc);
 
 			let item = "Empty Space";
 			let info = "Unoccupied Space";
@@ -2203,8 +2203,8 @@ const commands = [
 									folder = m[i][j].item + "s";
 									if (m[i][j].item === "colony") {
 										folder = "planets"
+										typeImage = m[i][j].type + "Planet";
 									}
-									typeImage = m[i][j].type + "Planet";
 								}
 								else {
 									if (m[i][j].item === "planet") {
