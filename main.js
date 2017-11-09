@@ -468,13 +468,13 @@ function getBorders(location) {
 	if (location[1] > 0) {
 		bordering.push(map[location[0]][location[1] - 1][location[2]].type);
 	}
-	if (location[1] < map[location[0]].length) {
+	if (location[1]+1 < map[location[0]].length) {
 		bordering.push(map[location[0]][location[1] + 1][location[2]].type);
 	}
 	if (location[2] > 0) {
 		bordering.push(map[location[0]][location[1]][location[2] - 1].type);
 	}
-	if (location[2] < map[location[0]][location[1]].length) {
+	if (location[2]+1 < map[location[0]][location[1]].length) {
 		console.log(map[location[0]][location[1]][location[2] + 1]);
 		bordering.push(map[location[0]][location[1]][location[2] + 1].type);
 	}
