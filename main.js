@@ -504,6 +504,7 @@ function checkWaitTimes() {
 				case "colonization":
 					if (accountData[listOfWaitTimes[i].player].didntMove) {
 						let mapSpot = map[listOfWaitTimes[i].at[0]][listOfWaitTimes[i].at[1]][listOfWaitTimes[i].at[2]];
+						console.log(mapSpot);
 						accountData[listOfWaitTimes[i].player].colonies.push({
 							location : accountData[listOfWaitTimes[i].player].location,
 							type     : mapSpot.type,
