@@ -127,9 +127,9 @@ function checkerFunction() {
 	for (let i = 0; i < accountData.names.length; i++) {
 		let player = accountData[accountData.names[i]];
 		let rank = null;
-		for (let j = 0; j < ranks.names.length; i++) {
-			if (ranks.names[i].toLowerCase() === player.rank) {
-				rank = ranks[ranks.names[i]]
+		for (let j = 0; j < ranks.names.length; j++) {
+			if (ranks.names[j].toLowerCase() === player.rank) {
+				rank = ranks[ranks.names[j]]
 			}
 		}
 		if (player.isDominating) {
