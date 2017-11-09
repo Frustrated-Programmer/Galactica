@@ -101,18 +101,19 @@ function checkerFunction() {
 		}
 		if (player.rank !== ranks.names[rankLevel]) {
 			let promo = "demoted";
+			player.rank = ranks.names[rankLevel];
 			for (let j = 0; j < ranks.names.length; j++) {
 				if (ranks.names[j] === player.rank) {
+					console.log(j,ranks.names,rankLevel,player.name);
 					if (j >= rankLevel) {
 						promo = "promoted";
 					}
 				}
 			}
-			player.rank = ranks.names[rankLevel];
 			client.fetchUser(player.userID).then(function (user) {
 				let YourRank = ranks[ranks.names[rankLevel]];
 				sendBasicEmbed({
-					content: "You've been " + promo + " to "+ ranks.names[rankLevel]+"\nYou now gain "+YourRank.dom+" "+resources["credits"].emoji+" credits in the dominate zone every `10` minutes in it\nYou lose "+YourRank.safe+" "+resources["credits"].emoji+" credits in the safe zone every `10` minutes in it\nYou can now only be in the Galaxts `"+YourRank.min+"` - `"+YourRank.max+"`",
+					content: "You've been " + promo + " to "+ ranks.names[rankLevel]+"\nYou now gain "+YourRank.dom+" "+resources["credits"].emoji+" credits in the dominate zone every `10` minutes in it\nYou lose "+YourRank.safe+" "+resources["credits"].emoji+" credits in the safe zone every `10` minutes in it\nYou can now only be in the Galaxys `"+YourRank.min+"` - `"+YourRank.max+"`",
 					color  : promo === "demoted" ? embedColors.red : embedColors.green,
 					channel: user
 				})
