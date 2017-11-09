@@ -103,7 +103,7 @@ function checkerFunction() {
 			let promo = "demoted";
 			for (let j = 0; j < ranks.names.length; j++) {
 				if (ranks.names[j] === player.rank) {
-					if (j > rankLevel) {
+					if (j >= rankLevel) {
 						promo = "promoted";
 					}
 				}
