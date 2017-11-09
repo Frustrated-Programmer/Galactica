@@ -2684,7 +2684,7 @@ const commands = [
 					for (let j = 0; j < station.gives[playerData.stations[i].level].length; j++) {
 						let stuff = station.gives[playerData.stations[i].level][j].split(" ");
 
-						if (parseInt(stuff[1], 10) < 0) {
+						if (parseInt(stuff[1], 10) < 0)  {
 							if (playerData[stuff[0]] + parseInt(stuff[1], 10) * amount < 0 || playerData[stuff[0]] - parseInt(stuff[1], 10) * amount < 0) {
 								break;
 							}
@@ -3233,7 +3233,7 @@ const commands = [
 					});
 					client.fetchUser(mapSpot.ownersID).then(function (user) {
 						sendBasicEmbed({
-							content: "Your station at\nGalaxy `" + loc[0] + "` Position:`" + loc[2] + "x" + loc[1] + "`\nIs under attack by `" + playerData.username + "`\nYou have " + getTimeRemaining(timesTake.attackStation) + " to save it",
+							content: "Your station at\nGalaxy `" + loc[0] + "` Position:`" + (loc[2]+1) + "x" + (loc[1]+1) + "`\nIs under attack by `" + playerData.username + "`\nYou have " + getTimeRemaining(timesTake.attackStation) + " to save it",
 							color  : embedColors.red,
 							channel: user
 						});
