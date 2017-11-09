@@ -845,7 +845,7 @@ function getTimeRemaining(time) {
 			timesLeft.push([times[1],0]);
 			while (fakeTime >= times[i][0]) {
 				fakeTime -= times[i][0];
-				timesLeft[timesLeft.length][1]++;
+				timesLeft[timesLeft.length-1][1]++;
 			}
 		}
 	}
