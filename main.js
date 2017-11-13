@@ -480,7 +480,9 @@ function getBorders(location) {
 }
 function checkWaitTimes() {
 	listOfWaitTimes = require("./other.json").listOfWaitTimes;
+
 	for (let i = 0; i < listOfWaitTimes.length; i++) {
+		console.log(listOfWaitTimes[i]);
 		if (listOfWaitTimes[i].expires <= Date.now()) {
 			let playerData = accountData[listOfWaitTimes[i].player];
 			let loc = playerData.location;
@@ -1703,54 +1705,6 @@ const commands = [
 					})
 				}
 			}
-		}
-	},
-	{
-		names      : ["leaderboard", "highscores", "lb"],
-		description: "get a leaderboard of everyone's power",
-		usage      : "leaderboard",
-		values     : [],
-		reqs       : ["normCommand"],
-		effect     : function (message, args, playerData, prefix) {
-			let lb = [];
-			for (let i = 0; i < accountData.names.length; i++) {
-				let player = accountData[accountData.names[i]];
-				if (typeof player["power"] === "number") {
-					let name = getValidName(player.username,15);
-					if (lb.length) {
-						let pushWhere = "none";
-						for (let j = 0; j < lb.length; j++) {
-							if (player["power"] > lb[j][1]) {
-								pushWhere = j;
-								break;
-							}
-						}
-						if(typeof pushWhere === "string"){
-							if(lb.length<10) {
-								lb.push([name, player["power"]]);
-							}
-						}
-						else{
-							lb.splice(pushWhere, 0, [name, player["power"]]);
-						}
-					}
-					else {
-						lb.push([name, player["power"]]);
-					}
-				}
-				if (lb.length > 10) {
-					lb.pop();
-				}
-			}
-			let lbText = "```css\n";
-			for (let i = 0; i < lb.length; i++) {
-				lbText += spacing("[" + (i + 1) + " ]" + lb[i][0], lb[i][1] + " power\n", 30);
-			}
-			sendBasicEmbed({
-				content: "Galactica's leaderboard of power is " + lbText + "```",
-				color  : embedColors.purple,
-				channel: message.channel
-			})
 		}
 	},
 
