@@ -1,8 +1,8 @@
 /**setup**/
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
-fs.exists('./other.json', function (exists) {
-	if (!exists) {
+if(true) {
+	fs.writeFile(`other.json`, other, function (err) {
 		let other = {
 			lastReboot   : {},
 			imageSize    : 1024,
@@ -15,37 +15,27 @@ fs.exists('./other.json', function (exists) {
 			map          : []
 		};
 		other = JSON.stringify(other);
-		fs.writeFile(`other.json`, other, function (err) {
-			if (err) {
-				throw err;
-			}
-			console.log(`created other.json`);
-		});
-	}
-});
-fs.exists('./accounts.json', function (exists) {
-	if (!exists) {
-		fs.writeFile(`accounts.json`, `{}`, function (err) {
-			if (err) {
-				throw err;
-			}
-			console.log(`created accounts.json`);
-		});
-	}
-});
-fs.exists('./factions.json', function (exists) {
-	if (!exists) {
-		let facs = {
-			factions: []
-		};
-		fs.writeFile(`factions.json`, `${JSON.stringify(facs)}`, function (err) {
-			if (err) {
-				throw err;
-			}
-			console.log(`created factions.json`);
-		});
-	}
-});
+
+		if (err) {
+			throw err;
+		}
+		console.log(`created other.json`);
+	});
+
+	fs.writeFile(`accounts.json`, `{accounts:[]}`, function (err) {
+		if (err) {
+			throw err;
+		}
+		console.log(`created accounts.json`);
+	});
+
+	fs.writeFile(`factions.json`, `${JSON.stringify(facs)}`, function (err) {
+		if (err) {
+			throw err;
+		}
+		console.log(`created factions.json`);
+	});
+}
 const otherJson = require(`./other.json`);
 let universalPrefix = otherJson.uniPre;
 const Discord = require(`discord.js`);
