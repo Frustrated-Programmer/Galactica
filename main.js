@@ -3274,18 +3274,17 @@ let commands = [
 				.setColor(colors.purple)
 				.setDescription("Rebooting bot now");
 			console.log("Rebooting Process started | Sending Message");
-			message.channel.send({embed})
-				.then(function (mess) {
+			message.channel.send({embed}).then(function (mess) {
 					require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
 					saveJsonFile("./other.json");
-					log("Sent reboot message | Saved reboot message | Destroying client");
+					console.log("Sent reboot message | Saved reboot message | Destroying client");
 					client.destroy().then(function () {
 						log("Destroyed Client | Exiting");
 						process.exit();
 					});
 				});
 			setTimeout(function () {
-				log("Force-Reboot");
+				console.log("Force-Reboot");
 				process.exit();
 			}, 5000);
 		}
@@ -3570,14 +3569,8 @@ let commands = [
 			let input = copyObject(message.content);
 			let output = ``;
 			function evalIt() {
-				if (input.substring(0, 3) === `\`\`\``) {
-					input = input.split(`\`\`\``);
-					input = input[1];
-				}
-				else{
-					console.log(`ERROR1036`);
-					return;
-				}
+				input = input.split(`\`\`\``);
+				input = input[1];
 				let con = function (input) {};
 				con.prototype.log = function (msg) {
 					log(msg);
