@@ -281,6 +281,7 @@ function importJSON() {
 	});
 }
 function saveJSON() {
+	return;
 	console.log("Saving started");
 	fs.writeFileSync(`./factions.json`, JSON.stringify({factions: factions}, null, 4));
 	fs.writeFileSync(`./other.json`, JSON.stringify(otherJson, null, 4));
