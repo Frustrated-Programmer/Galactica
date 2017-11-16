@@ -3602,10 +3602,12 @@ client.on("message", function (message) {
 		return;
 	}
 	let needToConfirm = false;
-	if (confirmations.length) {
-		for (let i = 0; i < confirmations.length; i++) {
-			if (message.author.id === confirmations[i].playerID) {
-				needToConfirm = i;
+	if(false) {
+		if (confirmations.length) {
+			for (let i = 0; i < confirmations.length; i++) {
+				if (message.author.id === confirmations[i].playerID) {
+					needToConfirm = i;
+				}
 			}
 		}
 	}
