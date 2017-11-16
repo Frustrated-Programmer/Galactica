@@ -1,4 +1,5 @@
 /**setup**/
+process.exit();
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
 if(true) {
