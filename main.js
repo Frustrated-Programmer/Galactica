@@ -52,7 +52,6 @@ const Discord = require(`discord.js`);
 const client = new Discord.Client();
 let version = otherJson.version;
 
-
 /**varibles**/
 let upTime = 0;
 let map = otherJson.map;
@@ -252,6 +251,7 @@ function everySecondFun() {
 	}
 }
 function importJSON() {
+	return;
 	console.log(`Inporting started`);
 	fs.readFile(`./factions.json`, `utf8`, function (err, data) {
 		if (err) throw err;
