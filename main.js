@@ -55,8 +55,7 @@ let version = otherJson.version;
 /**varibles**/
 let upTime = 0;
 let map = otherJson.map;
-let factions = [], servers = [], accounts = [], waitTimes = otherJson.waitTimes,
-	confirmations = otherJson.confirmations;
+let factions = [], servers = [], accounts = [], waitTimes = otherJson.waitTimes, confirmations = otherJson.confirmations;
 let everySecond = false;
 
 /**functions**/
@@ -252,7 +251,6 @@ function everySecondFun() {
 	}
 }
 function importJSON() {
-	return;
 	console.log(`Inporting started`);
 	fs.readFile(`./factions.json`, `utf8`, function (err, data) {
 		if (err) throw err;
@@ -276,12 +274,10 @@ function importJSON() {
 		for (let i = 0; i < dataParse.accounts.length; i++) {
 			accounts.push(new Account(dataParse.accounts[i]));
 		}
-
 		console.log(`Accounts complete.`);
 	});
 }
 function saveJSON() {
-	return;
 	console.log("Saving started");
 	fs.writeFileSync(`./factions.json`, JSON.stringify({factions: factions}, null, 4));
 	fs.writeFileSync(`./other.json`, JSON.stringify(otherJson, null, 4));
@@ -3276,14 +3272,14 @@ let commands = [
 				.setDescription("Rebooting bot now");
 			console.log("Rebooting Process started | Sending Message");
 			message.channel.send({embed}).then(function (mess) {
-					require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
-					saveJsonFile("./other.json");
-					console.log("Sent reboot message | Saved reboot message | Destroying client");
-					client.destroy().then(function () {
-						log("Destroyed Client | Exiting");
-						process.exit();
-					});
+				require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
+				saveJsonFile("./other.json");
+				console.log("Sent reboot message | Saved reboot message | Destroying client");
+				client.destroy().then(function () {
+					log("Destroyed Client | Exiting");
+					process.exit();
 				});
+			});
 			setTimeout(function () {
 				console.log("Force-Reboot");
 				process.exit();
@@ -3466,16 +3462,16 @@ let commands = [
 		}
 	},
 	{
-		names 	   :[`resetFile`],
-		description:``,
-		usage	   :``,
-		values	   :[],
-		examples   :[``,``],
+		names      : [`resetFile`],
+		description: ``,
+		usage      : ``,
+		values     : [],
+		examples   : [``, ``],
 		tags       : [],
-		conditions :[
-			{cond:checks.isOwner}
+		conditions : [
+			{cond: checks.isOwner}
 		],
-		effect	   :function(message,args,account,prefix,msg){
+		effect     : function (message, args, account, prefix, msg) {
 			fs.exists('./other.json', function (exists) {
 				if (exists) {
 					let other = {
@@ -3559,20 +3555,23 @@ let commands = [
 		usage      : `eval [VALUE]`,
 		values     : [`{CODE}`],
 		examples   : [`eval console.log("Hello World")`, `eval let x = 0;x++;console.log(x);`],
-		tags       : [`owner`,`bot`],
+		tags       : [`owner`, `bot`],
 		conditions : [
-			{cond:checks.isOwner}
+			{cond: checks.isOwner}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			function log(msg) {
 				console.log(msg);
 			}
+
 			let input = copyObject(message.content);
 			let output = ``;
+
 			function evalIt() {
 				input = input.split(`\`\`\``);
 				input = input[1];
-				let con = function (input) {};
+				let con = function (input) {
+				};
 				con.prototype.log = function (msg) {
 					log(msg);
 					output += `${msg}\n`;
@@ -3580,13 +3579,14 @@ let commands = [
 				let console = new con();
 				eval(input);
 			}
+
 			evalIt();
 			let embed = new Discord.RichEmbed()
 				.setColor(colors.orange)
 				.setTitle(`RUNNING THE COMMAND __\`EVAL()\`__`)
 				.addField(`Input`, `\`\`\`js\n${input}\n\`\`\``);
-			if(output.length){
-				embed.addField(`Output`,`\`\`\`${output}\`\`\``);
+			if (output.length) {
+				embed.addField(`Output`, `\`\`\`${output}\`\`\``);
 			}
 
 			message.channel.send({embed});
@@ -3643,12 +3643,10 @@ client.on("message", function (message) {
 		return;
 	}
 	let needToConfirm = false;
-	if(false) {
-		if (confirmations.length) {
-			for (let i = 0; i < confirmations.length; i++) {
-				if (message.author.id === confirmations[i].playerID) {
-					needToConfirm = i;
-				}
+	if (confirmations.length) {
+		for (let i = 0; i < confirmations.length; i++) {
+			if (message.author.id === confirmations[i].playerID) {
+				needToConfirm = i;
 			}
 		}
 	}
