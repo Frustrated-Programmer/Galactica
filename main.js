@@ -2,34 +2,30 @@
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
 if(true) {
-	fs.writeFile(`other.json`, other, function (err) {
-		let other = {
-			lastReboot   : {},
-			imageSize    : 1024,
-			uniPre       : `-`,
-			version      : ``,
-			waitTimes    : [],
-			confirmations: [],
-			commandTags  : [],
-			servers      : [],
-			map          : []
-		};
-		other = JSON.stringify(other);
-
+	let other = {
+		lastReboot   : {},
+		imageSize    : 1024,
+		uniPre       : `-`,
+		version      : ``,
+		waitTimes    : [],
+		confirmations: [],
+		commandTags  : [],
+		servers      : [],
+		map          : []
+	};
+	fs.writeFile(`other.json`,  JSON.stringify(other), function (err) {
 		if (err) {
 			throw err;
 		}
 		console.log(`created other.json`);
 	});
-
-	fs.writeFile(`accounts.json`, `{accounts:[]}`, function (err) {
+	fs.writeFile(`accounts.json`, JSON.stringify({accounts:[]}), function (err) {
 		if (err) {
 			throw err;
 		}
 		console.log(`created accounts.json`);
 	});
-
-	fs.writeFile(`factions.json`, `${JSON.stringify(facs)}`, function (err) {
+	fs.writeFile(`factions.json`, JSON.stringify({factions:[]}), function (err) {
 		if (err) {
 			throw err;
 		}
