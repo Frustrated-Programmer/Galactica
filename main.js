@@ -3273,7 +3273,7 @@ let commands = [
 			let embed = new Discord.RichEmbed()
 				.setColor(colors.purple)
 				.setDescription("Rebooting bot now");
-			log("Rebooting Process started | Sending Message");
+			console.log("Rebooting Process started | Sending Message");
 			message.channel.send({embed})
 				.then(function (mess) {
 					require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
@@ -3478,6 +3478,11 @@ let commands = [
 		effect	   :function(message,args,account,prefix,msg){
 			fs.unlink(`./${args[0]}`,function (err) {
 				if (err) throw err;
+				sendBasicEmbed({
+					content:`Successfully deleted the file ${args[0]}`,
+					color:colors.red,
+					channel:message.channel
+				})
 			});
 		}
 	},
