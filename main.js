@@ -3273,7 +3273,6 @@ let commands = [
 			console.log("Rebooting Process started | Sending Message");
 			message.channel.send({embed}).then(function (mess) {
 				require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
-				saveJsonFile("./other.json");
 				console.log("Sent reboot message | Saved reboot message | Destroying client");
 				client.destroy().then(function () {
 					log("Destroyed Client | Exiting");
