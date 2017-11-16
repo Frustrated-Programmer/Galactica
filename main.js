@@ -3476,13 +3476,50 @@ let commands = [
 			{cond:checks.isOwner}
 		],
 		effect	   :function(message,args,account,prefix,msg){
-			fs.unlink(`./${args[0]}`,function (err) {
-				if (err) throw err;
-				sendBasicEmbed({
-					content:`Successfully deleted the file ${args[0]}`,
-					color:colors.red,
-					channel:message.channel
-				})
+			fs.exists('./other.json', function (exists) {
+				if (exists) {
+					let other = {
+						lastReboot   : {},
+						imageSize    : 1024,
+						uniPre       : `-`,
+						version      : ``,
+						waitTimes    : [],
+						confirmations: [],
+						commandTags  : [],
+						servers      : [],
+						map          : []
+					};
+					other = JSON.stringify(other);
+					fs.writeFile(`other.json`, other, function (err) {
+						if (err) {
+							throw err;
+						}
+						console.log(`created other.json`);
+					});
+				}
+			});
+			fs.exists('./accounts.json', function (exists) {
+				if (exists) {
+					fs.writeFile(`accounts.json`, `{}`, function (err) {
+						if (err) {
+							throw err;
+						}
+						console.log(`created accounts.json`);
+					});
+				}
+			});
+			fs.exists('./factions.json', function (exists) {
+				if (exists) {
+					let facs = {
+						factions: []
+					};
+					fs.writeFile(`factions.json`, `${JSON.stringify(facs)}`, function (err) {
+						if (err) {
+							throw err;
+						}
+						console.log(`created factions.json`);
+					});
+				}
 			});
 		}
 	},
@@ -3530,12 +3567,16 @@ let commands = [
 			function log(msg) {
 				console.log(msg);
 			}
-			let input = copyObject(msg);
+			let input = copyObject(message.content);
 			let output = ``;
 			function evalIt() {
 				if (input.substring(0, 3) === `\`\`\``) {
 					input = input.split(`\`\`\``);
 					input = input[1];
+				}
+				else{
+					console.log(`ERROR1036`);
+					return;
 				}
 				let con = function (input) {};
 				con.prototype.log = function (msg) {
@@ -3553,6 +3594,7 @@ let commands = [
 			if(output.length){
 				embed.addField(`Output`,`\`\`\`${output}\`\`\``);
 			}
+
 			message.channel.send({embed});
 		}
 
