@@ -2,12 +2,6 @@
 //process.exit();
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
-
-fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
-	if (err) {
-		throw err;
-	}
-});
 console.log(`1 ran`);
 let other = {
 	lastReboot   : {},
