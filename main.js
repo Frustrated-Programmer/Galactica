@@ -3,13 +3,8 @@
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
 let factions = [], servers = [], accounts = [];
-saveJSON();
-fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
-	if (err) {
-		throw err;
-	}
-});
-let otherJson = {
+
+let other = {
 	lastReboot   : {},
 	imageSize    : 1024,
 	uniPre       : `-`,
@@ -20,26 +15,14 @@ let otherJson = {
 	servers      : [],
 	map          : []
 };
-fs.writeFile(`other.json`,  JSON.stringify(other), function (err) {
+fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
 	if (err) {
 		throw err;
 	}
-	console.log(`created other.json`);
 });
-fs.writeFile(`accounts.json`, JSON.stringify({accounts:[]}), function (err) {
-	if (err) {
-		throw err;
-	}
-	console.log(`created accounts.json`);
-});
-fs.writeFile(`factions.json`, JSON.stringify({factions:[]}), function (err) {
-	if (err) {
-		throw err;
-	}
-	console.log(`created factions.json`);
-});
+saveJSON(true);
 
-//const otherJson = require(`./other.json`);
+let otherJson = require(`./other.json`);
 let universalPrefix = otherJson.uniPre;
 const Discord = require(`discord.js`);
 const client = new Discord.Client();
@@ -270,11 +253,19 @@ function importJSON() {
 		console.log(`Accounts complete.`);
 	});
 }
-function saveJSON() {
+function saveJSON(reboot) {
+	reboot = reboot || false;
 	console.log("Saving started");
-	fs.writeFileSync(`./factions.json`, JSON.stringify({factions: factions}, null, 4));
-	fs.writeFileSync(`./other.json`, JSON.stringify(otherJson, null, 4));
-	fs.writeFileSync(`./accounts.json`, JSON.stringify({accounts: accounts}, null, 4));
+	if(reboot){
+		fs.writeFileSync(`./factions.json`, JSON.stringify({factions: []}, null, 4));
+		fs.writeFileSync(`./other.json`, JSON.stringify(other, null, 4));
+		fs.writeFileSync(`./accounts.json`, JSON.stringify({accounts: []}, null, 4));
+	}
+	else{
+		fs.writeFileSync(`./factions.json`, JSON.stringify({factions: factions}, null, 4));
+		fs.writeFileSync(`./other.json`, JSON.stringify(otherJson, null, 4));
+		fs.writeFileSync(`./accounts.json`, JSON.stringify({accounts: accounts}, null, 4));
+	}
 }
 function copyObject(obj) {
 	return JSON.parse(JSON.stringify(obj));
