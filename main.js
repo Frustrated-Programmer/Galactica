@@ -2,7 +2,7 @@
 //process.exit();
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
-
+let factions = [], servers = [], accounts = [];
 saveJSON();
 fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
 	if (err) {
@@ -48,7 +48,7 @@ let version = otherJson.version;
 /**varibles**/
 let upTime = 0;
 let map = otherJson.map;
-let factions = [], servers = [], accounts = [], waitTimes = otherJson.waitTimes, confirmations = otherJson.confirmations;
+let waitTimes = otherJson.waitTimes, confirmations = otherJson.confirmations;
 let everySecond = false;
 
 /**functions**/
