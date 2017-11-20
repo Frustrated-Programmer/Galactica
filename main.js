@@ -1455,9 +1455,9 @@ let commands = [
 			message.channel.send({embed}).then(function (m) {
 				embed.setTitle(`Galactic`);
 				embed.setDescription(`Galactica is a bot owned by FrustratedProgrammer`);
-				embed.addField(`Ping Time`,`Response time: \`${(Date.now() - storedTimeForPingCommand)}\` ms`,true);
-				embed.addField(`Version`,`Galactica's current version is \`${version}\`.`,true);
-				embed.addField(`Uptime`,`The bot has been up for ${getTimeRemaining(Date.now() - upTime)}`,true);
+				embed.addField(`Ping Time`,`Response time: \`${(Date.now() - storedTimeForPingCommand)}\` ms`);
+				embed.addField(`Version`,`Galactica's current version is \`${version}\`.`);
+				embed.addField(`Uptime`,`The bot has been up for ${getTimeRemaining(Date.now() - upTime)}`);
 				m.edit({embed});
 			});
 		}
