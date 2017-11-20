@@ -2,7 +2,13 @@
 //process.exit();
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
-console.log(`1 ran`);
+
+saveJSON();
+fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
+	if (err) {
+		throw err;
+	}
+});
 let other = {
 	lastReboot   : {},
 	imageSize    : 1024,
@@ -14,31 +20,25 @@ let other = {
 	servers      : [],
 	map          : []
 };
-console.log(require(`./other.json`));
 fs.writeFile(`other.json`,  JSON.stringify(other), function (err) {
 	if (err) {
 		throw err;
 	}
 	console.log(`created other.json`);
 });
-console.log(`2 ${require(`./other.json`)}`);
 fs.writeFile(`accounts.json`, JSON.stringify({accounts:[]}), function (err) {
 	if (err) {
 		throw err;
 	}
 	console.log(`created accounts.json`);
 });
-console.log(`3 ${require(`./other.json`)}`);
 fs.writeFile(`factions.json`, JSON.stringify({factions:[]}), function (err) {
 	if (err) {
 		throw err;
 	}
 	console.log(`created factions.json`);
 });
-console.log(`4 ${require(`./other.json`)}`);
-if(require(`./other.json`).map == undefined){
-	throw `Error: ${require(`./other.json`)}`;
-}
+
 const otherJson = require(`./other.json`);
 let universalPrefix = otherJson.uniPre;
 const Discord = require(`discord.js`);
