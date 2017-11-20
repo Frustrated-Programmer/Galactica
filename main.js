@@ -3229,7 +3229,7 @@ let commands = [
 				require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
 				console.log("Sent reboot message | Saved reboot message | Destroying client");
 				client.destroy().then(function () {
-					log("Destroyed Client | Exiting");
+					console.log("Destroyed Client | Exiting");
 					process.exit();
 				});
 			});
