@@ -9,7 +9,7 @@ fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
 		throw err;
 	}
 });
-let other = {
+let otherJson = {
 	lastReboot   : {},
 	imageSize    : 1024,
 	uniPre       : `-`,
@@ -39,7 +39,7 @@ fs.writeFile(`factions.json`, JSON.stringify({factions:[]}), function (err) {
 	console.log(`created factions.json`);
 });
 
-const otherJson = require(`./other.json`);
+//const otherJson = require(`./other.json`);
 let universalPrefix = otherJson.uniPre;
 const Discord = require(`discord.js`);
 const client = new Discord.Client();
