@@ -1,5 +1,4 @@
 /**setup**/
-//process.exit();
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
 let factions = [], servers = [], accounts = [];
@@ -20,7 +19,6 @@ fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
 		throw err;
 	}
 });
-saveJSON(true);
 
 let otherJson = require(`./other.json`);
 let universalPrefix = otherJson.uniPre;
@@ -1442,54 +1440,26 @@ let commands = [
 		}
 	},
 	{
-		names      : [`version`, `v`],
-		description: `get the galactica's current version`,
-		usage      : `version`,
+		names      : [`botInfo`, `bot`,`ping`,`pong`,`version`],
+		description: `get the bots info!`,
+		usage      : `botInfo`,
 		values     : [],
-		examples   : [`version`],
-		tags       : [`help`, `info`],
-		conditions : [{cond: channelChecks.isAllowed}],
-		effect     : function (message, args, account, prefix, msg) {
-			sendBasicEmbed({
-				content: `Galactica's current version is \`${version}\`.`,
-				color  : colors.purple,
-				channel: message.channel
-			})
-		}
-	},
-	{
-		names      : [`upTime`, `timeUp`, `time`],
-		description: `get how long the bot's been online`,
-		usage      : `upTime`,
-		values     : [],
-		examples   : [`upTime`],
-		tags       : [`help`, `info`],
-		conditions : [{cond: channelChecks.isAllowed}],
-		effect     : function (message, args, account, prefix, msg) {
-			sendBasicEmbed({
-				content: `The bot has been up for ${getTimeRemaining(Date.now() - upTime)}`,
-				color  : colors.purple,
-				channel: message.channel
-			})
-		}
-	},
-	{
-		names      : [`ping`, `pong`, `🏓`, `:ping_pong:`],
-		description: `ping the bot and get the response time`,
-		usage      : `ping`,
-		values     : [],
-		examples   : [`ping`],
+		examples   : [``],
 		tags       : [`help`, `info`],
 		conditions : [{cond: channelChecks.isAllowed}],
 		effect     : function (message, args, account, prefix, msg) {
 			let storedTimeForPingCommand = Date.now();
 			let embed = new Discord.RichEmbed()
 				.setColor(colors.purple)
-				.setDescription(`Response Time: \`Loading...\``);
+				.setDescription(`\`Loading Ping Time...\``);
 			message.channel.send({embed}).then(function (m) {
-				embed.setDescription(`Response time: \`${(Date.now() - storedTimeForPingCommand)}\` ms`);
+				embed.setTitle(`Galactic`);
+				embed.setDescription(`Galactica is a bot owned by FrustratedProgrammer`);
+				embed.addField(`Ping Time`,`Response time: \`${(Date.now() - storedTimeForPingCommand)}\` ms`,true);
+				embed.addField(`Version`,`Galactica's current version is \`${version}\`.`,true);
+				embed.addField(`Uptime`,`The bot has been up for ${getTimeRemaining(Date.now() - upTime)}`,true);
 				m.edit({embed});
-			})
+			});
 		}
 	},
 	{
