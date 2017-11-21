@@ -2775,7 +2775,7 @@ let commands = [
 					.setColor(colors.pink)
 					.setTitle(`Current Collection`);
 				if (!max) {
-					embed.setDescription(`You have waited `${amount * 5}` minutes so your collection is multiplied by \`${amount}\``);
+					embed.setDescription(`You have waited \`${amount * 5}\` minutes so your collection is multiplied by \`${amount}\``);
 				}
 				else {
 					embed.setDescription(`You have waited ${oldAmount * 5} minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to ${getTimeRemaining(timesTakes.collectionMax)}  worth of resources`);
@@ -3410,7 +3410,7 @@ let commands = [
 				let text = `\`\`\`css\n`;
 				for (let i = 0; i < ids.length; i++) {
 					let guild = client.guilds.get(servs.serverID);
-					text += spacing(`${guild.name} | ${guild.owner}`, ``${guild.id}\n``, 40);
+					text += spacing(`${guild.name} | ${guild.owner}`, `\`${guild.id}\`\n`, 40);
 				}
 				message.channel.send(`${text}\`\`\``);
 			}
