@@ -30,9 +30,107 @@ let version = otherJson.version;
 let upTime = 0;
 let map = otherJson.map;
 let waitTimes = otherJson.waitTimes, confirmations = otherJson.confirmations;
-let everySecond = false;
+let everySecond = false,checkerInterval = false;
+let checked = 0;
 
 /**functions**/
+function checkerFunction() {
+	let servs = client.guilds.id;
+	for(let i =0;i<servs.length;i++){
+		if(server.findServer(servs[i].id)===false){
+			let theServer = new server({serverID:servs[i].id});
+		}
+	}
+	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
+	fs.readFile("./galactica.log", "utf8", function (err, data) {
+		if (err) {
+			throw  err;
+		}
+		let words = data.split(" ");
+		if (words.length >= 5000) {
+			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
+				if (err) {
+					throw err
+				}
+				console.log("Refreshed due to amount of logs.");
+			});
+		}
+	});
+
+	let accounts = Account.getAccounts();
+	for (let i = 0; i < accounts.length; i++) {
+		let player = Account.findFromId(accounts[i].userID);
+		let rankLevel = 0;
+		for (let j = 0; j < ranks.list.length; j++) {
+			if (player["power"] >= ranks.list[j]) {
+				rankLevel = j;
+			}
+		}
+		if (player.rank !== ranks.names[rankLevel]) {
+			let promo = "demoted";
+			player.rank = ranks.names[rankLevel];
+			for (let j = 0; j < ranks.names.length; j++) {
+				if (ranks.names[j] === player.rank) {
+					console.log(j,ranks.names,rankLevel,player.name);
+					if (j >= rankLevel) {
+						promo = "promoted";
+					}
+				}
+			}
+			let embed = new Discord.RichEmbed()
+				.setDescription(`You've been ${promo} to ${ranks.names[rankLevel]}\nYou now gain ${YourRank.dom} ${resources[`credits`].emoji} credits in the dominate zone every \`10\` minutes in it\nYou lose ${YourRank.safe} ${resources[`credits`].emoji} credits in the safe zone every \`10\` minutes in it\nYou can now only be in the Galaxies \`${YourRank.min}\` - \`${YourRank.max}\``)
+				.setColor(promo === `demoted` ? embedColors.red : embedColors.green);
+			player.send({embed});
+		}
+	}
+	console.log(`logging client.status: ${client.status}`);
+	if (client.status > 1 || checked >= 1) {
+		console.log(`rebooted`);
+		process.exit();
+	}
+	checked++;
+	for (let i = 0; i < accountData.names.length; i++) {
+		let player = accountData[accountData.names[i]];
+		let rank = null;
+		for (let j = 0; j < ranks.names.length; j++) {
+			if (ranks.names[j].toLowerCase() === player.rank.toLowerCase()) {
+				rank = ranks[ranks.names[j]]
+			}
+		}
+		if(rank === null) {
+			console.log(`Rank was null`);
+			return;
+		}
+		if (player.isDominating) {
+			let amo = 0;
+			switch (player[`Domination Kingdoms`]) {
+				case 1:
+					amo = Math.floor(rank.dom / 5);
+					break;
+				case 2:
+					amo = Math.floor(rank.dom / 3);
+					break;
+				case 3:
+					amo = Math.floor(rank.dom / 3) * 2;
+					break;
+				case 4:
+					amo = rank.dom;
+					break;
+			}
+			player[`credits`] += rank.dom + amo;
+		}
+		else if (player.isInSafeZone) {
+			player[`credits`] -= rank.safe;
+		}
+		if (player[`credits`] < 0) {
+			player[`credits`] = 0;
+			let embed = new Discord.RichEmbed()
+				.setDescription(`You were removed from the SafeZone due to having Insufficient Funds\nIt costs \`${rank.safe}\` ${resources["credits"]} credits every 10 minutes to stay in the safe zone.`)
+				.setColor(embedColors.red);
+			player.send({embed});
+		}
+	}
+}
 function checkGP(station, level, ID) {
 	let acc = Account.findFromId(ID);
 	let GP = acc["Gravitic Purification"];
@@ -1129,6 +1227,9 @@ server.getServers = function () {
 };
 server.addServer = function (serv) {
 	servers[serv.serverID] = serv;
+};
+server.delete = function(ID){
+	delete servers[ID];
 };
 server.prototype.changeItem = function (item, newVal) {
 	this[item] = newVal;
@@ -3567,6 +3668,8 @@ let commands = [
 ];
 
 client.on("ready", function () {
+	checkerFunction();
+	checkerInterval = setInterval(checkerFunction,600000);
 	powerEmoji = client.guilds.get("354670066480054272").emojis.find("name", "Fist");
 	resources["power"].emoji = powerEmoji.toString();
 	upTime = Date.now();
@@ -3589,7 +3692,7 @@ client.on("ready", function () {
 		}
 
 	}
-
+	everySecond = setInterval(everySecondFun,1000);
 });
 client.on("message", function (message) {
 	if (message.author.bot) {
@@ -3651,6 +3754,7 @@ client.on("message", function (message) {
 								commands[i].effect(message, args, Account.findFromId(message.author.id), prefix, msg);
 								console.log(`ran: `, command);
 								saveJSON();
+								checked = 0;
 								return;
 							}
 							else {
