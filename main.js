@@ -42,17 +42,17 @@ function checkerFunction() {
 		}
 	}
 	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
-	fs.readFile("./galactica.log", "utf8", function (err, data) {
+	fs.readFile(`./galactica.log`, `utf8`, function (err, data) {
 		if (err) {
 			throw  err;
 		}
-		let words = data.split(" ");
+		let words = data.split(` `);
 		if (words.length >= 5000) {
-			fs.writeFile("./galactica.log", "Cleared Logs!\n", function (err) {
+			fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
 				if (err) {
 					throw err
 				}
-				console.log("Refreshed due to amount of logs.");
+				console.log(`Refreshed due to amount of logs.`);
 			});
 		}
 	});
@@ -62,18 +62,18 @@ function checkerFunction() {
 		let player = Account.findFromId(accounts[i].userID);
 		let rankLevel = 0;
 		for (let j = 0; j < ranks.list.length; j++) {
-			if (player["power"] >= ranks.list[j]) {
+			if (player[`power`] >= ranks.list[j]) {
 				rankLevel = j;
 			}
 		}
 		if (player.rank !== ranks.names[rankLevel]) {
-			let promo = "demoted";
+			let promo = `demoted`;
 			player.rank = ranks.names[rankLevel];
 			for (let j = 0; j < ranks.names.length; j++) {
 				if (ranks.names[j] === player.rank) {
 					console.log(j,ranks.names,rankLevel,player.name);
 					if (j >= rankLevel) {
-						promo = "promoted";
+						promo = `promoted`;
 					}
 				}
 			}
@@ -125,7 +125,7 @@ function checkerFunction() {
 		if (player[`credits`] < 0) {
 			player[`credits`] = 0;
 			let embed = new Discord.RichEmbed()
-				.setDescription(`You were removed from the SafeZone due to having Insufficient Funds\nIt costs \`${rank.safe}\` ${resources["credits"]} credits every 10 minutes to stay in the safe zone.`)
+				.setDescription(`You were removed from the SafeZone due to having Insufficient Funds\nIt costs \`${rank.safe}\` ${resources[`credits`]} credits every 10 minutes to stay in the safe zone.`)
 				.setColor(embedColors.red);
 			player.send({embed});
 		}
@@ -133,7 +133,7 @@ function checkerFunction() {
 }
 function checkGP(station, level, ID) {
 	let acc = Account.findFromId(ID);
-	let GP = acc["Gravitic Purification"];
+	let GP = acc[`Gravitic Purification`];
 	let unlocks = {
 		"Refining Station"             : 0,
 		"Mining Station"               : 0,
@@ -1195,7 +1195,7 @@ Account.prototype.remove = function () {
 	require(`./accounts.json`).accounts.splice(i, 1);
 };
 Account.prototype.send = function (message) {
-	if (typeof this.user === "boolean") {
+	if (typeof this.user === `boolean`) {
 		client.fetchUser(this.userID).then(function (user) {
 			user.send(message);
 			this.user = user;
@@ -1838,7 +1838,7 @@ let commands = [
 		}
 	},
 	{
-		names      : [`lookAround`, "look"],
+		names      : [`lookAround`, `look`],
 		description: `look at the current spot in more detail`,
 		usage      : `lookAround`,
 		values     : [],
@@ -1889,7 +1889,7 @@ let commands = [
 				.setColor(colors.blue)
 				.setTitle(`Your current location:`)
 				.setDescription(`Galaxy: \`${pos[0] + 1}\` Position: \`${pos[2] + 1}x${pos[1] + 1}\``)
-				.addField(`Item`, `You are on a ${type}\n${loc.item.toLowerCase() !== `safezone` && loc.item.toLowerCase() !== `dominatezone` ? occupied ? `Owned by ${Account.findFromId(loc.ownersID).username}` : `You can place a ${loc.item.toLowerCase() === `planet` ? `Colony` : `Station`} here.` : " "}`);
+				.addField(`Item`, `You are on a ${type}\n${loc.item.toLowerCase() !== `safezone` && loc.item.toLowerCase() !== `dominatezone` ? occupied ? `Owned by ${Account.findFromId(loc.ownersID).username}` : `You can place a ${loc.item.toLowerCase() === `planet` ? `Colony` : `Station`} here.` : ` `}`);
 			if (loc.item.toLowerCase() === `planet` || loc.item.toLowerCase() === `colony`) {
 				let Bonuses = ``;
 				let Rates = ``;
@@ -1968,27 +1968,27 @@ let commands = [
 				}
 			}
 			if (otherPlayers.length) {
-				let txt = "ID|NAME---|FACTION|HP|\n```css\n";
+				let txt = `ID|NAME---|FACTION|HP|\n\`\`\`css\n`;
 				for (let i = 0; i < otherPlayers.length; i++) {
 					let name = getValidName(otherPlayers[i].username, 10);
-					let spaceFaction = "";
+					let spaceFaction = ``;
 					if (otherPlayers[i].faction !== null) {
 						for (let j = 0; j < 10 - otherPlayers[i].faction.length; j++) {
-							spaceFaction += " ";
+							spaceFaction += ` `;
 						}
-						spaceFaction += otherPlayers.faction + "|"
+						spaceFaction += `${otherPlayers.faction}|`
 					}
 					else {
-						spaceFaction = "None Yet  |";
+						spaceFaction = `None Yet  |`;
 					}
-					let space = "";
+					let space = ``;
 					if (i + 1 < 10) {
-						space += " ";
+						space += ` `;
 					}
-					txt += "[" + otherPlayers[i].id + space + "]|" + name + "|" + spaceFaction + otherPlayers[i].health + "|\n";
+					txt += `[${otherPlayers[i].id}${space}]|${name}|${spaceFaction}${otherPlayers[i].health}|\n`;
 				}
 				if (safe) {
-					embed.addField("Players", txt + "```\nAttack a player via `attackPlayer [ID]`");
+					embed.addField(`Players`, `${txt}\`\`\`\nAttack a player via \`${prefix}attackPlayer [ID]\``);
 				}
 			}
 			message.channel.send({embed});
@@ -2325,7 +2325,7 @@ let commands = [
 					for (let i = 0; i < researches.names.length; i++) {
 						let item = researches[researches.names[i]];
 						let level = account[researches.names[i]] || 0;
-						txt += spacing(`[${i + 1}] ${researches.names[i]}`, `${item.costs[level]} ${resources["research"].emoji}\n`, 40);
+						txt += spacing(`[${i + 1}] ${researches.names[i]}`, `${item.costs[level]} ${resources[`research`].emoji}\n`, 40);
 					}
 					txt += `\`\`\``;
 					embed.setDescription(txt);
@@ -2475,17 +2475,17 @@ let commands = [
 				waitTimes.push({
 					playerID: account.userID,
 					expires : Date.now() + (100 - account.health) * 60000,
-					type    : "heal"
+					type    : `heal`
 				});
 				sendBasicEmbed({
-					content: "Healing started. will take\n" + getTimeRemaining((100 - account.health) * 60000),
+					content: `Healing started. will take\n${getTimeRemaining((100 - account.health) * 60000)}`,
 					color  : colors.blue,
 					channel: message.channel
 				})
 			}
 			else {
 				sendBasicEmbed({
-					content: "You are at full health already.",
+					content: `You are at full health already.`,
 					color  : colors.red,
 					channel: message.channel
 				})
@@ -2570,9 +2570,9 @@ let commands = [
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let canContinue = true;
-			if (account.stations.length === 0 && account.colonies.length) {
+			if (account.stations.length === 0 && account.colonies.length === 0) {
 				sendBasicEmbed({
-					content: "You currently don't have any \`Colonies\` or \`Stations\`",
+					content: `You currently don't have any \`Colonies\` or \`Stations\``,
 					channel: message.channel,
 					color  : colors.red
 				});
@@ -2580,7 +2580,7 @@ let commands = [
 			}
 			if (account.lastCollection + timesTakes.collectionRate > Date.now()) {
 				sendBasicEmbed({
-					content: "You can only collect once every " + getTimeRemaining(timesTakes.collectionRate) + "\nYou currently need to wait:\n" + getTimeRemaining((account.lastCollection + (60000 * 5)) - Date.now()),
+					content: `You can only collect once every ${getTimeRemaining(timesTakes.collectionRate)}\nYou currently need to wait:\`${getTimeRemaining((account.lastCollection + (60000 * 5)) - Date.now()}`,
 					channel: message.channel,
 					color  : colors.red
 				});
@@ -2590,7 +2590,7 @@ let commands = [
 				let max = false;
 				let amount = Math.round((Date.now() - account.lastCollection) / timesTakes.collectionRate);//multiplied amount 5 minutes is normal(1) and 10 is doubled(2) (ETC)
 				let oldAmount = null;
-				let maxAmount = Math.round(((account["Super Resource Containers"] * 10) / amount) * 100);
+				let maxAmount = Math.round(((account[`Super Resource Containers`] * 10) / amount) * 100);
 				if (amount + maxAmount > timesTakes.collectionMax / 60000) {
 					max = true;
 					oldAmount = amount;
@@ -2627,7 +2627,7 @@ let commands = [
 						}
 					}
 					for (let j = 0; j < station.gives[account.stations[i].level].length; j++) {
-						let stuff = station.gives[account.stations[i].level][j].split(" ");
+						let stuff = station.gives[account.stations[i].level][j].split(` `);
 
 						if (parseInt(stuff[1], 10) < 0) {
 							if (account[stuff[0]] + parseInt(stuff[1], 10) * amount < 0 || account[stuff[0]] - parseInt(stuff[1], 10) * amount < 0) {
@@ -2641,9 +2641,9 @@ let commands = [
 						bonusResourcesPlanet[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (planetBonus / 100) * amount);
 						account[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (planetBonus / 100) * amount);
 
-						if (stuff[0] === "steel" || stuff[0] === "titanium" || stuff[0] === "carbon" || stuff[0] === "neutronium") {
-							bonusResourcesResearch[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (account["Inductive Isolation Methods"] / 100) * amount);
-							account[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (account["Inductive Isolation Methods"] / 100) * amount);
+						if (stuff[0] === `steel` || stuff[0] === `titanium` || stuff[0] === `carbon` || stuff[0] === `neutronium`) {
+							bonusResourcesResearch[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (account[`Inductive Isolation Methods`] / 100) * amount);
+							account[stuff[0]] += Math.round(parseInt(stuff[1], 10) * (account[`Inductive Isolation Methods`] / 100) * amount);
 						}
 					}
 				}
@@ -2653,29 +2653,29 @@ let commands = [
 					let amoPpl = 1 + Math.round(amount / 2 - 0.1);
 					if (colony.people + amoPpl < colony.maxPeople) {
 						account.colonies[i].people += amoPpl;
-						colonyResources["people"] += amoPpl;
+						colonyResources[`people`] += amoPpl;
 					}
 					else {
-						colonyResources["people"] += colony.maxPeople - colony.people;
+						colonyResources[`people`] += colony.maxPeople - colony.people;
 						account.colonies[i].people = colony.maxPeople;
 					}
 					for (let j = 0; j < planet.generatesRates.length; j++) {
-						let stuff = planet.generatesRates[j].split(" ");
-						if (stuff[0] === "people") {
+						let stuff = planet.generatesRates[j].split(` `);
+						if (stuff[0] === `people`) {
 							let extra = Math.round(parseInt(stuff[1], 10) * (amoPpl / 100)) * amount;
 							if (extra > 0) {
 								if (colony.people + extra < colony.maxPeople) {
 									account.colonies[i].people += extra;
-									colonyResources["people"] += extra;
+									colonyResources[`people`] += extra;
 								}
 								else {
-									colonyResources["people"] += colony.maxPeople - colony.people;
+									colonyResources[`people`] += colony.maxPeople - colony.people;
 									account.colonies[i].people = colony.maxPeople;
 								}
 							}
 						}
 						else {
-							if (stuff[2] === "perPerson") {
+							if (stuff[2] === `perPerson`) {
 								let amoItems = Math.round(colony.people / parseInt(stuff[3], 10));
 								account[stuff[0]] += amoItems;
 								colonyResources += amoItems;
@@ -2685,11 +2685,11 @@ let commands = [
 
 					if (colony.people < colony.inhabitedMax) {
 						if (colony.people + amount < colony.inhabitedMax) {
-							colonyResources["people"] += amount;
+							colonyResources[`people`] += amount;
 							account.colonies[i].people += amount;
 						}
 						else {
-							colonyResources["people"] += colony.inhabitedMax - colony.people;
+							colonyResources[`people`] += colony.inhabitedMax - colony.people;
 							account.colonies[i].people = colony.inhabitedMax;
 						}
 
@@ -2700,72 +2700,72 @@ let commands = [
 				let longestSpace = [0, 0, 0, 0];
 				for (let i = 0; i < resources.names.length - 1; i++) {
 					if (gainedResources[resources.names[i]] != null) {
-						if (("" + gainedResources[resources.names[i]]).length > longestSpace[0]) {
-							longestSpace[0] = ("" + gainedResources[resources.names[i]]).length;
+						if ((`${gainedResources[resources.names[i]]}`).length > longestSpace[0]) {
+							longestSpace[0] = (`${gainedResources[resources.names[i]]}`).length;
 						}
 					}
 					if (bonusResourcesPlanet[resources.names[i]] != null) {
-						if (("" + bonusResourcesPlanet[resources.names[i]]).length > longestSpace[1]) {
-							longestSpace[1] = ("" + bonusResourcesPlanet[resources.names[i]]).length;
+						if ((`` + bonusResourcesPlanet[resources.names[i]]).length > longestSpace[1]) {
+							longestSpace[1] = (`${bonusResourcesPlanet[resources.names[i]]}`).length;
 						}
 					}
 
 					if (bonusResourcesResearch[resources.names[i]] != null) {
-						if (("" + bonusResourcesResearch[resources.names[i]]).length > longestSpace[2]) {
-							longestSpace[2] = ("" + bonusResourcesResearch[resources.names[i]]).length;
+						if ((`${bonusResourcesResearch[resources.names[i]]}`).length > longestSpace[2]) {
+							longestSpace[2] = (`${bonusResourcesResearch[resources.names[i]]}`).length;
 						}
 					}
 					if (colonyResources[resources.names[i]] != null) {
-						if (("" + colonyResources[resources.names[i]]).length > longestSpace[3]) {
-							longestSpace[3] = ("" + colonyResources[resources.names[i]]).length;
+						if ((`${colonyResources[resources.names[i]]}`).length > longestSpace[3]) {
+							longestSpace[3] = (`${colonyResources[resources.names[i]]}`).length;
 						}
 					}
 				}
 
 				/**Create the gained resources text**/
-				let normalResourcesText = "Nothing...";
-				let bonusResourceTextFromResearch = "";
-				let bonusResourceTextFromPlanets = "";
-				let resourcesFromColonyText = "";
+				let normalResourcesText = `Nothing...`;
+				let bonusResourceTextFromResearch = ``;
+				let bonusResourceTextFromPlanets = ``;
+				let resourcesFromColonyText = ``;
 				for (let i = 0; i < resources.names.length - 1; i++) {
 					if (gainedResources[resources.names[i]] != null) {
-						let space = "";
+						let space = ``;
 						if (gainedResources[resources.names[i]] > 0) {
-							if (normalResourcesText === "Nothing...") {
-								normalResourcesText = "";
+							if (normalResourcesText === `Nothing...`) {
+								normalResourcesText = ``;
 							}
-							for (let j = 0; j < longestSpace[0] - ("" + gainedResources[resources.names[i]]).length; j++) {
-								space += " "
+							for (let j = 0; j < longestSpace[0] - (`${gainedResources[resources.names[i]]}`).length; j++) {
+								space += ` `
 							}
-							normalResourcesText += gainedResources[resources.names[i]] + space + " | " + resources[resources.names[i]].emoji + " " + resources.names[i] + "\n";
+							normalResourcesText += `${gainedResources[resources.names[i]]}${space} | ${resources[resources.names[i]].emoji} ${resources.names[i]}\n`;
 						}
 					}
 					if (bonusResourcesPlanet[resources.names[i]] != null) {
-						let space = "";
+						let space = ``;
 						if (bonusResourcesPlanet[resources.names[i]] > 0) {
-							for (let j = 0; j < longestSpace[1] - ("" + bonusResourcesPlanet[resources.names[i]]).length; j++) {
-								space += " "
+							for (let j = 0; j < longestSpace[1] - (`${bonusResourcesPlanet[resources.names[i]]}`).length; j++) {
+								space += ` `
 							}
 
-							bonusResourceTextFromPlanets += bonusResourcesPlanet[resources.names[i].toLowerCase()] + space + " | " + resources[resources.names[i]].emoji + " " + resources.names[i] + "\n";
+							bonusResourceTextFromPlanets += `${bonusResourcesPlanet[resources.names[i].toLowerCase()]}${space} | ${resources[resources.names[i]].emoji} ${resources.names[i]}\n`;
 						}
 					}
 					if (bonusResourcesResearch[resources.names[i]] != null) {
-						let space = "";
+						let space = ``;
 						if (bonusResourcesResearch[resources.names[i]] > 0) {
-							for (let j = 0; j < longestSpace[2] - ("" + bonusResourcesResearch[resources.names[i]]).length; j++) {
-								space += " "
+							for (let j = 0; j < longestSpace[2] - (`${bonusResourcesResearch[resources.names[i]]}`).length; j++) {
+								space += ` `
 							}
-							bonusResourceTextFromResearch += bonusResourcesResearch[resources.names[i]] + space + " | " + resources[resources.names[i]].emoji + " " + resources.names[i] + "\n";
+							bonusResourceTextFromResearch += `${bonusResourcesResearch[resources.names[i]]}${space} | ${resources[resources.names[i]].emoji} ${resources.names[i]}\n`;
 						}
 					}
 					if (colonyResources[resources.names[i]] != null) {
-						let space = "";
+						let space = ``;
 						if (colonyResources[resources.names[i]] > 0) {
-							for (let j = 0; j < longestSpace[3] - ("" + colonyResources[resources.names[i]]).length; j++) {
-								space += " "
+							for (let j = 0; j < longestSpace[3] - (`${colonyResources[resources.names[i]]}`).length; j++) {
+								space += ` `
 							}
-							resourcesFromColonyText += colonyResources[resources.names[i]] + space + " | " + resources[resources.names[i]].emoji + " " + resources.names[i] + "\n";
+							resourcesFromColonyText += `${colonyResources[resources.names[i]]}${space} | ${resources[resources.names[i]].emoji} ${resources.names[i]}\n`;
 						}
 					}
 				}
@@ -2773,23 +2773,23 @@ let commands = [
 				//send the embed
 				let embed = new Discord.RichEmbed()
 					.setColor(colors.pink)
-					.setTitle("Current Collection");
+					.setTitle(`Current Collection`);
 				if (!max) {
-					embed.setDescription("You have waited " + (amount * 5) + " minutes so your collection is multiplied by `" + amount + "`")
+					embed.setDescription(`You have waited `${amount * 5}` minutes so your collection is multiplied by \`${amount}\``);
 				}
 				else {
-					embed.setDescription("You have waited " + (oldAmount * 5) + " minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to " + getTimeRemaining(timesTakes.collectionMax) + "  worth of resources");
+					embed.setDescription(`You have waited ${oldAmount * 5} minutes! \nYour stations had stop collecting resources a while ago as they can only hold up to ${getTimeRemaining(timesTakes.collectionMax)}  worth of resources`);
 				}
-				embed.addField("Normal Resources", normalResourcesText, true);
+				embed.addField(`Normal Resources`, normalResourcesText, true);
 
 				if (bonusResourceTextFromPlanets.length) {
-					embed.addField("Bonus Resources from planets", bonusResourceTextFromPlanets, true);
+					embed.addField(`Bonus Resources from planets`, bonusResourceTextFromPlanets, true);
 				}
 				if (bonusResourceTextFromResearch.length) {
-					embed.addField("Bonus Resources from researches", bonusResourceTextFromResearch, true);
+					embed.addField(`Bonus Resources from researches`, bonusResourceTextFromResearch, true);
 				}
 				if (resourcesFromColonyText.length) {
-					embed.addField("Total colonies populations gains:", resourcesFromColonyText, true);
+					embed.addField(`Total colonies populations gains:`, resourcesFromColonyText, true);
 				}
 
 
@@ -2814,12 +2814,12 @@ let commands = [
 			{cond: channelChecks.isAllowed}
 		],
 		effect     : function (message, args, account, prefix, msg) {
-			let list = "```css\n";
+			let list = `\`\`\`css\n`;
 			for (let i = 0; i < resources.names.length - 1; i++) {
-				list += resources[resources.names[i]].emoji + "  " + resources.names[i] + "\n"
+				list += `${resources[resources.names[i]].emoji}  ${resources.names[i]}\n`;
 			}
 			sendBasicEmbed({
-				content: "Resources List\n" + list + "```",
+				content: `Resources List\n${list}\`\`\``,
 				color  : colors.purple,
 				channel: message.channel
 			})
@@ -2877,7 +2877,7 @@ let commands = [
 								embed.addField(`FREE COLONY`, `As this is your first station. Your colony is free of charge`);
 							}
 							else {
-								embed.addField(`LOST RESOURCES`, `${Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax / 10)} ${resources["food"].emoji} food`);
+								embed.addField(`LOST RESOURCES`, `${Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax / 10)} ${resources[`food`].emoji} food`);
 								account.addItem(`food`, (0 - Math.round(planets[map[loc[0]][loc[1]][loc[2]].type].inhabitedMax / 10)))
 							}
 						}
@@ -2891,7 +2891,7 @@ let commands = [
 				}
 			}
 			else {
-				embed.setDescription("You are not on a planet.");
+				embed.setDescription(`You are not on a planet.`);
 			}
 			message.channel.send({embed});
 		}
@@ -2909,26 +2909,25 @@ let commands = [
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let colonies = account.colonies;
-			let txt = "```css\n";
+			let txt = `\`\`\`css\n`;
 			for (let i = 0; i < colonies.length; i++) {
-				let space = "";
+				let space = ``;
 				if (colonies[i].people < 100) {
-					space += " ";
+					space += ` `;
 					if (colonies.people < 10) {
-						space += " "
+						space += ` `
 					}
 				}
-				txt += spacing("[" + (i + 1) + "] " + colonies[i].people + space + " | " + colonies[i].type, "Galaxy: " + (colonies[i].location[0] + 1) + "  Position:" + (colonies[i].location[2] + 1) + " x " + (colonies[i].location[1] + 1), 50);
-				txt += "\n";
+				txt += spacing(`[${i + 1}] ${colonies[i].people}${space} | ${colonies[i].type}`, `Galaxy: ${colonies[i].location[0] + 1} Position: ${colonies[i].location[2]+ 1} x ${colonies[i].location[1] + 1}`, 50);
+				txt += `\n`;
 			}
-			txt += "```";
 			if (!colonies.length) {
-				txt = "You currently don't have any colonies";
+				txt = `You currently don't have any colonies`;
 			}
 			let embed = new Discord.RichEmbed()
 				.setColor(colors.pink)
-				.setTitle("[ID]-PEOPLE--NAME-------------------LOCATION")
-				.setDescription(txt);
+				.setTitle(`[ID]-PEOPLE--NAME-------------------LOCATION`)
+				.setDescription(`${txt}\`\`\``);
 			message.channel.send({embed});
 		}
 	},
@@ -3000,7 +2999,7 @@ let commands = [
 						else if (number === null && !newArgs.length) {
 							number = false;
 							embed.setColor(colors.red)
-								.setDescription("Invalid Usage\nNeed to include a station ID or NAME");
+								.setDescription(`Invalid Usage\nNeed to include a station ID or NAME`);
 						}
 					}
 					if (typeof number === `number`) {
@@ -3061,7 +3060,7 @@ let commands = [
 			else {
 				for (let i = 0; i < stations.length; i++) {
 					txt += spacing(`[${stations[i].level + 1}] ${stations[i].type}`, `Galaxy: ${stations[i].location[0] + 1}  Position:${stations[i].location[2] + 1} x ${stations[i].location[1] + 1}`, 50);
-					txt += "\n";
+					txt += `\n`;
 				}
 			}
 			let embed = new Discord.RichEmbed()
@@ -3147,7 +3146,7 @@ let commands = [
 								if (freeStation) {
 									break;
 								}
-								let costStuff = station.costs[0][i].split(" ");
+								let costStuff = station.costs[0][i].split(` `);
 								account[costStuff[0]] -= costStuff[1];
 								lostResources += `${costStuff[0]} ${resources[costStuff[0]].emoji} ${costStuff[1]}\n`;
 							}
@@ -3213,7 +3212,7 @@ let commands = [
 
 			if (whichStation == null) {
 				sendBasicEmbed({
-					content: "Something went wrong.\n**Either:**\n1. You do not own the station here\n2. A station doesn't exist here",
+					content: `Something went wrong.\n**Either:**\n1. You do not own the station here\n2. A station doesn't exist here`,
 					color  : colors.red,
 					channel: message.channel
 				})
@@ -3229,7 +3228,7 @@ let commands = [
 						}
 						else {
 							sendBasicEmbed({
-								content: "You've maxed this upgrade",
+								content: `You've maxed this upgrade`,
 								color  : colors.pink,
 								channel: message.channel
 							});
@@ -3237,7 +3236,7 @@ let commands = [
 						}
 					}
 					for (let i = 0; i < station.costs[level].length; i++) {
-						let costsStuff = station.costs[level][i].split(" ");
+						let costsStuff = station.costs[level][i].split(` `);
 						if (account[costsStuff[0]] < parseInt(costsStuff[1], 10)) {
 							hasEnough = false;
 							missingItems.push([(parseInt(costsStuff[1], 10) - account[costsStuff[0]]), costsStuff[0]]);
@@ -3245,16 +3244,16 @@ let commands = [
 					}
 					if (hasEnough) {
 						account.stations[whichStation].level++;
-						let lostResources = "";
+						let lostResources = ``;
 						for (let i = 0; i < station.costs[level].length; i++) {
-							let costStuff = station.costs[level][i].split(" ");
+							let costStuff = station.costs[level][i].split(` `);
 							account[costStuff[0]] -= costStuff[1];
-							lostResources += costStuff[0] + " " + resources[costStuff[0]].emoji + " " + costStuff[1] + "\n";
+							lostResources += `${costStuff[0]} ${resources[costStuff[0]].emoji} ${costStuff[1]}\n`;
 						}
 						let embed = new Discord.RichEmbed()
-							.setDescription("Successfully upgraded " + stationToUpgrade.type + "\n")
+							.setDescription(`Successfully upgraded ${stationToUpgrade.type}\n`)
 							.setColor(colors.pink)
-							.addField("Lost Resources", lostResources);
+							.addField(`Lost Resources`, lostResources);
 						message.channel.send({embed});
 						if (station.costs.length < level) {
 							account.stations[whichStation].type = station.name;
@@ -3262,13 +3261,13 @@ let commands = [
 						}
 					}
 					else {
-						let missingResources = "";
+						let missingResources = ``;
 						for (let i = 0; i < missingItems.length; i++) {
-							missingResources += missingItems[i][0] + " " + resources[missingItems[i][1]].emoji + " " + missingItems[i][1] + "\n"
+							missingResources += `${missingItems[i][0]} ${resources[missingItems[i][1]].emoji} ${missingItems[i][1]}\n`;
 						}
 						let embed = new Discord.RichEmbed()
 							.setColor(colors.red)
-							.setTitle("Missing Resources")
+							.setTitle(`Missing Resources`)
 							.setDescription(missingResources);
 						message.channel.send({embed});
 
@@ -3323,18 +3322,18 @@ let commands = [
 		effect     : function (message, args, account, prefix, msg) {
 			let embed = new Discord.RichEmbed()
 				.setColor(colors.purple)
-				.setDescription("Rebooting bot now");
-			console.log("Rebooting Process started | Sending Message");
+				.setDescription(`Rebooting bot now`);
+			console.log(`Rebooting Process started | Sending Message`);
 			message.channel.send({embed}).then(function (mess) {
-				require("./other.json").lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
-				console.log("Sent reboot message | Saved reboot message | Destroying client");
+				require(`./other.json`).lastReboot = {id: mess.id, chan: mess.channel.id, time: Date.now()};
+				console.log(`Sent reboot message | Saved reboot message | Destroying client`);
 				client.destroy().then(function () {
-					console.log("Destroyed Client | Exiting");
+					console.log(`Destroyed Client | Exiting`);
 					process.exit();
 				});
 			});
 			setTimeout(function () {
-				console.log("Force-Reboot");
+				console.log(`Force-Reboot`);
 				process.exit();
 			}, 5000);
 		}
@@ -3351,7 +3350,7 @@ let commands = [
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let embed = new Discord.RichEmbed()
-				.setTitle("FrustratedProgrammer has a Announcement")
+				.setTitle(`FrustratedProgrammer has a Announcement`)
 				.setColor(colors.purple)
 				.setDescription(msg);
 			sendBasicEmbed({
@@ -3377,18 +3376,18 @@ let commands = [
 		conditions : [],
 		effect     : function (message, args, account, prefix, msg) {
 			if (args[0]) {
-				let other = require("./other.json");
+				let other = require(`./other.json`);
 				other.version = args[0];
 				version = other.version;
 				sendBasicEmbed({
-					content: "Version is now `" + version + "`",
+					content: `Version is now \`${version}\``,
 					color  : colors.purple,
 					channel: message.channel
 				});
 			}
 			else {
 				sendBasicEmbed({
-					content: "Version cannot be blank",
+					content: `Version cannot be blank`,
 					color  : colors.red,
 					channel: message.channel
 				})
@@ -3408,12 +3407,12 @@ let commands = [
 		effect     : function (message, args, account, prefix, msg) {
 			if (!args.length) {
 				let servs = server.getServers();
-				let text = "```css\n";
+				let text = `\`\`\`css\n`;
 				for (let i = 0; i < ids.length; i++) {
 					let guild = client.guilds.get(servs.serverID);
-					text += spacing(guild.name + " | " + guild.owner, guild.id + "\n", 40);
+					text += spacing(`${guild.name} | ${guild.owner}`, ``${guild.id}\n``, 40);
 				}
-				message.channel.send(text + "```");
+				message.channel.send(`${text}\`\`\``);
 			}
 			else {
 				let nums = getNumbers(msg);
@@ -3424,12 +3423,12 @@ let commands = [
 							.setColor(colors.purple)
 							.setTitle(guild.name)
 							.setThumbnail(guild.icon)
-							.addField("Info", "Owner: " + serv.owner + "\nMembers: " + guild.members.size);
+							.addField(`Info`, `Owner: ${serv.owner}\nMembers: ${guild.members.size}`);
 						message.author.send({embed});
 					}
 					else {
 						sendBasicEmbed({
-							content: "Invalid serverID",
+							content: `Invalid serverID`,
 							color  : colors.red,
 							channel: message.author
 						})
@@ -3456,7 +3455,7 @@ let commands = [
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content, true);
 			if (nums.length === 3) {
-				let other = require("./other.json");
+				let other = require(`./other.json`);
 				other.map = createMap(nums[0], nums[1], nums[2]);
 				let players = Account.getAccounts()
 				for (let i = 0; i < players.length; i++) {
@@ -3470,10 +3469,10 @@ let commands = [
 							acc.stations.splice(j, 1);
 						}
 						else {
-							if (other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "SafeZone" || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "DominateZone") {
+							if (other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== `SafeZone` || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== `DominateZone`) {
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.stations[j].type;
-								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "station";
+								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = `station`;
 							}
 							else {
 								acc.stations.splice(i, 1);
@@ -3486,11 +3485,11 @@ let commands = [
 							acc.colonies.splice(j, 1);
 						}
 						else {
-							if (other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "SafeZone" || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== "DominateZone") {
+							if (other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== `SafeZone` || other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item !== `DominateZone`) {
 
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].ownersID = accountData.names[i];
 								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].type = acc.colonies[j].type;
-								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = "colony";
+								other.map[statsLoc[0]][statsLoc[1]][statsLoc[2]].item = `colony`;
 							}
 							else {
 								acc.colonies.splice(i, 1);
@@ -3669,22 +3668,22 @@ let commands = [
 client.on("ready", function () {
 	checkerFunction();
 	checkerInterval = setInterval(checkerFunction,600000);
-	powerEmoji = client.guilds.get("354670066480054272").emojis.find("name", "Fist");
-	resources["power"].emoji = powerEmoji.toString();
+	powerEmoji = client.guilds.get(`354670066480054272`).emojis.find(`name`, `Fist`);
+	resources[`power`].emoji = powerEmoji.toString();
 	upTime = Date.now();
 	importJSON();
 	console.log(`Galactica | Online`);
 	if (everySecond === false) {
 		everySecond = setInterval(everySecondFun, 1000);
 	}
-	let reboot = require("./other.json").lastReboot;
+	let reboot = require(`./other.json`).lastReboot;
 	if (reboot != null && reboot != {}) {
 		let chan = client.channels.get(reboot.chan);
 		if (chan != null) {
 			chan.fetchMessage(reboot.id).then(function (mess) {
 				let embed = new Discord.RichEmbed()
 					.setColor(colors.green)
-					.setDescription("Rebooted!\n**Time Took:** " + getTimeRemaining(Date.now() - reboot.time));
+					.setDescription(`Rebooted!\n**Time Took:** ${getTimeRemaining(Date.now() - reboot.time)}`);
 				mess.edit({embed});
 				require("./other.json").lastReboot = {};
 			})
