@@ -89,8 +89,8 @@ function checkerFunction() {
 		process.exit();
 	}
 	checked++;
-	for (let i = 0; i < accountData.names.length; i++) {
-		let player = accountData[accountData.names[i]];
+	for (let i = 0; i < accountslength; i++) {
+		let player = Account.findFromId(accounts[i].userID);
 		let rank = null;
 		for (let j = 0; j < ranks.names.length; j++) {
 			if (ranks.names[j].toLowerCase() === player.rank.toLowerCase()) {
