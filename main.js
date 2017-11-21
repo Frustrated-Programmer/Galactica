@@ -89,7 +89,7 @@ function checkerFunction() {
 		process.exit();
 	}
 	checked++;
-	for (let i = 0; i < accountslength; i++) {
+	for (let i = 0; i < accounts.length; i++) {
 		let player = Account.findFromId(accounts[i].userID);
 		let rank = null;
 		for (let j = 0; j < ranks.names.length; j++) {
