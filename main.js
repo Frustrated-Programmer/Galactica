@@ -217,7 +217,6 @@ function isValidText(str) {
 	return true;
 }
 function everySecondFun() {
-	return;
 	if (waitTimes.length) {
 		for (let i = 0; i < waitTimes.length; i++) {
 			if (waitTimes[i].expires <= Date.now()) {
