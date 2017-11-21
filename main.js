@@ -35,7 +35,7 @@ let checked = 0;
 
 /**functions**/
 function checkerFunction() {
-	let servs = client.guilds.id;
+	let servs = client.guilds.array;
 	for(let i =0;i<servs.length;i++){
 		if(server.findServer(servs[i].id)===false){
 			let theServer = new server({serverID:servs[i].id});
