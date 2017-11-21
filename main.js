@@ -2580,7 +2580,7 @@ let commands = [
 			}
 			if (account.lastCollection + timesTakes.collectionRate > Date.now()) {
 				sendBasicEmbed({
-					content: `You can only collect once every ${getTimeRemaining(timesTakes.collectionRate)}\nYou currently need to wait:\`${getTimeRemaining((account.lastCollection + (60000 * 5)) - Date.now()}`,
+					content: `You can only collect once every ${getTimeRemaining(timesTakes.collectionRate)}\nYou currently need to wait:\`${getTimeRemaining((account.lastCollection + (60000 * 5)) - Date.now())}`,
 					channel: message.channel,
 					color  : colors.red
 				});
