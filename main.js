@@ -3384,7 +3384,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: perms.ManageMembers},
+			{cond: Uperms.ManageMembers},
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			if (args[0].length) {
@@ -3441,7 +3441,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: perms.Administrator},
+			{cond: Uperms.Administrator},
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3488,7 +3488,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: perms.Administrator},
+			{cond: Uperms.Administrator},
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3535,7 +3535,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: perms.Administrator},
+			{cond: Uperms.Administrator},
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3589,7 +3589,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: perms.Administrator},
+			{cond: Uperms.Administrator},
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3664,7 +3664,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: perms.Administrator},
+			{cond: Uperms.Administrator},
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
