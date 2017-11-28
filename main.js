@@ -4496,7 +4496,9 @@ client.on(`guildCreate`,function(guild){
 client.on(`ready`, function () {
 	checkerFunction();
 	checkerInterval = setInterval(checkerFunction,600000);
-	powerEmoji = client.guilds.get(`354670066480054272`).emojis.find(`name`, `Fist`);
+	if(client.guild.size>0) {
+		powerEmoji = client.guilds.get(`354670066480054272`).emojis.find(`name`, `Fist`);
+	}
 	resources[`power`].emoji = powerEmoji.toString();
 	upTime = Date.now();
 	importJSON();
