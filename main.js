@@ -29,6 +29,18 @@ let everySecond = false,checkerInterval = false;
 let checked = 0;
 
 /**functions**/
+function channelClear(channel, msgnum) {
+	if (msgnum) {
+		channel.bulkDelete(msgnum, true);
+	}
+	else {
+		channel.bulkDelete(100, true).then(function () {
+			if (channel.lastMessageID) {
+				channelClear(channel);
+			}
+		});
+	}
+}
 function checkPerms(args) {
 	/***ARGS return
 	 * message: the message that got sent
