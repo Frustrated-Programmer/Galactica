@@ -1577,7 +1577,7 @@ let commands = [
 				for (let j = 0; j < commands[i].tags.length; j++) {
 					let addIt = true;
 					for (let q = 0; q < tags.length; q++) {
-						if (tags[q].toLowerCase() === args[0]) {
+						if (tags[q].toLowerCase() === commands[i].tags[j]) {
 							addIt = false;
 							break;
 						}
@@ -1623,7 +1623,19 @@ let commands = [
 						})
 					}
 					else {
-
+						let coms = `Commands with the tag \`${tags[tagNum]}\`\`\`\`css\n`;
+						for(let i =0;i<commands.length;i++){
+							for(let j =0;j<commands[i].tags.length;j++){
+								if(commands[i].tags[j]===tags[tagNum]){
+									coms+=commands[i].names[0];
+								}
+							}
+						}
+						sendBasicEmbed({
+							color:colors.blue,
+							content:coms,
+							channel:message.channel
+						})
 					}
 					break;
 			}
