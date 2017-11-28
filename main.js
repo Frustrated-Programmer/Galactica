@@ -1432,7 +1432,7 @@ const Uperms = {
 	ManageMessages: function (message) {
 		return {val:checkPerms({user:`user`, message:message, perms:`MANAGE_MESSAGES`}),msg: `You are missing \`ManageMessages\` perms`}
 	},
-	Admin: function (message) {
+	Administrator: function (message) {
 		return {val:checkPerms({user:`user`, message:message, perms:`ADMINISTRATOR`}),msg: `You are missing \`Administrator\` perms`}
 	},
 	KickMembers: function (message) {
