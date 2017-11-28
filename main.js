@@ -3,17 +3,7 @@ const Jimp = require(`jimp`);
 const fs = require(`fs`);
 let factions = [], servers = [], accounts = [];
 
-let other = {
-	lastReboot   : {},
-	imageSize    : 1024,
-	uniPre       : `-`,
-	version      : ``,
-	waitTimes    : [],
-	confirmations: [],
-	commandTags  : [],
-	servers      : [],
-	map          : []
-};
+
 
 let otherJson = require(`./other.json`);
 let universalPrefix = otherJson.uniPre;
@@ -395,6 +385,17 @@ function importJSON() {
 	});
 }
 function saveJSON(reboot) {
+	let other = {
+		lastReboot   : {},
+		imageSize    : 1024,
+		uniPre       : universalPrefix,
+		version      : version,
+		waitTimes    : waitTimes,
+		confirmations: confirmations,
+		commandTags  : [],
+		servers      : servers,
+		map          : map
+	};
 	reboot = reboot || false;
 	console.log("Saving started");
 	if (reboot) {
