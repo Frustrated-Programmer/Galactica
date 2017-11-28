@@ -1263,6 +1263,8 @@ server.delete = function(ID){
 };
 server.prototype.sendMod = function (message) {
 	if(this.modChannel.length){
+		console.log(this.serverID);
+		console.log(this.modChannel);
 		let chan = client.guilds.get(this.serverID).channels.get(this.modChannel);
 		if(chan!=null){
 			chan.send(message);
