@@ -125,7 +125,7 @@ function checkerFunction() {
 			}
 			let embed = new Discord.RichEmbed()
 				.setDescription(`You've been ${promo} to ${ranks.names[rankLevel]}\nYou now gain ${YourRank.dom} ${resources[`credits`].emoji} credits in the dominate zone every \`10\` minutes in it\nYou lose ${YourRank.safe} ${resources[`credits`].emoji} credits in the safe zone every \`10\` minutes in it\nYou can now only be in the Galaxies \`${YourRank.min}\` - \`${YourRank.max}\``)
-				.setColor(promo === `demoted` ? embedColors.red : embedColors.green);
+				.setColor(promo === `demoted` ? colors.red : colors.green);
 			player.send({embed});
 		}
 	}
@@ -172,7 +172,7 @@ function checkerFunction() {
 			player[`credits`] = 0;
 			let embed = new Discord.RichEmbed()
 				.setDescription(`You were removed from the SafeZone due to having Insufficient Funds\nIt costs \`${rank.safe}\` ${resources[`credits`]} credits every 10 minutes to stay in the safe zone.`)
-				.setColor(embedColors.red);
+				.setColor(colors.red);
 			player.send({embed});
 		}
 	}
@@ -3513,7 +3513,7 @@ let commands = [
 					serv.allowedChannels[nums[0]] = true;
 					sendBasicEmbed({
 						content: `Set <#${nums[0]}> as an allowed channel.`,
-						color  : embedColors.purple,
+						color  : colors.purple,
 						channel: message.channel
 					});
 					if (serv.modChannel.length) {
@@ -3560,7 +3560,7 @@ let commands = [
 					serv.allowedChannels[nums[0]] = false;
 					sendBasicEmbed({
 						content: `Set <#${nums[0]}> as a disallowed channel.`,
-						color  : embedColors.purple,
+						color  : colors.purple,
 						channel: message.channel
 					});
 					if (serv.modChannel != null) {
@@ -3694,7 +3694,7 @@ let commands = [
 				if (args[0] === `none`) {
 					sendBasicEmbed({
 						content: `Disabled the welcome message.`,
-						color  : embedColors.red,
+						color  : colors.red,
 						channel: message.channel
 					});
 					serv.welcomeChannel.id = null;
@@ -3889,7 +3889,7 @@ let commands = [
 
 					let embedNew = new Discord.RichEmbed()
 						.setDescription(`warned the user`)
-						.setColor(embedColors.purple);
+						.setColor(colors.purple);
 					message.channel.send({embed: embedNew}).then(function (mess) {
 						if (canDelete) {
 							message.delete();
