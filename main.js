@@ -1623,17 +1623,17 @@ let commands = [
 						})
 					}
 					else {
-						let coms = `Commands with the tag \`${tags[tagNum]}\`\`\`\`css\n`;
+						let coms = `Commands with the tag \`${tags[tagNum]}\`\n\`\`\`css\n`;
 						for(let i =0;i<commands.length;i++){
 							for(let j =0;j<commands[i].tags.length;j++){
 								if(commands[i].tags[j]===tags[tagNum]){
-									coms+=commands[i].names[0];
+									coms+=`${commands[i].names[0]}\n`;
 								}
 							}
 						}
 						sendBasicEmbed({
 							color:colors.blue,
-							content:coms,
+							content:`${coms}\`\`\``,
 							channel:message.channel
 						})
 					}
