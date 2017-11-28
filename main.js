@@ -3884,7 +3884,7 @@ let commands = [
 							let embed = new Discord.RichEmbed()
 								.setTitle(`CLEARING <@${nums[0]}>'S WARNINGS`)
 								.setColor(colors.green)
-								.setDescription(`<@!${nums[0]}> has had his/her warnings removed\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`);
+								.setDescription(`<@!${nums[0]}> has had his/her warnings removed\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
 								.setFooter(clearedWarnings);
 								serv.sendMod({embed});
 
