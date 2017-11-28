@@ -25,7 +25,7 @@ let version = otherJson.version;
 let upTime = 0;
 let map = otherJson.map;
 let waitTimes = otherJson.waitTimes, confirmations = otherJson.confirmations;
-let everySecond = false,checkerInterval = false;
+let everySecond = false, checkerInterval = false;
 let checked = 0;
 
 /**functions**/
@@ -82,9 +82,9 @@ function checkPerms(args) {
 }
 function checkerFunction() {
 	let servs = client.guilds.array;
-	for(let i =0;i<servs.length;i++){
-		if(server.findServer(servs[i].id)===false){
-			let theServer = new server({serverID:servs[i].id});
+	for (let i = 0; i < servs.length; i++) {
+		if (server.findServer(servs[i].id) === false) {
+			let theServer = new server({serverID: servs[i].id});
 		}
 	}
 	client.user.setGame(universalPrefix + 'help | Guilds: ' + (client.guilds.size));
@@ -117,7 +117,7 @@ function checkerFunction() {
 			player.rank = ranks.names[rankLevel];
 			for (let j = 0; j < ranks.names.length; j++) {
 				if (ranks.names[j] === player.rank) {
-					console.log(j,ranks.names,rankLevel,player.name);
+					console.log(j, ranks.names, rankLevel, player.name);
 					if (j >= rankLevel) {
 						promo = `promoted`;
 					}
@@ -143,7 +143,7 @@ function checkerFunction() {
 				rank = ranks[ranks.names[j]]
 			}
 		}
-		if(rank === null) {
+		if (rank === null) {
 			console.log(`Rank was null`);
 			return;
 		}
@@ -397,12 +397,12 @@ function importJSON() {
 function saveJSON(reboot) {
 	reboot = reboot || false;
 	console.log("Saving started");
-	if(reboot){
+	if (reboot) {
 		fs.writeFileSync(`./factions.json`, JSON.stringify({factions: []}, null, 4));
 		fs.writeFileSync(`./other.json`, JSON.stringify(other, null, 4));
 		fs.writeFileSync(`./accounts.json`, JSON.stringify({accounts: []}, null, 4));
 	}
-	else{
+	else {
 		fs.writeFileSync(`./factions.json`, JSON.stringify({factions: factions}, null, 4));
 		fs.writeFileSync(`./other.json`, JSON.stringify(otherJson, null, 4));
 		fs.writeFileSync(`./accounts.json`, JSON.stringify({accounts: accounts}, null, 4));
@@ -1271,15 +1271,16 @@ server.getServers = function () {
 server.addServer = function (serv) {
 	servers[serv.serverID] = serv;
 };
-server.delete = function(ID){
+server.delete = function (ID) {
 	delete servers[ID];
 };
 server.prototype.sendMod = function (message) {
-	if(this.modChannel.length){
+	if (this.modChannel.length) {
+		console.log(servers);
 		console.log(this.serverID);
 		console.log(this.modChannel);
 		let chan = client.guilds.get(this.serverID).channels.get(this.modChannel);
-		if(chan!=null){
+		if (chan != null) {
 			chan.send(message);
 		}
 	}
@@ -1375,15 +1376,15 @@ const accountChecks = {
 	},
 	isInFaction    : function (arg) {
 		let id = arg;
-		if(typeof arg !== `string`){
+		if (typeof arg !== `string`) {
 			id = arg.author.id;
 		}
 		let acc = Account.findFromId(id);
 		return typeof {val: acc.faction === `boolean`, msg: `You must be in a faction to use this command`};
 	},
-	isInNoFaction    : function (arg) {
+	isInNoFaction  : function (arg) {
 		let id = arg;
-		if(typeof arg !== `string`){
+		if (typeof arg !== `string`) {
 			id = arg.author.id;
 		}
 		let acc = Account.findFromId(id);
@@ -1441,37 +1442,67 @@ const checks = {
 	}
 };
 const Uperms = {
-	ManageMembers: function (message) {
-		return {val:checkPerms({user:`user`, message:message, perms:`MANAGE_MEMBERS`}),msg: `You are missing \`ManageMembers\` perms`}
+	ManageMembers : function (message) {
+		return {
+			val: checkPerms({user: `user`, message: message, perms: `MANAGE_MEMBERS`}),
+			msg: `You are missing \`ManageMembers\` perms`
+		}
 	},
 	ManageMessages: function (message) {
-		return {val:checkPerms({user:`user`, message:message, perms:`MANAGE_MESSAGES`}),msg: `You are missing \`ManageMessages\` perms`}
+		return {
+			val: checkPerms({user: `user`, message: message, perms: `MANAGE_MESSAGES`}),
+			msg: `You are missing \`ManageMessages\` perms`
+		}
 	},
-	Administrator: function (message) {
-		return {val:checkPerms({user:`user`, message:message, perms:`ADMINISTRATOR`}),msg: `You are missing \`Administrator\` perms`}
+	Administrator : function (message) {
+		return {
+			val: checkPerms({user: `user`, message: message, perms: `ADMINISTRATOR`}),
+			msg: `You are missing \`Administrator\` perms`
+		}
 	},
-	KickMembers: function (message) {
-		return {val:checkPerms({user:`user`, message:message, perms:`KICK_MEMBERS`}),msg: `You are missing \`KICK_MEMBERS\` perms`}
+	KickMembers   : function (message) {
+		return {
+			val: checkPerms({user: `user`, message: message, perms: `KICK_MEMBERS`}),
+			msg: `You are missing \`KICK_MEMBERS\` perms`
+		}
 	},
-	BanMembers: function (message) {
-		return {val:checkPerms({user:`user`, message:message, perms:`BAN_MEMBERS`}),msg: `You are missing \`BAN_MEMBERS\` perms`}
+	BanMembers    : function (message) {
+		return {
+			val: checkPerms({user: `user`, message: message, perms: `BAN_MEMBERS`}),
+			msg: `You are missing \`BAN_MEMBERS\` perms`
+		}
 	}
 };
 const Bperms = {
-	ManageMembers: function (message) {
-		return {val:checkPerms({user:`bot`, message:message, perms:`MANAGE_MEMBERS`}),msg: `Bot is missing \`ManageMembers\` perms`}
+	ManageMembers : function (message) {
+		return {
+			val: checkPerms({user: `bot`, message: message, perms: `MANAGE_MEMBERS`}),
+			msg: `Bot is missing \`ManageMembers\` perms`
+		}
 	},
 	ManageMessages: function (message) {
-		return {val:checkPerms({user:`bot`, message:message, perms:`MANAGE_MESSAGES`}),msg: `Bot is missing \`ManageMessages\` perms`}
+		return {
+			val: checkPerms({user: `bot`, message: message, perms: `MANAGE_MESSAGES`}),
+			msg: `Bot is missing \`ManageMessages\` perms`
+		}
 	},
-	Admin: function (message) {
-		return {val:checkPerms({user:`bot`, message:message, perms:`ADMINISTRATOR`}),msg: `Bot is missing \`Administrator\` perms`}
+	Admin         : function (message) {
+		return {
+			val: checkPerms({user: `bot`, message: message, perms: `ADMINISTRATOR`}),
+			msg: `Bot is missing \`Administrator\` perms`
+		}
 	},
-	KickMembers: function (message) {
-		return {val:checkPerms({user:`bot`, message:message, perms:`KICK_MEMBERS`}),msg: `Bot is missing \`KICK_MEMBERS\` perms`}
+	KickMembers   : function (message) {
+		return {
+			val: checkPerms({user: `bot`, message: message, perms: `KICK_MEMBERS`}),
+			msg: `Bot is missing \`KICK_MEMBERS\` perms`
+		}
 	},
-	BanMembers: function (message) {
-		return {val:checkPerms({user:`bot`, message:message, perms:`BAN_MEMBERS`}),msg: `Bot is missing \`BAN_MEMBERS\` perms`}
+	BanMembers    : function (message) {
+		return {
+			val: checkPerms({user: `bot`, message: message, perms: `BAN_MEMBERS`}),
+			msg: `Bot is missing \`BAN_MEMBERS\` perms`
+		}
 	}
 };
 
@@ -1639,17 +1670,17 @@ let commands = [
 					}
 					else {
 						let coms = `Commands with the tag \`${tags[tagNum]}\`\n\`\`\`css\n`;
-						for(let i =0;i<commands.length;i++){
-							for(let j =0;j<commands[i].tags.length;j++){
-								if(commands[i].tags[j]===tags[tagNum]){
-									coms+=`${commands[i].names[0]}\n`;
+						for (let i = 0; i < commands.length; i++) {
+							for (let j = 0; j < commands[i].tags.length; j++) {
+								if (commands[i].tags[j] === tags[tagNum]) {
+									coms += `${commands[i].names[0]}\n`;
 								}
 							}
 						}
 						sendBasicEmbed({
-							color:colors.blue,
-							content:`${coms}\`\`\``,
-							channel:message.channel
+							color  : colors.blue,
+							content: `${coms}\`\`\``,
+							channel: message.channel
 						})
 					}
 					break;
@@ -1657,7 +1688,7 @@ let commands = [
 		}
 	},
 	{
-		names      : [`botInfo`, `bot`,`ping`,`pong`,`version`],
+		names      : [`botInfo`, `bot`, `ping`, `pong`, `version`],
 		description: `get the bots info!`,
 		usage      : `botInfo`,
 		values     : [],
@@ -1672,9 +1703,9 @@ let commands = [
 			message.channel.send({embed}).then(function (m) {
 				embed.setTitle(`Galactic`);
 				embed.setDescription(`Galactica is a bot owned by FrustratedProgrammer`);
-				embed.addField(`Ping Time`,`Response time: \`${(Date.now() - storedTimeForPingCommand)}\` ms`);
-				embed.addField(`Version`,`Galactica's current version is \`${version}\`.`);
-				embed.addField(`Uptime`,`The bot has been up for ${getTimeRemaining(Date.now() - upTime)}`);
+				embed.addField(`Ping Time`, `Response time: \`${(Date.now() - storedTimeForPingCommand)}\` ms`);
+				embed.addField(`Version`, `Galactica's current version is \`${version}\`.`);
+				embed.addField(`Uptime`, `The bot has been up for ${getTimeRemaining(Date.now() - upTime)}`);
 				m.edit({embed});
 			});
 		}
@@ -3035,7 +3066,7 @@ let commands = [
 						space += ` `
 					}
 				}
-				txt += spacing(`[${i + 1}] ${colonies[i].people}${space} | ${colonies[i].type}`, `Galaxy: ${colonies[i].location[0] + 1} Position: ${colonies[i].location[2]+ 1} x ${colonies[i].location[1] + 1}`, 50);
+				txt += spacing(`[${i + 1}] ${colonies[i].people}${space} | ${colonies[i].type}`, `Galaxy: ${colonies[i].location[0] + 1} Position: ${colonies[i].location[2] + 1} x ${colonies[i].location[1] + 1}`, 50);
 				txt += `\n`;
 			}
 			if (!colonies.length) {
@@ -3407,11 +3438,11 @@ let commands = [
 		description: `change your server's prefix`,
 		usage      : `changePrefix [VALUE]`,
 		values     : [`{NEW_PREFIX}`],
-		examples   : [`changePrefix -`,`changePrefix >`],
+		examples   : [`changePrefix -`, `changePrefix >`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.ManageMembers},
+			{cond: Uperms.ManageMembers}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			if (args[0].length) {
@@ -3424,12 +3455,12 @@ let commands = [
 				}
 				else {
 					let valid = true;
-					for(let i =0;i<args[0].length;i++){
-						if(args[0][i]===`\``){
-							valid =false;
+					for (let i = 0; i < args[0].length; i++) {
+						if (args[0][i] === `\``) {
+							valid = false;
 						}
 					}
-					if(valid) {
+					if (valid) {
 						let serv = server.findServer(message.guild.id);
 						if (serv.modChannel.length) {
 							let embed = new Discord.RichEmbed()
@@ -3441,11 +3472,11 @@ let commands = [
 						}
 						serv.prefix = args[0];
 					}
-					else{
+					else {
 						sendBasicEmbed({
-							content:`Prefix cannot contain **\`**`,
-							color:colors.red,
-							channel:message.channel
+							content: `Prefix cannot contain **\`**`,
+							color  : colors.red,
+							channel: message.channel
 						})
 					}
 				}
@@ -3464,11 +3495,11 @@ let commands = [
 		description: `allow a channel for galactica usage`,
 		usage      : `allowChannel [VALUE]`,
 		values     : [`{CHANNEL_ID}`, `{#CHANNEL}`],
-		examples   : [`allowChannel #Test-Channel`,`allowChannel 123685723`],
+		examples   : [`allowChannel #Test-Channel`, `allowChannel 123685723`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.Administrator},
+			{cond: Uperms.Administrator}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3511,11 +3542,11 @@ let commands = [
 		description: `disallow a channel for galactica usage`,
 		usage      : `disallowChannel [VALUE]`,
 		values     : [`{CHANNEL_ID}`, `{#CHANNEL}`],
-		examples   : [`disallowChannel #Test-Channel`,`disallowChannel 123685723`],
+		examples   : [`disallowChannel #Test-Channel`, `disallowChannel 123685723`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.Administrator},
+			{cond: Uperms.Administrator}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3557,12 +3588,12 @@ let commands = [
 		names      : [`setModChannel`, `setMC`],
 		description: `set your server's mod channel`,
 		usage      : `setModChannel [VALUE]`,
-		values     : [`{CHANNEL_ID}`, `{#CHANNEL}`,`REMOVE`],
-		examples   : [`setModChannel #Test-Channel`,`setModChannel 123685723`],
+		values     : [`{CHANNEL_ID}`, `{#CHANNEL}`, `REMOVE`],
+		examples   : [`setModChannel #Test-Channel`, `setModChannel 123685723`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.Administrator},
+			{cond: Uperms.Administrator}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3590,11 +3621,11 @@ let commands = [
 				}
 			}
 			else {
-				if(args[0] === `remove`){
+				if (args[0] === `remove`) {
 					sendBasicEmbed({
-						content:`ModChannel removed.`,
-						color:colors.red,
-						channel:message.channel
+						content: `ModChannel removed.`,
+						color  : colors.red,
+						channel: message.channel
 					})
 				}
 				else {
@@ -3612,11 +3643,11 @@ let commands = [
 		description: `set your server's welcome channel and its message`,
 		usage      : `setWelcomeChannel [VALUE]`,
 		values     : [`{CHANNEL_ID} {MESSAGE}`, `{#CHANNEL} {MESSAGE}`, `NONE`],
-		examples   : [`setWelcomeChannel #Test-Channel Welcome User`,`setWelcomeChannel 123685723 Welcome to our server`],
+		examples   : [`setWelcomeChannel #Test-Channel Welcome User`, `setWelcomeChannel 123685723 Welcome to our server`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.Administrator},
+			{cond: Uperms.Administrator}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3687,11 +3718,11 @@ let commands = [
 		description: `set your server's goodbye channel and its message`,
 		usage      : `setGoodbyeChannel [VALUE]`,
 		values     : [`{CHANNEL_ID} {MESSAGE}`, `{#CHANNEL} {MESSAGE}`, `NONE`],
-		examples   : [`setGoodbyeChannel #Test-Channel Goodbye User`,`setGoodbyeChannel 123685723 Why you leave us?`],
+		examples   : [`setGoodbyeChannel #Test-Channel Goodbye User`, `setGoodbyeChannel 123685723 Why you leave us?`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.Administrator},
+			{cond: Uperms.Administrator}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let nums = getNumbers(message.content);
@@ -3762,11 +3793,11 @@ let commands = [
 		description: `Clear a channel`,
 		usage      : `clear [VALUE]`,
 		values     : [`All`, `{NUMBER}`],
-		examples   : [`clear 33`,`clear all`],
+		examples   : [`clear 33`, `clear all`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.ManageMessages},
+			{cond: Uperms.ManageMessages}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let theNumbersInput = getNumbers(message.content, true);
@@ -3792,11 +3823,11 @@ let commands = [
 		description: `warn a user`,
 		usage      : `warn [VALUE]`,
 		values     : [`{@USER} [REASON]`, `{@USER_ID} [REASON]`],
-		examples   : [`warn @user`,`warn 148294123 avoiding ban`],
+		examples   : [`warn @user`, `warn 148294123 avoiding ban`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.ManageMembers},
+			{cond: Uperms.ManageMembers}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let modChannel = false;
@@ -3821,36 +3852,36 @@ let commands = [
 						color  : colors.orange,
 						channel: user
 					});
-						let warningNum = "This is the 1st warning given to this user.";
-						if (serv.warnings[nums[0]] != null) {
-							serv.warnings[nums[0]]++;
-							warningNum = `This the ` + serv.warnings[nums[0]];
-							let num = `${serverStuff[message.guild.id].warnings[nums[0]]}`;
-							switch (num[num.length - 1]) {
-								case `1`:
-									warningNum += `st`;
-									break;
-								case `2`:
-									warningNum += `nd`;
-									break;
-								case `3`:
-									warningNum += `rd`;
-									break;
-								default:
-									warningNum += `th`;
-									break;
-							}
-							warningNum += ` warning given to this user.`;
+					let warningNum = "This is the 1st warning given to this user.";
+					if (serv.warnings[nums[0]] != null) {
+						serv.warnings[nums[0]]++;
+						warningNum = `This the ` + serv.warnings[nums[0]];
+						let num = `${serverStuff[message.guild.id].warnings[nums[0]]}`;
+						switch (num[num.length - 1]) {
+							case `1`:
+								warningNum += `st`;
+								break;
+							case `2`:
+								warningNum += `nd`;
+								break;
+							case `3`:
+								warningNum += `rd`;
+								break;
+							default:
+								warningNum += `th`;
+								break;
 						}
-						else {
-							serverStuff[message.guild.id].warnings[nums[0]] = 1;
-						}
-						let embed = new Discord.RichEmbed()
-							.setTitle(`WARNING <@!${nums[0]}>`)
-							.setColor(colors.yellow)
-							.setDescription(`<@${nums[0]}> has been warned\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
-							.setFooter(warningNum);
-						serv.sendMod({embed});
+						warningNum += ` warning given to this user.`;
+					}
+					else {
+						serverStuff[message.guild.id].warnings[nums[0]] = 1;
+					}
+					let embed = new Discord.RichEmbed()
+						.setTitle(`WARNING <@!${nums[0]}>`)
+						.setColor(colors.yellow)
+						.setDescription(`<@${nums[0]}> has been warned\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
+						.setFooter(warningNum);
+					serv.sendMod({embed});
 
 					let embedNew = new Discord.RichEmbed()
 						.setDescription(`warned the user`)
@@ -3887,11 +3918,11 @@ let commands = [
 		description: `Clear warnings from a user`,
 		usage      : `clearWarnings [VALUE]`,
 		values     : [`{USER_ID} [REASON]`, `{@USER} [REASON]`],
-		examples   : [`warn @user`,`warn 148294123 avoiding ban`],
+		examples   : [`warn @user`, `warn 148294123 avoiding ban`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.ManageMembers},
+			{cond: Uperms.ManageMembers}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let modChannel = false;
@@ -3920,14 +3951,14 @@ let commands = [
 							color  : colors.orange,
 							channel: user
 						});
-							let clearedWarnings = `This user HAD ${serv.warnings[nums[0]]} warnings.`;
-							delete serv.warnings[nums[0]];
-							let embed = new Discord.RichEmbed()
-								.setTitle(`CLEARING <@${nums[0]}>'S WARNINGS`)
-								.setColor(colors.green)
-								.setDescription(`<@!${nums[0]}> has had his/her warnings removed\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
-								.setFooter(clearedWarnings);
-								serv.sendMod({embed});
+						let clearedWarnings = `This user HAD ${serv.warnings[nums[0]]} warnings.`;
+						delete serv.warnings[nums[0]];
+						let embed = new Discord.RichEmbed()
+							.setTitle(`CLEARING <@${nums[0]}>'S WARNINGS`)
+							.setColor(colors.green)
+							.setDescription(`<@!${nums[0]}> has had his/her warnings removed\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
+							.setFooter(clearedWarnings);
+						serv.sendMod({embed});
 
 						embed = new Discord.RichEmbed()
 							.setDescription(`cleared user's warnings.`)
@@ -3973,7 +4004,7 @@ let commands = [
 		description: `kick a user`,
 		usage      : `kick [VALUE]`,
 		values     : [`{@USER} [REASON]`, `{@USER_ID} [REASON]`],
-		examples   : [`kick @user`,`kick 148294123 avoiding ban`],
+		examples   : [`kick @user`, `kick 148294123 avoiding ban`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
@@ -4007,12 +4038,12 @@ let commands = [
 						color  : colors.red,
 						channel: message.channel
 					});
-						let embed = new Discord.RichEmbed()
-							.setTitle(`KICKING <@!${nums[0]}>`)
-							.setColor(colors.orange)
-							.setDescription(`<@!${nums[0]}> has been kicked!\n**Reason:** ${reason}\nGiven by: <@!${message.author.id}>`)
-							.setFooter(warningNum);
-						serv.sendMod({embed});
+					let embed = new Discord.RichEmbed()
+						.setTitle(`KICKING <@!${nums[0]}>`)
+						.setColor(colors.orange)
+						.setDescription(`<@!${nums[0]}> has been kicked!\n**Reason:** ${reason}\nGiven by: <@!${message.author.id}>`)
+						.setFooter(warningNum);
+					serv.sendMod({embed});
 
 					client.guilds.get(message.guild.id).members.get(nums[0]).kick(reason);
 					let embed2 = new Discord.RichEmbed()
@@ -4049,7 +4080,7 @@ let commands = [
 		description: `ban a user`,
 		usage      : `ban [VALUE]`,
 		values     : [`{@USER} [REASON]`, `{@USER_ID} [REASON]`],
-		examples   : [`kick @user`,`kick 148294123 avoiding ban`],
+		examples   : [`kick @user`, `kick 148294123 avoiding ban`],
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
@@ -4079,12 +4110,12 @@ let commands = [
 					if (serv.warnings[nums[0]] != null) {
 						warningNum = `This user had ${serverStuff[message.guild.id].warnings[nums[0]]} warnings.`;
 					}
-						let embed = new Discord.RichEmbed()
-							.setTitle(`BANNING <@${nums[0]}>`)
-							.setColor(colors.red)
-							.setDescription(`<@${nums[0]}> has been banned!\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
-							.setFooter(warningNum);
-						serv.sendMod({embed});
+					let embed = new Discord.RichEmbed()
+						.setTitle(`BANNING <@${nums[0]}>`)
+						.setColor(colors.red)
+						.setDescription(`<@${nums[0]}> has been banned!\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
+						.setFooter(warningNum);
+					serv.sendMod({embed});
 
 					client.guilds.get(message.guild.id).members.get(nums[0]).ban({days: 0, reason: reason});
 
@@ -4500,7 +4531,7 @@ let commands = [
 	}
 ];
 
-client.on(`guildCreate`,function(guild){
+client.on(`guildCreate`, function (guild) {
 	let serv = new server();
 	serv.serverID = guild.id;
 	serv.name = guild.name;
@@ -4508,8 +4539,8 @@ client.on(`guildCreate`,function(guild){
 });
 client.on(`ready`, function () {
 	checkerFunction();
-	checkerInterval = setInterval(checkerFunction,600000);
-	if(client.guilds.get(`354670066480054272`)!=null) {
+	checkerInterval = setInterval(checkerFunction, 600000);
+	if (client.guilds.get(`354670066480054272`) != null) {
 		powerEmoji = client.guilds.get(`354670066480054272`).emojis.find(`name`, `Fist`);
 		resources[`power`].emoji = powerEmoji.toString();
 	}
@@ -4533,7 +4564,7 @@ client.on(`ready`, function () {
 		}
 
 	}
-	everySecond = setInterval(everySecondFun,1000);
+	everySecond = setInterval(everySecondFun, 1000);
 });
 client.on(`message`, function (message) {
 	if (message.author.bot) {
