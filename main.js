@@ -1241,6 +1241,7 @@ Account.prototype.send = function (message) {
 /**SERVERS**/
 let server = function (data) {
 	data = data || {};
+	this.name = data.name || ``;
 	this.allowedChannels = data.allowedChannels || {};
 	this.welcomeChannel = data.welcomeChannel || {id: null, message: ``};
 	this.goodbyeChannel = data.goodbyeChannel || {id: null, message: ``};
@@ -4487,7 +4488,12 @@ let commands = [
 	}
 ];
 
-client.on("ready", function () {
+client.on(`guildCreate`,function(guild){
+	let serv = new server();
+	serv.serverID = guild.id;
+	serv.name = guild.name;
+});
+client.on(`ready`, function () {
 	checkerFunction();
 	checkerInterval = setInterval(checkerFunction,600000);
 	powerEmoji = client.guilds.get(`354670066480054272`).emojis.find(`name`, `Fist`);
@@ -4514,7 +4520,7 @@ client.on("ready", function () {
 	}
 	everySecond = setInterval(everySecondFun,1000);
 });
-client.on("message", function (message) {
+client.on(`message`, function (message) {
 	if (message.author.bot) {
 		return;
 	}
