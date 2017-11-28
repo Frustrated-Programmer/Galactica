@@ -1144,9 +1144,6 @@ Account.getValidId = function () {
 		}
 	}
 };
-Account.addAccount = function (account) {
-	accounts.push(account);
-};
 Account.getAccounts = function () {
 	return accounts;
 };
@@ -1287,7 +1284,12 @@ let Faction = function (data) {
 	data = data || {};
 
 	this.name = data.name || ``;
-
+	this.open = data.open || 0;
+	/**OPEN**
+	 * 0 = open
+	 * 1 = request only
+	 * 2 = closed
+	 */
 	this.description = data.description || ``;
 	this.canUseDescription = data.canUseDescription || false;
 	this.image = data.image || ``;
@@ -1356,9 +1358,21 @@ const accountChecks = {
 		let account = Account.findFromId(message.author.id);
 		return {val: account[item] > amo, msg: `You need more than ${amo} ${item}` + amo > 1 ? `s.` : `.`};
 	},
-	isInFaction    : function (id) {
+	isInFaction    : function (arg) {
+		let id = arg;
+		if(typeof arg !== `string`){
+			id = arg.author.id;
+		}
 		let acc = Account.findFromId(id);
 		return typeof {val: acc.faction === `boolean`, msg: `You must be in a faction to use this command`};
+	},
+	isInNoFaction    : function (arg) {
+		let id = arg;
+		if(typeof arg !== `string`){
+			id = arg.author.id;
+		}
+		let acc = Account.findFromId(id);
+		return typeof {val: acc.faction !== `boolean`, msg: `You cannot be in a faction to use this command`};
 	},
 	isNotWarping   : function (message) {
 		let acc = Account.findFromId(message.author.id);
@@ -1655,7 +1669,7 @@ let commands = [
 				userID  : message.author.id,
 				id      : Account.getValidId()
 			});
-			Account.addAccount(UserAccount);
+			accounts.push(UserAccount);
 			sendBasicEmbed({
 				content: `You have created the \`#${Account.getAccounts().length}\` account.\n\nBy creating this account you have agreed to allow the bot use of your EndUser's Data`,
 				color  : colors.green,
@@ -3360,7 +3374,7 @@ let commands = [
 		}
 	},
 
-	["MODERATION", "MODS"],
+	/** MODERATION**/
 	{
 		names      : [`changePrefix`, `prefixChange`],
 		description: `change your server's prefix`,
@@ -3876,7 +3890,7 @@ let commands = [
 					if (serv.warnings[nums[0]] != null) {
 						sendBasicEmbed({
 							content: `All your warnings in the server \`${message.guild.name}\` have been cleared\nReason: ${reason}`,
-							color  : embedColors.orange,
+							color  : colors.orange,
 							channel: user
 						});
 							let clearedWarnings = `This user HAD ${serv.warnings[nums[0]]} warnings.`;
@@ -3888,7 +3902,7 @@ let commands = [
 								.setFooter(clearedWarnings);
 								serv.sendMod({embed});
 
-						let embed = new Discord.RichEmbed()
+						embed = new Discord.RichEmbed()
 							.setDescription(`cleared user's warnings.`)
 							.setColor(colors.purple);
 						message.channel.send({embed}).then(function (mess) {
@@ -4077,6 +4091,7 @@ let commands = [
 			}
 		}
 	},
+
 
 	/**OWNER**/
 	{
