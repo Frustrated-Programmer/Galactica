@@ -1270,6 +1270,7 @@ server.findServer = function (id) {
 			break;
 		}
 	}
+	console.log(serv,id);
 	return new server(serv) || false;
 };
 server.getServers = function () {
