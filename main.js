@@ -14,11 +14,6 @@ let other = {
 	servers      : [],
 	map          : []
 };
-fs.writeFile(`./galactica.log`, `Cleared Logs!\n`, function (err) {
-	if (err) {
-		throw err;
-	}
-});
 
 let otherJson = require(`./other.json`);
 let universalPrefix = otherJson.uniPre;
@@ -34,6 +29,45 @@ let everySecond = false,checkerInterval = false;
 let checked = 0;
 
 /**functions**/
+function checkPerms(args) {
+	/***ARGS return
+	 * message: the message that got sent
+	 * user: defines whether the user is "bot" or "user"
+	 * perms: the permissions were checking
+	 */
+	let permsCheck = {
+		channelPerms: false,//is channel overriding?
+		serverPerms : false//is overall server role overriding
+	};
+
+	let user;//which user shall we check on
+	//gets the member
+	if (args.user === `bot`) {
+		user = args.message.guild.members.get(client.user.id);
+	}
+	else if (args.user === `user`) {
+		user = args.message.member;
+	}
+	else {
+		throw `args.user should be "user" or "bot"`;
+		return false;
+	}
+
+	//check for permissions
+	if (args.message.channel.permissionsFor(user).has(args.perms)) {
+		permsCheck.channelPerms = true;
+	}//does it have channel perms
+	if (args.message.member.hasPermission(args.perms, null, true, true)) {//args.message.guild.members.get(user.id).hasPermission(args.perms)
+		permsCheck.serverPerms = true;
+	}//does it have role perms
+	if (permsCheck.serverPerms !== true) {//check first if you have role perms
+		return false;
+	}
+	else if (permsCheck.channelPerms !== true) {//check if channel is overriding it
+		return false;
+	}
+	return true;
+}
 function checkerFunction() {
 	let servs = client.guilds.array;
 	for(let i =0;i<servs.length;i++){
@@ -1230,6 +1264,14 @@ server.addServer = function (serv) {
 server.delete = function(ID){
 	delete servers[ID];
 };
+server.prototype.sendMod = function (message) {
+	if(this.modChannel.length){
+		let chan = client.guilds.get(this.serverID).channels.get(this.modChannel);
+		if(chan!=null){
+			chan.send(message);
+		}
+	}
+};
 server.prototype.changeItem = function (item, newVal) {
 	this[item] = newVal;
 };
@@ -1367,6 +1409,40 @@ const channelChecks = {
 const checks = {
 	isOwner: function (message) {
 		return {val: message.author.id === `244590122811523082`, msg: `You must be the owner of the bot`};
+	}
+};
+const Uperms = {
+	ManageMembers: function (message) {
+		return {val:checkPerms({user:`user`, message:message, perms:`MANAGE_MEMBERS`}),msg: `You are missing \`ManageMembers\` perms`}
+	},
+	ManageMessages: function (message) {
+		return {val:checkPerms({user:`user`, message:message, perms:`MANAGE_MESSAGES`}),msg: `You are missing \`ManageMessages\` perms`}
+	},
+	Admin: function (message) {
+		return {val:checkPerms({user:`user`, message:message, perms:`ADMINISTRATOR`}),msg: `You are missing \`Administrator\` perms`}
+	},
+	KickMembers: function (message) {
+		return {val:checkPerms({user:`user`, message:message, perms:`KICK_MEMBERS`}),msg: `You are missing \`KICK_MEMBERS\` perms`}
+	},
+	BanMembers: function (message) {
+		return {val:checkPerms({user:`user`, message:message, perms:`BAN_MEMBERS`}),msg: `You are missing \`BAN_MEMBERS\` perms`}
+	}
+};
+const Bperms = {
+	ManageMembers: function (message) {
+		return {val:checkPerms({user:`bot`, message:message, perms:`MANAGE_MEMBERS`}),msg: `Bot is missing \`ManageMembers\` perms`}
+	},
+	ManageMessages: function (message) {
+		return {val:checkPerms({user:`bot`, message:message, perms:`MANAGE_MESSAGES`}),msg: `Bot is missing \`ManageMessages\` perms`}
+	},
+	Admin: function (message) {
+		return {val:checkPerms({user:`bot`, message:message, perms:`ADMINISTRATOR`}),msg: `Bot is missing \`Administrator\` perms`}
+	},
+	KickMembers: function (message) {
+		return {val:checkPerms({user:`bot`, message:message, perms:`KICK_MEMBERS`}),msg: `Bot is missing \`KICK_MEMBERS\` perms`}
+	},
+	BanMembers: function (message) {
+		return {val:checkPerms({user:`bot`, message:message, perms:`BAN_MEMBERS`}),msg: `Bot is missing \`BAN_MEMBERS\` perms`}
 	}
 };
 
@@ -3284,6 +3360,723 @@ let commands = [
 		}
 	},
 
+	["MODERATION", "MODS"],
+	{
+		names      : [`changePrefix`, `prefixChange`],
+		description: `change your server's prefix`,
+		usage      : `changePrefix [VALUE]`,
+		values     : [`{NEW_PREFIX}`],
+		examples   : [`changePrefix -`,`changePrefix >`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: perms.ManageMembers},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			if (args[0].length) {
+				if (args[0].length > 3) {
+					sendBasicEmbed({
+						content: `Prefix must be 3 or less characters long.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+				else {
+					let valid = true;
+					for(let i =0;i<args[0].length;i++){
+						if(args[0][i]===`\``){
+							valid =false;
+						}
+					}
+					if(valid) {
+						let serv = server.findServer(message.guild.id);
+						if (serv.modChannel.length) {
+							let embed = new Discord.RichEmbed()
+								.setColor(colors.purple)
+								.setTitle(`Galactica's Prefix change`)
+								.setDescription(`Galctica's prefix is now \`${args[0]}\nChanged by <@${message.author.id}>`)
+								.setFooter(`Previous prefix was \`${serv.prefix}\``);
+							serv.sendMod({embed});
+						}
+						serv.prefix = args[0];
+					}
+					else{
+						sendBasicEmbed({
+							content:`Prefix cannot contain **\`**`,
+							color:colors.red,
+							channel:message.channel
+						})
+					}
+				}
+			}
+			else {
+				sendBasicEmbed({
+					content: `Prefix cannot be removed`,
+					color  : colors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : [`allowChannel`],
+		description: `allow a channel for galactica usage`,
+		usage      : `allowChannel [VALUE]`,
+		values     : [`{CHANNEL_ID}`, `{#CHANNEL}`],
+		examples   : [`allowChannel #Test-Channel`,`allowChannel 123685723`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: perms.Administrator},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let nums = getNumbers(message.content);
+			if (nums.length) {
+				if (client.channels.get(nums[0]) != null) {
+					let serv = server.findServer(message.guild.id);
+					serv.allowedChannels[nums[0]] = true;
+					sendBasicEmbed({
+						content: `Set <#${nums[0]}> as an allowed channel.`,
+						color  : embedColors.purple,
+						channel: message.channel
+					});
+					if (serv.modChannel.length) {
+						let embed = new Discord.RichEmbed()
+							.setTitle(`allowed Channel`)
+							.setDescription(`<@${message.author.id}> Allowed <#${nums[0]}> as a channel for Galactica Usage`)
+							.setColor(colors.purple);
+						serv.sendMod({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: `Something went wrong, its either\n\`\`\`fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel\`\`\`\nThe channel must be a text channel that the bot has access to..`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				sendBasicEmbed({
+					content: `Invalid Usage\nYou must send the channel you to allow`,
+					color  : colors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : [`disallowChannel`],
+		description: `disallow a channel for galactica usage`,
+		usage      : `disallowChannel [VALUE]`,
+		values     : [`{CHANNEL_ID}`, `{#CHANNEL}`],
+		examples   : [`disallowChannel #Test-Channel`,`disallowChannel 123685723`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: perms.Administrator},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let nums = getNumbers(message.content);
+			let serv = server.findServer(message.guild.id);
+			if (nums.length) {
+				if (client.channels.get(nums[0]) != null) {
+					serv.allowedChannels[nums[0]] = false;
+					sendBasicEmbed({
+						content: `Set <#${nums[0]}> as a disallowed channel.`,
+						color  : embedColors.purple,
+						channel: message.channel
+					});
+					if (serv.modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle(`Disallowed Channel`)
+							.setDescription(`<@${message.author.id}> Dis-allowed <#${nums[0]}> as a channel for Galactica Usage`)
+							.setColor(colors.purple);
+						serv.sendMod({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: `Something went wrong, its either\n\`\`\`fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel\`\`\`\nThe channel must be a text channel.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				sendBasicEmbed({
+					content: `Invalid Usage\nYou must send the channel you to disallow`,
+					color  : colors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : [`setModChannel`, `setMC`],
+		description: `set your server's mod channel`,
+		usage      : `setModChannel [VALUE]`,
+		values     : [`{CHANNEL_ID}`, `{#CHANNEL}`,`REMOVE`],
+		examples   : [`setModChannel #Test-Channel`,`setModChannel 123685723`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: perms.Administrator},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let nums = getNumbers(message.content);
+			let serv = server.findServer(message.guild.id);
+			if (nums.length) {
+				if (client.channels.get(nums[0]) != null) {
+					serv.modChannel = nums[0];
+					sendBasicEmbed({
+						content: `Set <#${nums[0]}> as the mod channel.`,
+						color  : colors.purple,
+						channel: message.channel
+					});
+					let embed = new Discord.RichEmbed()
+						.setColor(colors.purple)
+						.setTitle(`ModChannel Set`)
+						.setDescription(`<@${message.author.is}> Has set this channel to be the mod channel.`);
+					serv.sendMod({embed});
+				}
+				else {
+					sendBasicEmbed({
+						content: `Something went wrong, its either\n\`\`\`fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel\`\`\`\nThe channel must be a text channel.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				if(args[0] === `remove`){
+					sendBasicEmbed({
+						content:`ModChannel removed.`,
+						color:colors.red,
+						channel:message.channel
+					})
+				}
+				else {
+					sendBasicEmbed({
+						content: `Invalid Usage!\nYou must include the channel you want to be the mod channel.\nOr include \`remove\` to remove mod channels`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+			}
+		}
+	},
+	{
+		names      : [`setWelcomeChannel`, `setWC`],
+		description: `set your server's welcome channel and its message`,
+		usage      : `setWelcomeChannel [VALUE]`,
+		values     : [`{CHANNEL_ID} {MESSAGE}`, `{#CHANNEL} {MESSAGE}`, `NONE`],
+		examples   : [`setWelcomeChannel #Test-Channel Welcome User`,`setWelcomeChannel 123685723 Welcome to our server`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: perms.Administrator},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let nums = getNumbers(message.content);
+			let serv = server.findServer(message.guild.id);
+			if (nums.length) {
+				let welcomeTxt = `Welcome {username} to {server} owned by {owner} you are member #{members}`;
+				if (client.channels.get(nums[0]) != null) {
+					if (args.length >= 2) {
+						welcomeTxt = ``;
+						let words = message.content.split(` `);
+						words.shift();
+						for (let i = 1; i < words.length; i++) {
+							welcomeTxt += words[i] + ` `;
+						}
+					}
+					serv.welcomeChannel.id = nums[0];
+					serv.welcomeChannel.message = welcomeTxt;
+					sendBasicEmbed({
+						content: `Set <#${nums[0]}> as the welcome channel.\nWith the welcome message as\n${welcomeTxt}`,
+						color  : colors.purple,
+						channel: message.channel
+					});
+					if (serv.modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle(`Welcome Message`)
+							.setDescription(`Welcome message was changed by <@${message.author.id}> to\n${welcomeTxt}`)
+							.setColor(colors.purple);
+						serv.sendMod({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: `Something went wrong, its either\n\`\`\`fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel\`\`\`\nThe channel must be a text channel.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				if (args[0] === `none`) {
+					sendBasicEmbed({
+						content: `Disabled the welcome message.`,
+						color  : embedColors.red,
+						channel: message.channel
+					});
+					serv.welcomeChannel.id = null;
+					serv.welcomeChannel.message = null;
+					if (serv.modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle(`Welcome Message`)
+							.setDescription(`Welcome message was removed by <@!${message.author.id}>`)
+							.setColor(colors.purple);
+						serv.sendMod({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: `Invalid Usage!\nYou must include the channel you want to be the welcome channel.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+			}
+		}
+	},
+	{
+		names      : [`setGoodbyeChannel`, `setGC`],
+		description: `set your server's goodbye channel and its message`,
+		usage      : `setGoodbyeChannel [VALUE]`,
+		values     : [`{CHANNEL_ID} {MESSAGE}`, `{#CHANNEL} {MESSAGE}`, `NONE`],
+		examples   : [`setGoodbyeChannel #Test-Channel Goodbye User`,`setGoodbyeChannel 123685723 Why you leave us?`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: perms.Administrator},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let nums = getNumbers(message.content);
+			let serv = server.findServer(message.guild.id);
+			if (nums.length) {
+				let goodbyeTxt = `Goodbye {username}. {server} now has {members} members`;
+				if (client.channels.get(nums[0]) != null) {
+					if (args.length >= 2) {
+						goodbyeTxt = ``;
+						let words = message.content.split(` `);
+						words.shift();
+						for (let i = 1; i < words.length; i++) {
+							goodbyeTxt += words[i] + ` `;
+						}
+					}
+					serv.goodbyeChannel.id = nums[0];
+					serv.goodbyeChannel.message = goodbyeTxt;
+					sendBasicEmbed({
+						content: `Set <#${nums[0]}> as the goodbye channel.\nWith the goodbye message as\n${goodbyeTxt}`,
+						color  : colors.purple,
+						channel: message.channel
+					});
+					if (serverStuff[message.channel.guild.id].modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle(`Goodbye Message`)
+							.setDescription(`Goodbye message was changed by <@!${message.author.id}> to\n${goodbyeTxt}`)
+							.setColor(colors.purple);
+						serv.sendMod({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: `Something went wrong, its either\n\`\`\`fix\nThe bot doesn't have access to the channel\nInvalid channel\nDM's channel\nVoice Channel\`\`\`\nThe channel must be a text channel.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+			}
+			else {
+				if (args[0] === `none`) {
+					sendBasicEmbed({
+						content: `Disabled the Goodbye message.`,
+						color  : colors.red,
+						channel: message.channel
+					});
+					serv.welcomeChannel.id = null;
+					serv.welcomeChannel.message = null;
+					if (serv.modChannel != null) {
+						let embed = new Discord.RichEmbed()
+							.setTitle(`Goodybye Message`)
+							.setDescription(`Goodbye message was removed by <@!${message.author.id}>`)
+							.setColor(colors.purple);
+						serv.sendMod({embed});
+					}
+				}
+				else {
+					sendBasicEmbed({
+						content: `Invalid Usage!\nYou must include the channel you want to be the goodbye channel.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				}
+			}
+		}
+	},
+	{
+		names      : [`clear`, `purge`, `prune`],
+		description: `Clear a channel`,
+		usage      : `clear [VALUE]`,
+		values     : [`All`, `{NUMBER}`],
+		examples   : [`clear 33`,`clear all`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: Uperms.ManageMessages},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let theNumbersInput = getNumbers(message.content, true);
+			if (args[0] === `all`) {
+				channelClear(message.channel);
+			}
+			else if (theNumbersInput[0] < 100) {
+				message.delete().then(function () {
+					channelClear(message.channel, theNumbersInput[0]);
+				})
+			}
+			else {
+				sendBasicEmbed({
+					content: `Invalid usage!\nYou need to have the amount of messages to clear.`,
+					color  : colors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : [`warn`],
+		description: `warn a user`,
+		usage      : `warn [VALUE]`,
+		values     : [`{@USER} [REASON]`, `{@USER_ID} [REASON]`],
+		examples   : [`warn @user`,`warn 148294123 avoiding ban`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: Uperms.ManageMembers},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let modChannel = false;
+			let canDelete = checkPerms({
+				message: message,
+				user   : `bot`,
+				perms  : `MANAGE_MESSAGES`
+			});
+			let serv = server.findServer(message.guild.id);
+			let nums = getNumbers(message.content);
+			let reason = `No reason supplied`;
+			if (args.length >= 2) {
+				reason = ``;
+				for (let i = 1; i < args.length; i++) {
+					reason += args[i] + ` `;
+				}
+			}
+			if (nums.length) {
+				client.fetchUser(nums[0]).then(function (user) {
+					sendBasicEmbed({
+						content: `You have been warned in the server: \`${message.guild.name}\`\nReason: ${reason}`,
+						color  : colors.orange,
+						channel: user
+					});
+						let warningNum = "This is the 1st warning given to this user.";
+						if (serv.warnings[nums[0]] != null) {
+							serv.warnings[nums[0]]++;
+							warningNum = `This the ` + serv.warnings[nums[0]];
+							let num = `${serverStuff[message.guild.id].warnings[nums[0]]}`;
+							switch (num[num.length - 1]) {
+								case `1`:
+									warningNum += `st`;
+									break;
+								case `2`:
+									warningNum += `nd`;
+									break;
+								case `3`:
+									warningNum += `rd`;
+									break;
+								default:
+									warningNum += `th`;
+									break;
+							}
+							warningNum += ` warning given to this user.`;
+						}
+						else {
+							serverStuff[message.guild.id].warnings[nums[0]] = 1;
+						}
+						let embed = new Discord.RichEmbed()
+							.setTitle(`WARNING <@!${nums[0]}>`)
+							.setColor(colors.yellow)
+							.setDescription(`<@${nums[0]}> has been warned\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
+							.setFooter(warningNum);
+						serv.sendMod({embed});
+
+					let embedNew = new Discord.RichEmbed()
+						.setDescription(`warned the user`)
+						.setColor(embedColors.purple);
+					message.channel.send({embed: embedNew}).then(function (mess) {
+						if (canDelete) {
+							message.delete();
+							setTimeout(function () {
+								mess.delete();
+							}, 10000)
+						}
+					});
+
+				}).catch(function (err) {
+					sendBasicEmbed({
+						content: `that user doesn't exist`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				});
+
+			}
+			else {
+				sendBasicEmbed({
+					content: `Invalid Usage\nPlease add in the USER you want to warn`,
+					color  : colors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : [`clearWarnings`, `clearWarning`, `clearWarns`, `clearWarn`],
+		description: `Clear warnings from a user`,
+		usage      : `clearWarnings [VALUE]`,
+		values     : [`{USER_ID} [REASON]`, `{@USER} [REASON]`],
+		examples   : [`warn @user`,`warn 148294123 avoiding ban`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: Uperms.ManageMembers},
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let modChannel = false;
+			let canDelete = checkPerms({
+				message: message,
+				user   : `bot`,
+				perms  : `MANAGE_MESSAGES`
+			});
+			if (serverStuff[message.guild.id].modChannel != null) {
+				modChannel = true;
+			}
+			let nums = getNumbers(message.content);
+			let reason = `No reason supplied`;
+			if (args.length >= 2) {
+				reason = ``;
+				for (let i = 1; i < args.length; i++) {
+					reason += `${args[i]}`;
+				}
+			}
+			let serv = server.findServer(message.guild.id);
+			if (nums.length) {
+				client.fetchUser(nums[0]).then(function (user) {
+					if (serv.warnings[nums[0]] != null) {
+						sendBasicEmbed({
+							content: `All your warnings in the server \`${message.guild.name}\` have been cleared\nReason: ${reason}`,
+							color  : embedColors.orange,
+							channel: user
+						});
+							let clearedWarnings = `This user HAD ${serv.warnings[nums[0]]} warnings.`;
+							delete serv.warnings[nums[0]];
+							let embed = new Discord.RichEmbed()
+								.setTitle(`CLEARING <@${nums[0]}>'S WARNINGS`)
+								.setColor(colors.green)
+								.setDescription(`<@!${nums[0]}> has had his/her warnings removed\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`);
+								.setFooter(clearedWarnings);
+								serv.sendMod({embed});
+
+						let embed = new Discord.RichEmbed()
+							.setDescription(`cleared user's warnings.`)
+							.setColor(colors.purple);
+						message.channel.send({embed}).then(function (mess) {
+							if (canDelete) {
+								message.delete();
+								setTimeout(function () {
+									mess.delete();
+								}, 10000)
+							}
+						});
+
+					}
+					else {
+						sendBasicEmbed({
+							content: `That user had no warnings`,
+							color  : colors.red,
+							channel: message.channel
+						})
+					}
+				}).catch(function (err) {
+					sendBasicEmbed({
+						content: `That user doesn't exist`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				});
+
+
+			}
+			else {
+				sendBasicEmbed({
+					content: `Invalid Usage\nPlease add in the USER you want to warn`,
+					color  : colors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : [`kick`],
+		description: `kick a user`,
+		usage      : `kick [VALUE]`,
+		values     : [`{@USER} [REASON]`, `{@USER_ID} [REASON]`],
+		examples   : [`kick @user`,`kick 148294123 avoiding ban`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: Uperms.KickMembers},
+			{cond: Bperms.KickMembers}
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let modChannel = false;
+			let canDelete = checkPerms({
+				message: message,
+				user   : `bot`,
+				perms  : `MANAGE_MESSAGES`
+			});
+			let nums = getNumbers(message.content);
+			let reason = `No reason supplied`;
+			if (args.length >= 2) {
+				reason = ``;
+				for (let i = 1; i < args.length; i++) {
+					reason += `${args[i]}`;
+				}
+			}
+			let serv = server.findServer(message.guild.id);
+			if (nums.length) {
+				client.fetchUser(nums[0]).then(function (user) {
+					let warningNum = `This user had 0 warnings.`;
+					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
+						warningNum = `This user had ${serverStuff[message.guild.id].warnings[nums[0]]} warnings.`;
+					}
+					sendBasicEmbed({
+						content: `You have been kicked from the server: \`${message.guild.name} \`\nReason: ${reason}`,
+						color  : colors.red,
+						channel: message.channel
+					});
+						let embed = new Discord.RichEmbed()
+							.setTitle(`KICKING <@!${nums[0]}>`)
+							.setColor(colors.orange)
+							.setDescription(`<@!${nums[0]}> has been kicked!\n**Reason:** ${reason}\nGiven by: <@!${message.author.id}>`)
+							.setFooter(warningNum);
+						serv.sendMod({embed});
+
+					client.guilds.get(message.guild.id).members.get(nums[0]).kick(reason);
+					let embed2 = new Discord.RichEmbed()
+						.setDescription(`kicked the user`)
+						.setColor(colors.purple);
+					message.channel.send({embed: embed2}).then(function (mess) {
+						if (canDelete) {
+							message.delete();
+							setTimeout(function () {
+								mess.delete();
+							}, 10000)
+						}
+					});
+				}).catch(function (err) {
+					sendBasicEmbed({
+						content: `That user doesn't exist.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				});
+
+			}
+			else {
+				sendBasicEmbed({
+					content: `Invalid Usage\nPlease add in the USER you want to warn`,
+					color  : colors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
+	{
+		names      : [`ban`],
+		description: `ban a user`,
+		usage      : `ban [VALUE]`,
+		values     : [`{@USER} [REASON]`, `{@USER_ID} [REASON]`],
+		examples   : [`kick @user`,`kick 148294123 avoiding ban`],
+		tags       : [`moderation`],
+		conditions : [
+			{cond: channelChecks.isServer},
+			{cond: Uperms.BanMembers},
+			{cond: Bperms.BanMembers}
+		],
+		effect     : function (message, args, account, prefix, msg) {
+			let modChannel = false;
+			let canDelete = checkPerms({
+				message: message,
+				user   : `bot`,
+				perms  : `MANAGE_MESSAGES`
+			});
+			let nums = getNumbers(message.content);
+			let reason = `No reason supplied`;
+
+			if (args.length >= 2) {
+				reason = ``;
+				for (let i = 1; i < args.length; i++) {
+					reason += `${args[i]}`;
+				}
+			}
+			let serv = server.findServer(message.guild.id);
+			if (nums.length) {
+				client.fetchUser(nums[0]).then(function (user) {
+					let warningNum = `This user had 0 warnings.`;
+					if (serv.warnings[nums[0]] != null) {
+						warningNum = `This user had ${serverStuff[message.guild.id].warnings[nums[0]]} warnings.`;
+					}
+						let embed = new Discord.RichEmbed()
+							.setTitle(`BANNING <@${nums[0]}>`)
+							.setColor(colors.red)
+							.setDescription(`<@${nums[0]}> has been banned!\n**Reason:** ${reason}\nGiven by: <@${message.author.id}>`)
+							.setFooter(warningNum);
+						serv.sendMod({embed});
+
+					client.guilds.get(message.guild.id).members.get(nums[0]).ban({days: 0, reason: reason});
+
+					let embed2 = new Discord.RichEmbed()
+						.setDescription(`banned the user`)
+						.setColor(colors.purple);
+					message.channel.send({embed: embed2}).then(function (mess) {
+						if (canDelete) {
+							message.delete();
+							setTimeout(function () {
+								mess.delete();
+							}, 10000)
+						}
+					});
+
+				}).catch(function (err) {
+					sendBasicEmbed({
+						content: `That user doesn't exist.`,
+						color  : colors.red,
+						channel: message.channel
+					})
+				});
+
+			}
+			else {
+				sendBasicEmbed({
+					content: `Invalid Usage\nPlease add in the USER with the warnings you wish to remove`,
+					color  : colors.red,
+					channel: message.channel
+				})
+			}
+		}
+	},
 
 	/**OWNER**/
 	{
