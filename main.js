@@ -1263,13 +1263,17 @@ let server = function (data) {
 	this.warnings = data.warnings || {};
 };
 server.findServer = function (id) {
-	return new server(servers[id]) || false;
+	let serv = null;
+	for(let i =0;i<servers.length;i++){
+		if(servers[i].serverID === id){
+			serv = servers[i];
+			break;
+		}
+	}
+	return new server(serv) || false;
 };
 server.getServers = function () {
 	return servers
-};
-server.addServer = function (serv) {
-	servers[serv.serverID] = serv;
 };
 server.delete = function (ID) {
 	delete servers[ID];
@@ -3609,7 +3613,7 @@ let commands = [
 					let embed = new Discord.RichEmbed()
 						.setColor(colors.purple)
 						.setTitle(`ModChannel Set`)
-						.setDescription(`<@${message.author.is}> Has set this channel to be the mod channel.`);
+						.setDescription(`<@${message.author.id}> Has set this channel to be the mod channel.`);
 					serv.sendMod({embed});
 				}
 				else {
