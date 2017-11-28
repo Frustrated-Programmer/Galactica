@@ -4492,6 +4492,7 @@ client.on(`guildCreate`,function(guild){
 	let serv = new server();
 	serv.serverID = guild.id;
 	serv.name = guild.name;
+	servers.push(serv);
 });
 client.on(`ready`, function () {
 	checkerFunction();
