@@ -1,11 +1,11 @@
 /**setup**/
 const Jimp = require(`jimp`);
 const fs = require(`fs`);
+let otherJson = require(`./other.json`);
 let factions = [], servers = [], accounts = [];
 
 
 
-let otherJson = require(`./other.json`);
 let universalPrefix = otherJson.uniPre;
 const Discord = require(`discord.js`);
 const client = new Discord.Client();
@@ -32,6 +32,7 @@ function channelClear(channel, msgnum) {
 	}
 }
 function checkPerms(args) {
+	console.log(args.perms);
 	/***ARGS return
 	 * message: the message that got sent
 	 * user: defines whether the user is "bot" or "user"
@@ -41,7 +42,6 @@ function checkPerms(args) {
 		channelPerms: false,//is channel overriding?
 		serverPerms : false//is overall server role overriding
 	};
-
 	let user;//which user shall we check on
 	//gets the member
 	if (args.user === `bot`) {
@@ -4657,44 +4657,41 @@ client.on(`message`, function (message) {
 				})
 			}
 			else {
-				switch (command) {
-					case `yes` || `1` || `1.` || `${serverPrefix}yes` || `${universalPrefix}yes`:
-						let confirm = confirmations[needToConfirm];
-						switch (confirm.type) {
-							case `warp`:
-								sendBasicEmbed({
-									content: `Warping to Galaxy \`${confirm.to[0] + 1}\` Position \`${confirm.to[2] + 1}x${confirm.to[1] + 1}\`\nWill take about ${getTimeRemaining(confirm.expiresTime)}`,
-									color  : colors.blue,
-									channel: message.channel
-								});
-								waitTimes.push({
-									expires : Date.now() + confirm.expiresTime,
-									to      : confirm.to,
-									type    : `warp`,
-									playerID: message.author.id
-								});
-								break;
-						}
-						confirmations.splice(needToConfirm, 1);
-						break;
-					case `no` || `2` || `2.` || `${serverPrefix}no` || `${universalPrefix}no`:
-						console.log(`no`);
+				let confirm = confirmations[needToConfirm];
+			}
+			if(command === `yes` ||command === `1` || command === `1.` || command ===`${serverPrefix}yes` || command ===`${universalPrefix}yes`){
+				switch (confirm.type) {
+					case `warp`:
 						sendBasicEmbed({
-							content: `Canceled the \`${confirm.type}\`.`,
-							color  : colors.red,
+							content: `Warping to Galaxy \`${confirm.to[0] + 1}\` Position \`${confirm.to[2] + 1}x${confirm.to[1] + 1}\`\nWill take about ${getTimeRemaining(confirm.expiresTime)}`,
+							color  : colors.blue,
 							channel: message.channel
 						});
-						confirmations.splice(needToConfirm, 1);
-						break;
-					default:
-						sendBasicEmbed({
-							content: `Unknown answer.\nCanceled the confirmation.`,
-							color  : colors.red,
-							channel: message.channel
+						waitTimes.push({
+							expires : Date.now() + confirm.expiresTime,
+							to      : confirm.to,
+							type    : `warp`,
+							playerID: message.author.id
 						});
-						confirmations.splice(needToConfirm, 1);
 						break;
 				}
+				confirmations.splice(needToConfirm, 1);
+			}
+			else if(command === `no` ||command === `2` || command === `2.` || command ===`${serverPrefix}no` || command ===`${universalPrefix}no`){
+				sendBasicEmbed({
+					content: `Canceled the \`${confirm.type}\`.`,
+					color  : colors.red,
+					channel: message.channel
+				});
+				confirmations.splice(needToConfirm, 1);
+			}
+			else{
+				sendBasicEmbed({
+					content: `Unknown answer.\nCanceled the confirmation.`,
+					color  : colors.red,
+					channel: message.channel
+				});
+				confirmations.splice(needToConfirm, 1);
 			}
 		}
 		else {
