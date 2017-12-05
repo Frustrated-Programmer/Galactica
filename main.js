@@ -5,7 +5,6 @@ let otherJson = require(`./other.json`);
 let factions = [], servers = [], accounts = [];
 
 
-
 let universalPrefix = otherJson.uniPre;
 const Discord = require(`discord.js`);
 const client = new Discord.Client();
@@ -1265,13 +1264,13 @@ let server = function (data) {
 };
 server.findServer = function (id) {
 	let serv = null;
-	for(let i =0;i<servers.length;i++){
-		if(servers[i].serverID === id){
+	for (let i = 0; i < servers.length; i++) {
+		if (servers[i].serverID === id) {
 			serv = servers[i];
 			break;
 		}
 	}
-	console.log(serv,id);
+	console.log(serv, id);
 	return new server(serv) || false;
 };
 server.getServers = function () {
@@ -3739,7 +3738,7 @@ let commands = [
 						color  : colors.purple,
 						channel: message.channel
 					});
-					if (serverStuff[message.channel.guild.id].modChannel != null) {
+					if (serv.modChannel != null) {
 						let embed = new Discord.RichEmbed()
 							.setTitle(`Goodbye Message`)
 							.setDescription(`Goodbye message was changed by <@!${message.author.id}> to\n${goodbyeTxt}`)
@@ -3850,7 +3849,7 @@ let commands = [
 					if (serv.warnings[nums[0]] != null) {
 						serv.warnings[nums[0]]++;
 						warningNum = `This the ` + serv.warnings[nums[0]];
-						let num = `${serverStuff[message.guild.id].warnings[nums[0]]}`;
+						let num = `${serv.warnings[nums[0]]}`;
 						switch (num[num.length - 1]) {
 							case `1`:
 								warningNum += `st`;
@@ -3868,7 +3867,7 @@ let commands = [
 						warningNum += ` warning given to this user.`;
 					}
 					else {
-						serverStuff[message.guild.id].warnings[nums[0]] = 1;
+						serv.warnings[nums[0]] = 1;
 					}
 					let embed = new Discord.RichEmbed()
 						.setTitle(`WARNING <@!${nums[0]}>`)
@@ -3890,14 +3889,12 @@ let commands = [
 					});
 
 				}).catch(function (err) {
-					if(err) {
-						console.log(err);
-						sendBasicEmbed({
-							content: `that user doesn't exist`,
-							color  : colors.red,
-							channel: message.channel
-						})
-					}
+					console.log(err);
+					sendBasicEmbed({
+						content: `that user doesn't exist`,
+						color  : colors.red,
+						channel: message.channel
+					})
 				});
 
 			}
@@ -3928,7 +3925,8 @@ let commands = [
 				user   : `bot`,
 				perms  : `MANAGE_MESSAGES`
 			});
-			if (serverStuff[message.guild.id].modChannel != null) {
+			let serv = server.findServer(message.guild.id);
+			if (serv.modChannel != null) {
 				modChannel = true;
 			}
 			let nums = getNumbers(message.content);
@@ -3939,7 +3937,6 @@ let commands = [
 					reason += `${args[i]}`;
 				}
 			}
-			let serv = server.findServer(message.guild.id);
 			if (nums.length) {
 
 				client.fetchUser(nums[0]).then(function (user) {
@@ -3979,7 +3976,7 @@ let commands = [
 						})
 					}
 				}).catch(function (err) {
-					if(err) {
+					if (err) {
 						console.log(err);
 						sendBasicEmbed({
 							content: `That user doesn't exist`,
@@ -4031,8 +4028,8 @@ let commands = [
 			if (nums.length) {
 				client.fetchUser(nums[0]).then(function (user) {
 					let warningNum = `This user had 0 warnings.`;
-					if (serverStuff[message.guild.id].warnings[nums[0]] != null) {
-						warningNum = `This user had ${serverStuff[message.guild.id].warnings[nums[0]]} warnings.`;
+					if (serv.warnings[nums[0]] != null) {
+						warningNum = `This user had ${serv.warnings[nums[0]]} warnings.`;
 					}
 					sendBasicEmbed({
 						content: `You have been kicked from the server: \`${message.guild.name} \`\nReason: ${reason}`,
@@ -4109,7 +4106,7 @@ let commands = [
 				client.fetchUser(nums[0]).then(function (user) {
 					let warningNum = `This user had 0 warnings.`;
 					if (serv.warnings[nums[0]] != null) {
-						warningNum = `This user had ${serverStuff[message.guild.id].warnings[nums[0]]} warnings.`;
+						warningNum = `This user had ${serv.warnings[nums[0]]} warnings.`;
 					}
 					let embed = new Discord.RichEmbed()
 						.setTitle(`BANNING <@${nums[0]}>`)
@@ -4654,7 +4651,7 @@ client.on(`message`, function (message) {
 			else {
 				let confirm = confirmations[needToConfirm];
 			}
-			if(command === `yes` ||command === `1` || command === `1.` || command ===`${serverPrefix}yes` || command ===`${universalPrefix}yes`){
+			if (command === `yes` || command === `1` || command === `1.` || command === `${serverPrefix}yes` || command === `${universalPrefix}yes`) {
 				switch (confirm.type) {
 					case `warp`:
 						sendBasicEmbed({
@@ -4672,7 +4669,7 @@ client.on(`message`, function (message) {
 				}
 				confirmations.splice(needToConfirm, 1);
 			}
-			else if(command === `no` ||command === `2` || command === `2.` || command ===`${serverPrefix}no` || command ===`${universalPrefix}no`){
+			else if (command === `no` || command === `2` || command === `2.` || command === `${serverPrefix}no` || command === `${universalPrefix}no`) {
 				sendBasicEmbed({
 					content: `Canceled the \`${confirm.type}\`.`,
 					color  : colors.red,
@@ -4680,7 +4677,7 @@ client.on(`message`, function (message) {
 				});
 				confirmations.splice(needToConfirm, 1);
 			}
-			else{
+			else {
 				sendBasicEmbed({
 					content: `Unknown answer.\nCanceled the confirmation.`,
 					color  : colors.red,
