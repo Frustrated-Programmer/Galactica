@@ -3891,6 +3891,7 @@ let commands = [
 
 				}).catch(function (err) {
 					if(err) {
+						console.log(err);
 						sendBasicEmbed({
 							content: `that user doesn't exist`,
 							color  : colors.red,
