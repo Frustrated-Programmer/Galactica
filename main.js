@@ -3890,11 +3890,13 @@ let commands = [
 					});
 
 				}).catch(function (err) {
-					sendBasicEmbed({
-						content: `that user doesn't exist`,
-						color  : colors.red,
-						channel: message.channel
-					})
+					if(err) {
+						sendBasicEmbed({
+							content: `that user doesn't exist`,
+							color  : colors.red,
+							channel: message.channel
+						})
+					}
 				});
 
 			}
@@ -3938,6 +3940,7 @@ let commands = [
 			}
 			let serv = server.findServer(message.guild.id);
 			if (nums.length) {
+
 				client.fetchUser(nums[0]).then(function (user) {
 					if (serv.warnings[nums[0]] != null) {
 						sendBasicEmbed({
@@ -3975,11 +3978,14 @@ let commands = [
 						})
 					}
 				}).catch(function (err) {
-					sendBasicEmbed({
-						content: `That user doesn't exist`,
-						color  : colors.red,
-						channel: message.channel
-					})
+					if(err) {
+						console.log(err);
+						sendBasicEmbed({
+							content: `That user doesn't exist`,
+							color  : colors.red,
+							channel: message.channel
+						})
+					}
 				});
 
 
