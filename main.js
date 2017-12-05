@@ -1448,12 +1448,6 @@ const checks = {
 	}
 };
 const Uperms = {
-	ManageMembers : function (message) {
-		return {
-			val: checkPerms({user: `user`, message: message, perms: `MANAGE_MEMBERS`}),
-			msg: `You are missing \`ManageMembers\` perms`
-		}
-	},
 	ManageMessages: function (message) {
 		return {
 			val: checkPerms({user: `user`, message: message, perms: `MANAGE_MESSAGES`}),
@@ -1480,12 +1474,6 @@ const Uperms = {
 	}
 };
 const Bperms = {
-	ManageMembers : function (message) {
-		return {
-			val: checkPerms({user: `bot`, message: message, perms: `MANAGE_MEMBERS`}),
-			msg: `Bot is missing \`ManageMembers\` perms`
-		}
-	},
 	ManageMessages: function (message) {
 		return {
 			val: checkPerms({user: `bot`, message: message, perms: `MANAGE_MESSAGES`}),
@@ -3448,7 +3436,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.ManageMembers}
+			{cond: Uperms.ManageMessages}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			if (args[0].length) {
@@ -3833,7 +3821,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.ManageMembers}
+			{cond: Uperms.KickMembers}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let modChannel = false;
@@ -3928,7 +3916,7 @@ let commands = [
 		tags       : [`moderation`],
 		conditions : [
 			{cond: channelChecks.isServer},
-			{cond: Uperms.ManageMembers}
+			{cond: Uperms.KickMembers}
 		],
 		effect     : function (message, args, account, prefix, msg) {
 			let modChannel = false;
